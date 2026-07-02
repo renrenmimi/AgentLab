@@ -13,14 +13,28 @@ AI agent 教学应用的项目背景。新会话请先读完这份文件再动�
 （做真实模式必须亲手写 agent 循环；做讲解必须把概念想透）。
 所以：代码要简单可读优先于工程完备，解释要多，别过度抽象。
 
-## 课程路线图（六章）
+## 学习路线（三站，已上线）
 
-1. **模型** — 极简聊天框，体会 LLM 只是"文字进、文字出"，它没有手
-2. **对话** — 透视面板登场：看到每次都是把整个历史数组重发一遍（API 无状态）
-3. **工具** — 学习者当 agent 的"手"：模型只会请求，执行永远在你这边
-4. **循环** ✅ 已完成（MVP）— 单步推进一次完整 agent 运行
-5. **权限** — 循环里加"允许 / 拒绝"关卡（对应 Claude Code 的权限模式）
-6. **造一个** — 学习者自己写个小工具，接真实 Claude API 跑起来
+用户反馈后从"六章"重组为"三站"闭环：先懂 → 再看 → 亲手写。
+
+目标受众下限：**刚会 print("hello world") 的完全新手**。为此有三个机制：
+① 术语词典 `lib/glossary.tsx`——正文里 `[[key:显示文字]]` 标记的词可点击弹出
+小白解释（API、数组、token 等），`RichText` 组件负责渲染；
+② `/build` 先教后练——每个空先出一张 🎒"新知识"卡（`Blank.lesson` 字段）教会
+这个空需要的概念，再提问；③ 开场幕从 print("hello world") 出发建立信心。
+
+1. **`/` 什么是 Agent** ✅ — 六幕 CSS 动画（print 开场 → 文字进出 → 没有手 →
+   工具=手 → 循环 → 公式揭晓）。数据在 `lib/intro.ts`，页面 `app/page.tsx`。
+2. **`/loop` 看它怎么跑** ✅ — 慢动作可视化：对话面板 + messages 数组透视 +
+   代码对照（31 行 agent 骨架逐步点亮）。数据 `lib/scenario.ts`，页面
+   `app/loop/page.tsx`。
+3. **`/build` 亲手写一个** ✅ — 同一份 31 行骨架挖 8 个空，每空先教后练；
+   配常见错误的**针对性纠错**（如 role 填 tool → 解释为何是 user），
+   3 次答错解锁"看答案"；全对后"运行"回放控制台动画 + 彩带庆祝。
+   数据 `lib/build.ts`，页面 `app/build/page.tsx`。
+
+后续想法（原六章路线的剩余部分）：权限关卡（允许/拒绝工具执行）、
+接真实 Claude API 的真实模式。
 
 ## 关键设计决策
 
@@ -37,9 +51,12 @@ AI agent 教学应用的项目背景。新会话请先读完这份文件再动�
 
 - Next.js 15 (App Router) + TypeScript + React 19，纯 CSS（无 Tailwind，
   刻意减少依赖）。深色模式用 `prefers-color-scheme` 自适应。
-- 结构刻意保持两个核心文件：`lib/scenario.ts`（教学数据 + 类型）、
-  `app/page.tsx`（全部 UI）。新章节可以各自一个 route（`app/ch1/page.tsx` 等），
-  但保持"数据文件 + 页面文件"的简单模式。
+- 每一站都是"数据文件 + 页面文件"一对：`lib/intro.ts`↔`app/page.tsx`、
+  `lib/scenario.ts`↔`app/loop/page.tsx`、`lib/build.ts`↔`app/build/page.tsx`。
+  顶部三站导航在 `app/nav.tsx`（layout 里挂载）。新增站点沿用这个模式。
+- **中英双语**：`lib/i18n.tsx` 提供 `LangProvider`/`useLang`/`t()` 和界面词典 `ui`；
+  所有数据文件的文案都是 `{ zh, en }` 成对（类型 `L`），语言偏好存 localStorage，
+  导航栏「中 / EN」切换。新增文案必须两种语言都写。
 - 真实模式接 API 时用官方 `@anthropic-ai/sdk`。
 
 ## 环境注意

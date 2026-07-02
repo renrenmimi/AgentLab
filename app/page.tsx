@@ -1,152 +1,256 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { steps, type ChatItem, type MsgCard } from "@/lib/scenario";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { scenes, stage } from "@/lib/intro";
+import { ui, useLang, t, type Lang } from "@/lib/i18n";
+import { RichText } from "@/lib/glossary";
 
-export default function LoopChapter() {
+export default function IntroPage() {
   const [cursor, setCursor] = useState(0);
   const [auto, setAuto] = useState(false);
+  const { lang } = useLang();
 
-  const atEnd = cursor >= steps.length - 1;
-  const nextAction = atEnd ? null : steps[cursor + 1].action;
-
-  const state = useMemo(() => {
-    const chat: ChatItem[] = [];
-    const msgs: MsgCard[] = [];
-    let round = 0;
-    let stopReason: string | null = null;
-    let tokens = 0;
-    for (let i = 0; i <= cursor; i++) {
-      const s = steps[i];
-      if (s.chat) chat.push(...s.chat);
-      if (s.msgs) msgs.push(...s.msgs);
-      if (s.round !== undefined) round = s.round;
-      if (s.stopReason !== undefined) stopReason = s.stopReason;
-      if (s.tokens !== undefined) tokens = s.tokens;
-    }
-    return { chat, msgs, round, stopReason, tokens };
-  }, [cursor]);
+  const atEnd = cursor >= scenes.length - 1;
+  const scene = scenes[cursor];
+  const nextAction = atEnd ? null : scenes[cursor + 1].action;
 
   useEffect(() => {
     if (!auto) return;
-    if (cursor >= steps.length - 1) {
+    if (cursor >= scenes.length - 1) {
       setAuto(false);
       return;
     }
     const t = setTimeout(
-      () => setCursor((c) => Math.min(c + 1, steps.length - 1)),
-      1800
+      () => setCursor((c) => Math.min(c + 1, scenes.length - 1)),
+      7000
     );
     return () => clearTimeout(t);
   }, [auto, cursor]);
 
-  const advance = () => setCursor((c) => Math.min(c + 1, steps.length - 1));
-  const reset = () => {
-    setCursor(0);
-    setAuto(false);
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "BUTTON" || tag === "INPUT" || tag === "TEXTAREA" || tag === "A")
+        return;
+      if (e.key === " " || e.key === "ArrowRight") {
+        e.preventDefault();
+        setCursor((c) => Math.min(c + 1, scenes.length - 1));
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setCursor((c) => Math.max(c - 1, 0));
+        setAuto(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const sceneLabel =
+    lang === "zh" ? `第 ${cursor + 1} 幕` : `Scene ${cursor + 1}`;
 
   return (
     <main className="page">
-      <div className="header">
-        <h1>AgentLab · 看得见的 Agent</h1>
-        <span className="badge">第 4 章 · 循环</span>
-      </div>
-
-      <div className="narration appear" key={`n-${cursor}`}>
-        {steps[cursor].narration}
-      </div>
-
-      <div className="grid">
-        <section className="panel" aria-label="对话面板">
-          <div className="panel-title">对话 —— 普通人看到的样子</div>
-          {state.chat.map((item, i) => (
-            <ChatRow
+      <header className="header">
+        <div>
+          <h1 className="page-title">{t(ui.intro.title, lang)}</h1>
+          <p className="subtitle">{t(ui.intro.subtitle, lang)}</p>
+        </div>
+        <div className="progress" aria-label="progress">
+          {scenes.map((s, i) => (
+            <button
               key={i}
-              item={item}
-              pending={
-                item.kind === "tool_call" && i === state.chat.length - 1
-              }
+              className={`pdot ${i < cursor ? "done" : ""} ${i === cursor ? "cur" : ""}`}
+              onClick={() => {
+                setCursor(i);
+                setAuto(false);
+              }}
+              title={`${i + 1}. ${t(s.title, lang)}`}
+              aria-label={`${i + 1}. ${t(s.title, lang)}`}
             />
           ))}
-        </section>
+        </div>
+      </header>
 
-        <section className="panel" aria-label="透视面板">
-          <div className="panel-title">透视 —— 发给 API 的 messages 数组</div>
-          {state.msgs.map((card, i) => (
-            <div
-              key={i}
-              className={`card appear ${
-                card.color === "purple"
-                  ? "card-purple"
-                  : card.color === "teal"
-                    ? "card-teal"
-                    : ""
-              }`}
-            >
-              <div className="card-tag">{card.tag}</div>
-              <div className={`card-body ${card.mono ? "mono" : ""}`}>
-                {card.body}
-              </div>
-            </div>
-          ))}
-          <div className="status">
-            <span>循环第 {state.round} 轮</span>
-            <span className={state.stopReason === "end_turn" ? "done" : ""}>
-              stop_reason: {state.stopReason ?? "—"}
-            </span>
-            <span>累计 {state.tokens.toLocaleString()} tokens</span>
-          </div>
-        </section>
-      </div>
+      <section className="narration appear" key={`n-${cursor}-${lang}`}>
+        <div className="n-head">
+          <span className="n-step">
+            {sceneLabel}
+            <i>/{scenes.length}</i>
+          </span>
+          <h2>{t(scene.title, lang)}</h2>
+        </div>
+        <p className="n-body">
+          <RichText text={t(scene.text, lang)} lang={lang} />
+        </p>
+      </section>
+
+      <section className="stage-panel appear" key={`s-${cursor}-${lang}`}>
+        <SceneVisual id={cursor} lang={lang} />
+      </section>
 
       <div className="controls">
-        <button className="btn" onClick={reset} disabled={cursor === 0}>
-          重置
+        <button
+          className="btn"
+          onClick={() => {
+            setCursor((c) => Math.max(c - 1, 0));
+            setAuto(false);
+          }}
+          disabled={cursor === 0}
+        >
+          ←
         </button>
         {nextAction ? (
-          <button className="btn btn-primary" onClick={advance}>
-            {nextAction}
+          <button
+            className="btn btn-primary"
+            onClick={() => setCursor((c) => Math.min(c + 1, scenes.length - 1))}
+          >
+            {t(nextAction, lang)}
           </button>
         ) : (
-          <button className="btn btn-primary" onClick={reset}>
-            重新播放
-          </button>
+          <Link className="btn btn-primary" href="/loop">
+            {t(ui.intro.toLoop, lang)}
+          </Link>
         )}
         <button
           className="btn"
           onClick={() => setAuto((a) => !a)}
           disabled={atEnd}
         >
-          {auto ? "暂停" : "自动播放"}
+          {auto ? t(ui.common.pause, lang) : t(ui.common.autoplay, lang)}
         </button>
-        <span className="step-count">
-          第 {cursor + 1} / {steps.length} 步
+        <span className="hint">
+          <kbd>{t(ui.common.kbdSpace, lang)}</kbd> {t(ui.intro.kbdNext, lang)} ·{" "}
+          <kbd>←</kbd> {t(ui.intro.kbdPrev, lang)}
         </span>
       </div>
     </main>
   );
 }
 
-function ChatRow({ item, pending }: { item: ChatItem; pending: boolean }) {
-  switch (item.kind) {
-    case "user":
-      return <div className="bubble-user appear">{item.text}</div>;
-    case "assistant":
-      return <div className="bubble-assistant appear">{item.text}</div>;
-    case "tool_call":
+function SceneVisual({ id, lang }: { id: number; lang: Lang }) {
+  switch (id) {
+    // 第 1 幕：print("hello world") —— 从学习者唯一会的那行代码出发
+    case 0:
       return (
-        <div className="tool-chip appear">
-          <div className="tool-chip-head">
-            工具调用请求
-            {pending && <span className="tool-pending">等待执行</span>}
+        <div className="stage">
+          <div className="code-window sc-term">
+            <div className="code-bar">
+              <span className="wdot wdot-r" />
+              <span className="wdot wdot-y" />
+              <span className="wdot wdot-g" />
+              <span className="code-file">hello.py</span>
+            </div>
+            <div className="sc-type-area">
+              <div className="sc-typed">print(&quot;hello world&quot;)</div>
+              <div className="sc-typed-out">hello world</div>
+            </div>
           </div>
-          <div className="mono" style={{ marginTop: 4, color: "var(--teal)" }}>
-            {item.name}(&quot;{item.arg}&quot;)
+          <div className="sc-caption">{t(stage.s0cap, lang)}</div>
+        </div>
+      );
+
+    // 第 2 幕：文字进 → 文字出
+    case 1:
+      return (
+        <div className="stage">
+          <div className="sc-row">
+            <div className="sc-bubble sc-in">{t(stage.s1q, lang)}</div>
+            <div className="sc-brain">
+              <span className="sc-brain-emoji">🧠</span>
+              <span className="sc-brain-label">{t(stage.brain, lang)}</span>
+            </div>
+            <div className="sc-bubble sc-out">{t(stage.s1a, lang)}</div>
+          </div>
+          <div className="sc-caption">{t(stage.s1cap, lang)}</div>
+        </div>
+      );
+
+    // 第 3 幕：它没有手
+    case 2:
+      return (
+        <div className="stage">
+          <div className="sc-row">
+            <div className="sc-bubble sc-in">{t(stage.s2q, lang)}</div>
+            <div className="sc-brain sc-shake">
+              <span className="sc-brain-emoji">🧠</span>
+              <span className="sc-brain-label">{t(stage.brain, lang)}</span>
+            </div>
+            <div className="sc-bubble sc-out sc-sad">{t(stage.s2a, lang)}</div>
+          </div>
+          <div className="sc-locks">
+            <span>
+              📁<i>🔒</i>
+            </span>
+            <span>
+              🌐<i>🔒</i>
+            </span>
+            <span>
+              ⌨️<i>🔒</i>
+            </span>
+          </div>
+          <div className="sc-caption">{t(stage.s2cap, lang)}</div>
+        </div>
+      );
+
+    // 第 4 幕：工具 = 手（请求飞过去，结果飞回来，无限循环）
+    case 3:
+      return (
+        <div className="stage">
+          <div className="sc-row sc-duo">
+            <div className="sc-actor">
+              <span>🧠</span>
+              {t(stage.actor1, lang)}
+              <small>{t(stage.actor1sub, lang)}</small>
+            </div>
+            <div className="sc-lane">
+              <div className="sc-fly sc-req mono">
+                read_file(&quot;package.json&quot;)
+              </div>
+              <div className="sc-fly sc-res mono">
+                {'{ "name": "agentlab", … }'}
+              </div>
+            </div>
+            <div className="sc-actor">
+              <span>🛠️</span>
+              {t(stage.actor2, lang)}
+              <small>{t(stage.actor2sub, lang)}</small>
+            </div>
+          </div>
+          <div className="sc-caption">{t(stage.s3cap, lang)}</div>
+        </div>
+      );
+
+    // 第 5 幕：循环
+    case 4:
+      return (
+        <div className="stage">
+          <div className="loop-wrap">
+            <div className="loop-node ln1">{t(stage.n1, lang)}</div>
+            <div className="loop-node ln2">{t(stage.n2, lang)}</div>
+            <div className="loop-node ln3">{t(stage.n3, lang)}</div>
+            <div className="loop-node ln4">{t(stage.n4, lang)}</div>
+            <div className="loop-dot" />
+            <div className="loop-exit">{t(stage.exit, lang)}</div>
           </div>
         </div>
       );
-    case "tool_output":
-      return <div className="tool-output appear">{item.text}</div>;
+
+    // 第 6 幕：公式
+    default:
+      return (
+        <div className="stage">
+          <div className="formula">
+            <span className="f-piece f-arr mono">{t(stage.arr, lang)}</span>
+            <span className="f-op">+</span>
+            <span className="f-piece f-loop">
+              <i>↻</i> {t(stage.loopWord, lang)}
+            </span>
+            <span className="f-op">=</span>
+            <span className="f-piece f-agent">Agent</span>
+          </div>
+          <div className="sc-caption">{t(stage.s5cap, lang)}</div>
+        </div>
+      );
   }
 }
