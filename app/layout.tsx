@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Nav from "./nav";
 import { LangProvider } from "@/lib/i18n";
+import { ThemeProvider, ShellProvider, themeScript } from "./theme-provider";
+import Sidebar from "./sidebar";
+import Toolbar from "./toolbar";
+import CommandPalette from "./command-palette";
 
 export const metadata: Metadata = {
   title: "AgentLab — 看得见的 Agent · See Inside the Agent",
@@ -15,11 +18,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        {/* No-flash theme: set data-theme before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <LangProvider>
-          <Nav />
-          {children}
+          <ThemeProvider>
+            <ShellProvider>
+              <div className="app-shell">
+                <Sidebar />
+                <div className="main-col">
+                  <Toolbar />
+                  <main className="workspace">{children}</main>
+                </div>
+              </div>
+              <CommandPalette />
+            </ShellProvider>
+          </ThemeProvider>
         </LangProvider>
         <div className="grain" aria-hidden />
       </body>

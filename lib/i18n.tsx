@@ -55,6 +55,36 @@ export const ui = {
     stop3: { zh: "亲手写一个", en: "Write One Yourself" },
   },
 
+  // ---------- Research OS shell (sidebar / toolbar / command palette) ----------
+  brand: {
+    name: { zh: "AgentLab", en: "AgentLab" },
+    tagline: {
+      zh: "看得见的 Agent · See Inside the Agent",
+      en: "See Inside the Agent · 看得见的 Agent",
+    },
+  },
+  side: {
+    status: { zh: "STATUS", en: "STATUS" },
+    progress: { zh: "三站学习闭环", en: "3-stop learning loop" },
+  },
+  toolbar: {
+    hideNav: { zh: "隐藏导航栏", en: "Hide navigation" },
+    showNav: { zh: "显示导航栏", en: "Show navigation" },
+    search: { zh: "搜索 / Search…", en: "Search…" },
+  },
+  cmdk: {
+    placeholder: { zh: "搜索三站 / Search…", en: "Search stops…" },
+    empty: { zh: "没有匹配项", en: "No matches" },
+    navHint: {
+      zh: "↑↓ 选择 · ↵ 跳转 · esc 关闭",
+      en: "↑↓ navigate · ↵ open · esc close",
+    },
+  },
+  theme: {
+    toDark: { zh: "切到深色模式", en: "Switch to dark mode" },
+    toLight: { zh: "切到浅色模式", en: "Switch to light mode" },
+  },
+
   common: {
     reset: { zh: "重置", en: "Reset" },
     autoplay: { zh: "自动播放", en: "Auto-play" },
