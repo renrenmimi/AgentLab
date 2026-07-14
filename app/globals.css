@@ -970,75 +970,6 @@ body::after {
   }
 }
 
-/* ---------- 顶部导航（三站） ---------- */
-
-.nav {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 12px max(24px, calc((100% - 1120px) / 2 + 24px));
-  background: color-mix(in srgb, var(--bg) 76%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
-}
-
-.nav-brand {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  text-decoration: none;
-  color: var(--text);
-  font-weight: 650;
-  font-size: 16px;
-}
-
-.nav-brand-sub {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-3);
-}
-
-.nav-stops {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.nav-stop {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  text-decoration: none;
-  color: var(--text-2);
-  border: 1px solid transparent;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.nav-stop:hover {
-  background: var(--panel-2);
-}
-
-.nav-stop.on {
-  background: var(--accent-bg);
-  color: var(--accent-text);
-  font-weight: 600;
-}
-
-.nav-num {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 10px;
-  opacity: 0.6;
-  margin-right: 6px;
-}
-
 .page-title {
   font-size: 19px;
   font-weight: 650;
@@ -1054,13 +985,6 @@ body::after {
   background: linear-gradient(135deg, var(--accent-2), var(--teal));
   margin-right: 10px;
   transform: rotate(45deg);
-}
-
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
 }
 
 .lang-switch {
