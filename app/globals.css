@@ -1710,8 +1710,8 @@ a.btn {
   transform: translateX(-50%);
   width: max-content;
   max-width: min(280px, 78vw);
-  background: var(--panel-solid);
-  border: 1px solid var(--border);
+  background: var(--elevated);
+  border: 1px solid var(--border-strong);
   border-radius: 12px;
   padding: 10px 13px;
   font-size: 12.5px;
@@ -1720,9 +1720,18 @@ a.btn {
   color: var(--text-2);
   text-align: left;
   white-space: normal;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow);
   z-index: 50;
-  animation: popFade 0.2s ease;
+}
+
+/* 术语弹窗改由 portal 渲染到 <body>，用 fixed 定位（top/left 由 JS 内联给出），
+   从而逃出 .narration 等带 overflow:hidden 容器的裁切；坐标已在 JS 里夹进视口。 */
+.term-pop-fixed {
+  position: fixed;
+  bottom: auto;
+  transform: none;
+  margin: 0;
+  z-index: 1000;
 }
 
 .term-pop b {
@@ -1735,6 +1744,59 @@ a.btn {
 @keyframes popFade {
   from {
     opacity: 0;
+  }
+}
+
+/* 术语弹窗的小箭头（caret）：随上/下摆放翻转，水平位置由 JS 内联给出，
+   始终大致指向术语。用一个旋转 45° 的方块、只描朝外的两条边实现。 */
+.term-pop-caret {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--elevated);
+  border: 1px solid var(--border-strong);
+  transform: translateX(-50%) rotate(45deg);
+  pointer-events: none;
+}
+
+.term-pop-bottom .term-pop-caret {
+  top: -5px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.term-pop-top .term-pop-caret {
+  bottom: -5px;
+  border-left: none;
+  border-top: none;
+}
+
+.term-pop-bottom {
+  animation: termPopDown 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.term-pop-top {
+  animation: termPopUp 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes termPopDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.97);
+  }
+}
+
+@keyframes termPopUp {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .term-pop-top,
+  .term-pop-bottom {
+    animation: none;
   }
 }
 
