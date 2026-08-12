@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { steps, agentCode, type ChatItem } from "@/lib/scenario";
+import { steps, agentCode, type ChatItem, type MsgCard } from "@/lib/scenario";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { RichText } from "@/lib/glossary";
 
@@ -19,23 +19,27 @@ export default function LoopChapter() {
   // 把第 0..cursor 步的增量数据累积成当前画面
   const state = useMemo(() => {
     const chat: ChatItem[] = [];
-    const msgs: (typeof steps)[number]["msgs"] = [];
+    const msgs: MsgCard[] = [];
     let round = 0;
     let stopReason: string | null = null;
     let tokens = 0;
     for (let i = 0; i <= cursor; i++) {
       const s = steps[i];
       if (s.chat) chat.push(...s.chat);
-      if (s.msgs) msgs!.push(...s.msgs);
+      if (s.msgs) msgs.push(...s.msgs);
       if (s.round !== undefined) round = s.round;
       if (s.stopReason !== undefined) stopReason = s.stopReason;
       if (s.tokens !== undefined) tokens = s.tokens;
     }
-    return { chat, msgs: msgs!, round, stopReason, tokens };
+    return { chat, msgs, round, stopReason, tokens };
   }, [cursor]);
 
   const arrayLen = state.msgs.filter((m) => !m.sys).length;
   const tokens = useCountUp(state.tokens);
+
+  // 语法高亮只跟语言有关。tokens 滚动动画每帧都会重渲染本组件，
+  // 不缓存的话这 31 行会被重新 tokenize 几十次。
+  const codeLines = useMemo(() => code.map((line) => tokenize(line)), [code]);
 
   const advance = () => {
     setCursor((c) => Math.min(c + 1, steps.length - 1));
@@ -56,11 +60,12 @@ export default function LoopChapter() {
       setAuto(false);
       return;
     }
-    const t = setTimeout(
+    // 注意：别用 `t` 当变量名，会遮蔽 i18n 的 t() 翻译函数
+    const timer = setTimeout(
       () => setCursor((c) => Math.min(c + 1, steps.length - 1)),
       4000
     );
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [auto, cursor]);
 
   // 键盘：空格 / → 推进，← 回退
@@ -233,10 +238,10 @@ export default function LoopChapter() {
             <span className="code-file">agent.js</span>
           </div>
           <div className="code">
-            {code.map((line, i) => (
+            {codeLines.map((parts, i) => (
               <div key={i} className={`cl ${isFocused(i + 1) ? "on" : ""}`}>
                 <span className="ln">{i + 1}</span>
-                <span className="ct">{tokenize(line)}</span>
+                <span className="ct">{parts}</span>
               </div>
             ))}
           </div>
@@ -312,19 +317,22 @@ function ChatRow({
 }
 
 // tokens 数字滚动动画
+// 从「屏幕上当前显示的数字」起算（而不是上一个目标值），
+// 这样连点时不会从中途跳回上一个目标再滚动。
 function useCountUp(target: number, ms = 700) {
   const [val, setVal] = useState(target);
-  const prev = useRef(target);
+  const shown = useRef(target);
   useEffect(() => {
-    const from = prev.current;
-    prev.current = target;
+    const from = shown.current;
     if (from === target) return;
-    let raf: number;
+    let raf = 0;
     const t0 = performance.now();
     const tick = (t: number) => {
       const p = Math.min(1, (t - t0) / ms);
       const eased = 1 - Math.pow(1 - p, 3);
-      setVal(Math.round(from + (target - from) * eased));
+      const next = Math.round(from + (target - from) * eased);
+      shown.current = next;
+      setVal(next);
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);

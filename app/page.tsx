@@ -21,11 +21,12 @@ export default function IntroPage() {
       setAuto(false);
       return;
     }
-    const t = setTimeout(
+    // 注意：别用 `t` 当变量名，会遮蔽 i18n 的 t() 翻译函数
+    const timer = setTimeout(
       () => setCursor((c) => Math.min(c + 1, scenes.length - 1)),
       7000
     );
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [auto, cursor]);
 
   useEffect(() => {

@@ -25,7 +25,27 @@ export default function BuildChapter() {
   const [phase, setPhase] = useState<Phase>("write");
   const [runCount, setRunCount] = useState(0); // 已显示的运行输出行数
   const inputRef = useRef<HTMLInputElement>(null);
+  // 答对/看答案后延迟进入下一空的定时器。非 null 表示「正在切换中」，
+  // 用来挡住这段时间内的重复提交（否则连按两次回车会一次跳过两个空）。
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { lang } = useLang();
+
+  // 卸载时清掉待触发的定时器，避免离开页面后仍然 setState
+  useEffect(() => {
+    return () => {
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    };
+  }, []);
+
+  // 延迟推进到下一空；已有待触发的定时器时直接忽略
+  const scheduleAdvance = (ms: number) => {
+    if (advanceTimer.current) return;
+    advanceTimer.current = setTimeout(() => {
+      advanceTimer.current = null;
+      setSolved((s) => s + 1);
+      setFeedback({ kind: "idle", msg: "" });
+    }, ms);
+  };
 
   const template = codeTemplate[lang];
   const script = runScript[lang];
@@ -56,16 +76,15 @@ export default function BuildChapter() {
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
+    // 正在切换到下一空的这 1.4 秒里，忽略重复提交
+    if (advanceTimer.current) return;
     if (!current) return;
     const got = normalize(value);
     if (got === "") return;
 
     if (current.answers.map(normalize).includes(got)) {
       setFeedback({ kind: "right", msg: t(current.explain, lang) });
-      setTimeout(() => {
-        setSolved((s) => s + 1);
-        setFeedback({ kind: "idle", msg: "" });
-      }, 1400);
+      scheduleAdvance(1400);
       return;
     }
 
@@ -83,24 +102,27 @@ export default function BuildChapter() {
   };
 
   const showHint = () => {
+    if (advanceTimer.current) return;
     if (!current) return;
     setFeedback({ kind: "hint", msg: t(current.hint, lang) });
     inputRef.current?.focus();
   };
 
   const reveal = () => {
+    if (advanceTimer.current) return;
     if (!current) return;
     setFeedback({
       kind: "right",
       msg: `${t(ui.build.answerIs, lang)} ${current.display}. ${t(current.explain, lang)}`,
     });
-    setTimeout(() => {
-      setSolved((s) => s + 1);
-      setFeedback({ kind: "idle", msg: "" });
-    }, 1800);
+    scheduleAdvance(1800);
   };
 
   const restart = () => {
+    if (advanceTimer.current) {
+      clearTimeout(advanceTimer.current);
+      advanceTimer.current = null;
+    }
     setSolved(0);
     setValue("");
     setFeedback({ kind: "idle", msg: "" });
