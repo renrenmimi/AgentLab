@@ -107,10 +107,10 @@ export const ui = {
       en: "The code — that step was exactly these lines",
     },
     codeNote: {
-      zh: "这 31 行就是一个 agent 的完整骨架，没有省略关键步骤。下一站你会亲手把它写出来。",
-      en: "These 31 lines are a complete agent skeleton — nothing essential omitted. Next stop, you write it yourself.",
+      zh: "这 32 行就是一个 agent 的完整骨架，没有省略关键步骤。下一站你会亲手把它写出来。",
+      en: "These 32 lines are a complete agent skeleton — nothing essential omitted. Next stop, you write it yourself.",
     },
-    lines: { zh: "共 31 行", en: "31 lines" },
+    lines: { zh: "共 32 行", en: "32 lines" },
     toBuild: { zh: "下一站：亲手写一个 →", en: "Next stop: write one yourself →" },
   },
 

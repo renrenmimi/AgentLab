@@ -38,7 +38,7 @@ export default function LoopChapter() {
   const tokens = useCountUp(state.tokens);
 
   // 语法高亮只跟语言有关。tokens 滚动动画每帧都会重渲染本组件，
-  // 不缓存的话这 31 行会被重新 tokenize 几十次。
+  // 不缓存的话这 32 行会被重新 tokenize 几十次。
   const codeLines = useMemo(() => code.map((line) => tokenize(line)), [code]);
 
   const advance = () => {

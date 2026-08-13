@@ -52,6 +52,7 @@ export const agentCode: { zh: string[]; en: string[] } = {
     '  // 把“整个数组”原样发给模型（每一轮都全量重发）',
     '  const res = await client.messages.create({',
     '    model: "claude-sonnet-5",',
+    '    max_tokens: 4096, // 单次回复的长度上限：必填参数，漏了直接 400',
     '    system: "你是一个本地文件助手……", // system 提示词：单独参数',
     '    tools, // 工具说明书：告诉模型它可以“点”哪些菜',
     '    messages, // ← 数组本体',
@@ -85,6 +86,7 @@ export const agentCode: { zh: string[]; en: string[] } = {
     '  // Send the ENTIRE array to the model (resent in full, every round)',
     '  const res = await client.messages.create({',
     '    model: "claude-sonnet-5",',
+    '    max_tokens: 4096, // max length of one reply: required, omitting it returns 400',
     '    system: "You are a local file assistant…", // system prompt: a separate param',
     '    tools, // the tool menu: what the model may order',
     '    messages, // ← the array itself',
@@ -246,8 +248,8 @@ export const steps: Step[] = [
     stopReason: 'tool_use',
     tokens: 486,
     focus: [
-      [11, 18],
-      [20, 21],
+      [11, 19],
+      [21, 22],
     ],
   },
   {
@@ -293,9 +295,9 @@ export const steps: Step[] = [
       },
     ],
     focus: [
-      [23, 24],
-      [26, 27],
-      [29, 30],
+      [24, 25],
+      [27, 28],
+      [30, 31],
     ],
   },
   {
@@ -351,8 +353,8 @@ export const steps: Step[] = [
     stopReason: 'tool_use',
     tokens: 1120,
     focus: [
-      [11, 18],
-      [20, 21],
+      [11, 19],
+      [21, 22],
     ],
   },
   {
@@ -396,9 +398,9 @@ export const steps: Step[] = [
       },
     ],
     focus: [
-      [23, 24],
-      [26, 27],
-      [29, 30],
+      [24, 25],
+      [27, 28],
+      [30, 31],
     ],
   },
   {
@@ -428,8 +430,8 @@ export const steps: Step[] = [
         en: 'So how much code do I actually have to write?',
       },
       a: {
-        zh: '下面代码面板里的 31 行就是完整骨架，没有省略任何关键步骤。第 3 站你会一个空一个空把它填出来——到时候你会发现，每一行你都已经在这个页面上“按”过一遍了。',
-        en: 'The 31 lines in the panel below are the complete skeleton — nothing essential omitted. At the next stop you will fill it in blank by blank; you have already “pressed” every one of these lines on this page.',
+        zh: '下面代码面板里的 32 行就是完整骨架，没有省略任何关键步骤。第 3 站你会一个空一个空把它填出来——到时候你会发现，每一行你都已经在这个页面上“按”过一遍了。',
+        en: 'The 32 lines in the panel below are the complete skeleton — nothing essential omitted. At the next stop you will fill it in blank by blank; you have already “pressed” every one of these lines on this page.',
       },
     },
     chat: [
@@ -454,8 +456,8 @@ export const steps: Step[] = [
     stopReason: 'end_turn',
     tokens: 1834,
     focus: [
-      [23, 24],
-      [31, 31],
+      [24, 25],
+      [32, 32],
     ],
   },
 ];
