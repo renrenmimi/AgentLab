@@ -12,7 +12,7 @@ export type Scene = {
 export const scenes: Scene[] = [
   {
     title: {
-      zh: "你已经会编程了（真的）",
+      zh: "你已经具备了理解本站所需的全部基础",
       en: "You already know how to code (really)",
     },
     text: {
@@ -28,14 +28,14 @@ export const scenes: Scene[] = [
     },
   },
   {
-    action: { zh: "去认识今天的主角", en: "Meet the main character" },
+    action: { zh: "先认识大语言模型", en: "Meet the main character" },
     title: {
-      zh: "先认识主角：大语言模型",
+      zh: "第一个概念：大语言模型",
       en: "Meet the main character: the large language model",
     },
     text: {
       zh:
-        "ChatGPT、Claude 这些 AI 的本体叫“大语言模型”。它的全部能力可以概括成一句话：" +
+        "ChatGPT、Claude 背后的核心技术叫“大语言模型”。它的全部能力可以概括成一句话：" +
         "你给它一段文字，它接着生成一段文字。没有魔法，没有意识，除此之外什么都没有。" +
         "看下面的动画：问题进去，回答出来——这就是它会做的唯一一件事。",
       en:
@@ -45,11 +45,11 @@ export const scenes: Scene[] = [
     },
   },
   {
-    action: { zh: "让它干点真活试试", en: "Ask it to do real work" },
+    action: { zh: "让它做一件真实的事", en: "Ask it to do real work" },
     title: { zh: "但它没有手", en: "But it has no hands" },
     text: {
       zh:
-        "一旦你让它“干活”——读你电脑上的文件、查个网页、跑条命令——它就露馅了。" +
+        "一旦你让它“干活”——读你电脑上的文件、查个网页、跑条命令——这个局限就暴露了。" +
         "模型运行在别人的服务器上，你的电脑它一根手指都碰不到：读不了文件、上不了网、敲不了命令。" +
         "只会聊天的 AI，帮不了你干活。这就是“聊天机器人”和“agent”的分水岭。",
       en:
@@ -83,9 +83,9 @@ export const scenes: Scene[] = [
     },
     text: {
       zh:
-        "把刚才的过程包进一个循环：发给模型 → 它要工具就执行、结果塞回去 → 再发给模型……" +
-        "一圈一圈转，直到它说“做完了”为止。你不用规定转几圈——什么时候用工具、用几次、什么时候收工，" +
-        "全由模型自己决定。这个会自己转、自己干活的东西，就叫 agent。盯着下面转两圈，节奏就是这四拍。",
+        "把刚才的过程包进一个循环：发给模型 → 它要工具就执行、结果写回数组 → 再发给模型……" +
+        "一圈一圈转，直到它说“做完了”为止。你不用规定转几圈——什么时候用工具、用几次、什么时候结束，" +
+        "全由模型自己决定。这种能自主循环、自主调用工具的程序，就叫 agent。观察下面的动画转两轮，节奏就是这四拍。",
       en:
         "Wrap that exchange in a loop: send to the model → if it wants a tool, run it and push the result back → send again… " +
         "round after round, until it says “done”. You never set the number of rounds — when to use tools, how often, when to stop: " +
@@ -100,8 +100,8 @@ export const scenes: Scene[] = [
     },
     text: {
       zh:
-        "所有对话历史（你的话、模型的话、工具结果）都存在一个[[array:数组]]里；一个循环不停地“发数组 → 执行工具 → 塞回结果”。" +
-        "Claude Code、Cursor 这些看起来很神的工具，内核都是这个东西的放大版。" +
+        "所有对话历史（你的话、模型的话、工具结果）都存在一个[[array:数组]]里；一个循环不停地“发数组 → 执行工具 → 写回结果”。" +
+        "Claude Code、Cursor 这类工具看起来复杂，内核都是这个东西的放大版。" +
         "接下来两站：先去看它慢动作跑一遍（每一步都透视给你看），然后你亲手把它写出来。",
       en:
         "The whole conversation history (your words, the model’s words, tool results) lives in one [[array:array]]; " +
@@ -132,7 +132,7 @@ export const stage = {
     en: "Can you check what’s in my package.json?",
   },
   s2a: {
-    zh: "做不到……我碰不到你的电脑 🙅",
+    zh: "做不到……我接触不到你的电脑 🙅",
     en: "I can’t… I can’t touch your computer 🙅",
   },
   s2cap: {
@@ -150,7 +150,7 @@ export const stage = {
   n1: { zh: "① 把整个数组发给模型", en: "① Send the whole array to the model" },
   n2: { zh: "② 模型回复", en: "② The model replies" },
   n3: { zh: "③ 你执行工具", en: "③ You run the tool" },
-  n4: { zh: "④ 结果塞回数组", en: "④ Push the result into the array" },
+  n4: { zh: "④ 结果追加到数组", en: "④ Push the result into the array" },
   exit: {
     zh: "回复里没有工具请求？→ ✅ 结束",
     en: "No tool request in the reply? → ✅ done",

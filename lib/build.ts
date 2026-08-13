@@ -12,7 +12,7 @@ export type WrongHint = {
 };
 
 export type Blank = {
-  lesson?: L; // 🎒 新知识：这个空需要的概念，先教后问（小白语言）
+  lesson?: L; // 🎒 新知识：这个空需要的概念，先教后问（面向初学者的表述）
   q: L; // 向学习者提出的问题
   placeholder: L; // 输入框占位提示
   answers: string[]; // 归一化后可接受的答案
@@ -169,7 +169,7 @@ export const blanks: Blank[] = [
       {
         test: /human|me|我/,
         hint: {
-          zh: '意思对了！但 API 认的写法是 user（用户）。',
+          zh: '意思对了！API 规定的取值是 user（用户）。',
           en: 'Right idea! But the API spells it user.',
         },
       },
@@ -324,7 +324,7 @@ export const blanks: Blank[] = [
       {
         test: /end_turn/,
         hint: {
-          zh: '方向反了：end_turn 是“说完了、收工”。这里要填的是“还想用工具”时的值——tool_use。（条件是 !==，即“不是在要工具就退出”。）',
+          zh: '方向反了：end_turn 表示“这一轮已经说完，不需要再调用工具”。这里要填的是“还想用工具”时的值——tool_use。（条件是 !==，即“不是在要工具就退出”。）',
           en: 'Backwards: end_turn means “I’m done talking”. This blank is the value while it STILL wants a tool — tool_use. (The condition is !==: “if NOT asking for a tool, exit”.)',
         },
       },
@@ -354,7 +354,7 @@ export const blanks: Blank[] = [
       en: 'JavaScript’s loop-exit keyword, 5 letters.',
     },
     explain: {
-      zh: '对！break 就是 agent 的“下班打卡”——整个循环唯一的出口。',
+      zh: '对！break 是这个无限循环唯一的出口——整个循环唯一的出口。',
       en: 'Right! break is the agent clocking out — the loop’s only exit.',
     },
     wrong: [
@@ -434,11 +434,11 @@ export const runScript: { zh: string[]; en: string[] } = {
     '第 1 轮 ▸ 把 messages（1 条消息）发给模型…',
     '      ◂ 模型：我先看看目录里有什么 → tool_use: run_command("ls")',
     '      ⚙ 你的代码执行 ls → app/  lib/  package.json  README.md',
-    '      ▸ 结果塞回数组（现在 3 条）',
+    '      ▸ 结果追加到数组（现在 3 条）',
     '第 2 轮 ▸ 把 messages（3 条）重新发给模型…',
     '      ◂ 模型：读一下 package.json → tool_use: read_file("package.json")',
     '      ⚙ 你的代码执行 read_file → { "name": "agentlab", … }',
-    '      ▸ 结果塞回数组（现在 5 条）',
+    '      ▸ 结果追加到数组（现在 5 条）',
     '第 3 轮 ▸ 把 messages（5 条）重新发给模型…',
     '      ◂ 模型：stop_reason = end_turn ✓（没有再要工具）',
     'break！循环结束。',

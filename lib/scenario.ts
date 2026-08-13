@@ -1,6 +1,6 @@
 // 第 2 站「看它怎么跑」的录制数据（双语）：一次 agent 运行被拆成若干步。
 // 每一步描述：触发它的按钮文字（action）、标题（title）、详细讲解（narration）、
-// 小白疑问（faq）、追加到对话面板的内容（chat）、追加到透视面板的卡片（msgs）、
+// 初学者常见疑问（faq）、追加到对话面板的内容（chat）、追加到透视面板的卡片（msgs）、
 // 以及这一步对应 agentCode 里哪几行（focus，1 起的闭区间）。
 
 import type { L } from "@/lib/i18n";
@@ -207,8 +207,8 @@ export const steps: Step[] = [
     narration: {
       zh:
         '现在，整个数组连同 system、tools 参数一起打包发给了 [[api:API]]。模型读完之后没有直接回答，' +
-        '而是回复了一个 tool_use 块——意思是“请帮我跑一下 ls”。划重点：模型只是“说”它想用工具，' +
-        '它没有手，什么都执行不了。stop_reason: tool_use 翻译成人话就是“该你了”。' +
+        '而是回复了一个 tool_use 块——意思是“请帮我跑一下 ls”。关键在于：模型只是“说”它想用工具，' +
+        '它没有手，什么都执行不了。stop_reason: tool_use 的含义是：轮到你的代码执行了。' +
         '这条回复也被原样 push 进数组，成为一条 assistant 消息。',
       en:
         'Now the entire array — plus the system and tools parameters — is shipped to the [[api:API]]. The model read it and did not answer directly; ' +
@@ -366,7 +366,7 @@ export const steps: Step[] = [
     narration: {
       zh:
         '又是一模一样的流程：本地执行 → 结果包成 tool_result → push 进数组。' +
-        '你应该已经看出规律了：agent 没有魔法，只是在机械地重复“发数组 → 看要不要工具 → 执行 → 塞回数组”这一个节奏。' +
+        '你应该已经看出规律了：agent 没有魔法，只是在机械地重复“发数组 → 看要不要工具 → 执行 → 追加到数组”这一个节奏。' +
         '写成代码，这个规律就是那个 while (true)——代码面板里被点亮的，始终是同样的几行。',
       en:
         'The identical routine again: run locally → wrap as tool_result → push into the array. ' +
@@ -379,7 +379,7 @@ export const steps: Step[] = [
         en: 'What if a tool errors out?',
       },
       a: {
-        zh: '把错误信息原样塞进 tool_result 发回去就行。模型看到报错会自己调整——换个参数重试，或者换一种办法。这就是 agent “会自我修正”的全部原理：它每一轮都能看到上一步的真实结果，包括失败。',
+        zh: '把错误信息原样写回 tool_result 发回去就行。模型看到报错会自己调整——换个参数重试，或者换一种办法。这就是 agent “会自我修正”的全部原理：它每一轮都能看到上一步的真实结果，包括失败。',
         en: 'Push the error message into a tool_result exactly as-is. The model reads the error and adapts — retries with different arguments, or takes another route. That is the entire secret of agents “self-correcting”: every round it sees the true result of the previous step, including failures.',
       },
     },

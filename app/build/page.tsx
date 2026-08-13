@@ -259,7 +259,7 @@ export default function BuildChapter() {
               回顾一下你亲手填的三个核心：记忆是一个<b>数组</b>（[ ] 和两次
               role: &quot;user&quot;）、节奏是一个<b>循环</b>（while (true) 和
               break）、每一轮都把<b>整个 messages</b> 全量重发。 这就是 Claude
-              Code 们的内核，剩下的只是工具更多、循环更讲究。
+              Code 们的内核，区别只在于工具更多、循环的调度更复杂。
             </p>
           ) : (
             <p>
