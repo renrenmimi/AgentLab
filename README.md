@@ -1,33 +1,58 @@
-# AgentLab · 看得见的 Agent
+# AgentLab — See Inside the Agent
 
-一个面向零基础学习者的可视化教学应用：把 AI agent 的运行过程拆成慢动作，
-左边是普通人看到的对话，右边是"X 光片"——实时展示发给 API 的 messages
-数组如何一步步长大，让你亲眼看懂 **agent = 一个数组 + 一个循环**。
+**▶ [Open the course](https://agent-lab-blond.vercel.app)** — runs in your browser, nothing to install.
 
-## 运行
+An interactive explainer for people starting from zero. It takes an AI agent apart and
+plays it back in slow motion: on the left, the conversation an ordinary user sees; on the
+right, an X-ray — the `messages` array being sent to the API, growing one step at a time.
 
-需要 Node ≥ 18.18（本机默认是 16，记得先切版本，已提供 `.nvmrc`）：
+The single idea it exists to deliver: **an agent is an array and a loop.**
+
+## Three stops
+
+1. **`/` — What an agent is.** From "a model only turns text into text" to "a program that
+   loops and calls tools", without a line of code.
+2. **`/loop` — Watch it run.** Step through one complete run. The button labels *are* the
+   beats of the loop: send the task → call the model → run the tool → send the result back → …
+   The code panel highlights the lines in play; the token counter shows the cost of resending
+   the whole history each round.
+3. **`/build` — Write one yourself.** Fill in eight blanks in a real agent skeleton. Each
+   blank teaches the concept before asking, and every wrong answer gets a specific
+   correction rather than a red cross.
+
+## Running locally
+
+Requires Node ≥ 18.18 (an `.nvmrc` is included):
 
 ```bash
-nvm use         # 切到 Node 22
+nvm use         # switch to Node 22
 npm install
-npm run dev     # 打开 http://localhost:3000
+npm run dev     # http://localhost:3000
 ```
 
-## 当前进度
+## Notes on design
 
-- [x] 第 4 章 · 循环（MVP，模拟模式）：单步推进一次完整的 agent 运行，
-      按钮文字本身就是循环的节拍——发送任务 → 发给模型 → 执行工具 → 结果发回 → …
-- [ ] 第 1 章 · 模型：极简聊天框，体会"文字进、文字出"
-- [ ] 第 2 章 · 对话：看到"每次都是把整个历史重发一遍"
-- [ ] 第 3 章 · 工具：你来当 agent 的"手"，手动执行工具请求
-- [ ] 第 5 章 · 权限：给循环加上"允许 / 拒绝"关卡
-- [ ] 第 6 章 · 造一个：自己写个小工具，接真实 Claude API 跑起来
+- **Simulated by default.** Every response comes from recorded data in `lib/scenario.ts` —
+  no API key, no spend, open the page and learn. That also makes it safe to share.
+- **Bilingual.** Every string is a `{ zh, en }` pair in `lib/i18n.tsx`.
+- **A glossary built into the prose.** Writing `[[key:label]]` renders a clickable term that
+  pops up a beginner-level explanation.
+- **Progress persists** to `localStorage`, so closing the tab does not lose your place.
 
-## 设计要点
+## Structure
 
-- **模拟模式**：所有响应来自 `lib/scenario.ts` 里的录制数据，
-  不需要 API key、不花钱，打开网页就能学，方便分享。
-- **真实模式（规划中）**：通过 Next.js API route 服务端代理调用 Claude API，
-  key 只放服务端环境变量，绝不进浏览器。
-- 项目结构刻意保持简单：`lib/scenario.ts` 是教学数据，`app/page.tsx` 是全部 UI。
+Next.js 15 (App Router) + TypeScript + React 19, plain CSS. Zero backend — no API routes, so
+the site prerenders to static pages.
+
+| File | Role |
+|---|---|
+| `lib/intro.ts` | Stop 1 content |
+| `lib/scenario.ts` | Stop 2 — the recorded run, frame by frame |
+| `lib/build.ts` | Stop 3 — the blanks, answers, and per-mistake corrections |
+| `lib/i18n.tsx` | Bilingual strings and the `useT()` hook |
+| `lib/glossary.tsx` | Term dictionary and the `[[key:label]]` renderer |
+
+---
+
+© 2026 Weiren Feng. All rights reserved. Published for reading and portfolio purposes; not
+licensed for reuse, modification, or redistribution.
