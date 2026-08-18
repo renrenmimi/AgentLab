@@ -131,29 +131,29 @@ export const ui = {
     toolReq: { zh: "工具调用请求", en: "Tool call request" },
     pending: { zh: "等待你执行", en: "waiting for you" },
     sysIdx: { zh: "参数", en: "param" },
-    faqLabel: { zh: "小白疑问", en: "Beginner question" },
+    faqLabel: { zh: "常见疑问", en: "Beginner question" },
     codeTitle: {
       zh: "代码对照 —— 刚才那一步，就是这几行",
       en: "The code — that step was exactly these lines",
     },
     codeNote: {
-      zh: "这 31 行就是一个 agent 的完整骨架，没有省略关键步骤。下一站你会亲手把它写出来。",
-      en: "These 31 lines are a complete agent skeleton — nothing essential omitted. Next stop, you write it yourself.",
+      zh: "这 32 行就是一个 agent 的完整骨架，没有省略关键步骤。下一站你会亲手把它写出来。",
+      en: "These 32 lines are a complete agent skeleton — nothing essential omitted. Next stop, you write it yourself.",
     },
-    lines: { zh: "共 31 行", en: "31 lines" },
+    lines: { zh: "共 32 行", en: "32 lines" },
     toBuild: { zh: "下一站：亲手写一个 →", en: "Next stop: write one yourself →" },
   },
 
   build: {
     title: { zh: "第 3 站 · 亲手写一个", en: "Stop 3 · Write One Yourself" },
     subtitle: {
-      zh: "骨架已经搭好，8 个关键的空由你来填——每个空需要的新知识会先教给你，填错了我会告诉你为什么",
+      zh: "骨架已经搭好，8 个关键的空由你来填——每个空需要的新知识会先教给你，答错时会给出针对性的说明",
       en: "The skeleton is ready — you fill the 8 key blanks. Each one teaches you the concept it needs first; wrong answers get explained",
     },
     lessonLabel: { zh: "新知识", en: "New concept" },
     blankWord: { zh: "第", en: "Blank" }, // zh: 第 X 空 / en: Blank X
     submit: { zh: "填进去", en: "Fill it in" },
-    hint: { zh: "要个提示", en: "Give me a hint" },
+    hint: { zh: "查看提示", en: "Give me a hint" },
     reveal: { zh: "看答案", en: "Show answer" },
     answerIs: { zh: "答案是", en: "The answer is" },
     readyTitle: {
