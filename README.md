@@ -6,7 +6,7 @@ An interactive explainer for people starting from zero. It takes an AI agent apa
 plays it back in slow motion: on the left, the conversation an ordinary user sees; on the
 right, an X-ray — the `messages` array being sent to the API, growing one step at a time.
 
-The single idea it exists to deliver: **an agent is an array and a loop.**
+**The point: an agent is an array and a loop.**
 
 ![Stop one: what an agent actually is](docs/home.jpg)
 
@@ -41,7 +41,7 @@ npm run dev     # http://localhost:3000
 ## Notes on design
 
 - **Simulated by default.** Every response comes from recorded data in `lib/scenario.ts` —
-  no API key, no spend, open the page and learn. That also makes it safe to share.
+  no API key needed, and nothing to spend. That also makes it safe to share.
 - **Bilingual.** Every string is a `{ zh, en }` pair in `lib/i18n.tsx`.
 - **A glossary built into the prose.** Writing `[[key:label]]` renders a clickable term that
   pops up a beginner-level explanation.
