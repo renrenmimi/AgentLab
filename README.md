@@ -49,8 +49,8 @@ npm run dev     # http://localhost:3000
 
 ## Structure
 
-Next.js 15 (App Router) + TypeScript + React 19, plain CSS. Zero backend — no API routes, so
-the site prerenders to static pages.
+Next.js 15 (App Router) + TypeScript + React 19, plain CSS. No API routes, so the site
+prerenders to static pages.
 
 | File | Role |
 |---|---|
