@@ -26,7 +26,7 @@ right, an X-ray — the `messages` array being sent to the API, growing one step
    the whole history each round.
 3. **`/build` — Write one yourself.** Fill in eight blanks in a real agent skeleton. Each
    blank teaches the concept before asking, and every wrong answer gets a specific
-   correction rather than a red cross.
+   correction.
 
 ## Running locally
 
@@ -41,7 +41,7 @@ npm run dev     # http://localhost:3000
 ## Notes on design
 
 - **Simulated by default.** Every response comes from recorded data in `lib/scenario.ts` —
-  no API key needed, and nothing to spend. That also makes it safe to share.
+  so it runs without an API key.
 - **Bilingual.** Every string is a `{ zh, en }` pair in `lib/i18n.tsx`.
 - **A glossary built into the prose.** Writing `[[key:label]]` renders a clickable term that
   pops up a beginner-level explanation.
