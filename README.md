@@ -8,6 +8,14 @@ right, an X-ray — the `messages` array being sent to the API, growing one step
 
 The single idea it exists to deliver: **an agent is an array and a loop.**
 
+![Stop one: what an agent actually is](docs/home.jpg)
+
+*Stop one: what an agent actually is*
+
+![The X-ray view — the messages array growing one step at a time](docs/loop.jpg)
+
+*The X-ray view — the messages array growing one step at a time*
+
 ## Three stops
 
 1. **`/` — What an agent is.** From "a model only turns text into text" to "a program that
