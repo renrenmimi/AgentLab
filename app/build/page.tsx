@@ -90,10 +90,7 @@ export default function BuildChapter() {
 
     setAttempts((n) => n + 1);
     const targeted = current.wrong?.find((w) => w.test.test(got));
-    const fallback =
-      lang === "zh"
-        ? `不太对。${t(current.hint, lang)}`
-        : `Not quite. ${t(current.hint, lang)}`;
+    const fallback = `${t(ui.build.notQuite, lang)}${t(current.hint, lang)}`;
     setFeedback({
       kind: "wrong",
       msg: targeted ? t(targeted.hint, lang) : fallback,
@@ -144,7 +141,7 @@ export default function BuildChapter() {
           <h1 className="page-title">{t(ui.build.title, lang)}</h1>
           <p className="subtitle">{t(ui.build.subtitle, lang)}</p>
         </div>
-        <div className="progress" aria-label="progress">
+        <div className="progress" aria-label={t(ui.a11y.progress, lang)}>
           {blanks.map((b, i) => (
             <span
               key={i}
@@ -184,7 +181,7 @@ export default function BuildChapter() {
               placeholder={t(current.placeholder, lang)}
               autoComplete="off"
               spellCheck={false}
-              aria-label="answer"
+              aria-label={t(ui.a11y.answerInput, lang)}
             />
             <button type="submit" className="btn btn-primary">
               {t(ui.build.submit, lang)}
@@ -230,14 +227,15 @@ export default function BuildChapter() {
       )}
 
       {(phase === "running" || phase === "done") && (
-        <section className="code-window run-window appear" aria-label="output">
+        <section
+          className="code-window run-window appear"
+          aria-label={t(ui.a11y.runOutput, lang)}
+        >
           <div className="code-bar">
             <span className="wdot wdot-r" />
             <span className="wdot wdot-y" />
             <span className="wdot wdot-g" />
-            <span className="code-file">
-              {lang === "zh" ? "终端" : "terminal"}
-            </span>
+            <span className="code-file">{t(ui.build.terminal, lang)}</span>
           </div>
           <div className="run-term">
             {script.slice(0, runCount).map((line, i) => (
@@ -258,16 +256,17 @@ export default function BuildChapter() {
             <p>
               回顾一下你亲手填的三个核心：记忆是一个<b>数组</b>（[ ] 和两次
               role: &quot;user&quot;）、节奏是一个<b>循环</b>（while (true) 和
-              break）、每一轮都把<b>整个 messages</b> 全量重发。 这就是 Claude
-              Code 们的内核，区别只在于工具更多、循环的调度更复杂。
+              break）、每一轮都把<b>整个 messages</b> 全量重发。 Claude Code
+              这类工具的内核就是这三件事，区别只在于工具更多、循环的调度更复杂。
             </p>
           ) : (
             <p>
-              Recap of what you typed: the memory is an <b>array</b> ([ ] plus
-              role: &quot;user&quot; twice), the rhythm is a <b>loop</b> (while
-              (true) plus break), and every round resends the{" "}
-              <b>entire messages</b> array. That is the core of Claude Code and
-              friends — the rest is just more tools and a fancier loop.
+              Here are the three things you typed. The memory is an <b>array</b>{" "}
+              ([ ] and role: &quot;user&quot; twice). The rhythm is a{" "}
+              <b>loop</b> (while (true) and break). Every round resends the{" "}
+              <b>whole messages</b> array. Tools like Claude Code are built on
+              these same three things, with more tools available and a more
+              careful loop around them.
             </p>
           )}
           <div className="q-form">
@@ -284,7 +283,7 @@ export default function BuildChapter() {
         </section>
       )}
 
-      <section className="code-panel" aria-label="your agent code">
+      <section className="code-panel" aria-label={t(ui.a11y.codePanel, lang)}>
         <div className="panel-title">
           <span className="tdot tdot-code" />
           {t(ui.build.codeTitle, lang)}

@@ -50,13 +50,21 @@ AI agent 教学应用的项目背景。新会话请先读完这份文件再动�
 ## 技术栈与结构
 
 - Next.js 15 (App Router) + TypeScript + React 19，纯 CSS（无 Tailwind，
-  刻意减少依赖）。深色模式用 `prefers-color-scheme` 自适应。
+  刻意减少依赖）。深/浅主题用 `[data-theme]`（深色默认，`<head>` 里的无闪脚本
+  在首帧前设好），工具条右上角 ☾/☀ 切换。
 - 每一站都是"数据文件 + 页面文件"一对：`lib/intro.ts`↔`app/page.tsx`、
   `lib/scenario.ts`↔`app/loop/page.tsx`、`lib/build.ts`↔`app/build/page.tsx`。
-  顶部三站导航在 `app/nav.tsx`（layout 里挂载）。新增站点沿用这个模式。
+  新增站点沿用这个模式，并在 `app/sidebar.tsx` 的 `STOPS` 里登记（侧栏/面包屑/
+  命令面板都从这份清单取数据）。
+- **界面外壳「Research OS」**（自 SYSDesigner 移植的三段式工作台）：
+  左侧可隐藏侧栏 `app/sidebar.tsx`（logo + 三站导航 + 进度卡）、顶部工具条
+  `app/toolbar.tsx`（折叠按钮 + 面包屑 + ⌘K + 中/EN + 主题）、命令面板
+  `app/command-palette.tsx`（⌘K 跳转）；UI 状态（主题 + 侧栏折叠，均持久化
+  localStorage）在 `app/theme-provider.tsx`。样式在 `app/globals.css` 顶部
+  `[data-theme]` token 段 + 末尾「Research OS 外壳」段；内容页共用 token 自动适配。
 - **中英双语**：`lib/i18n.tsx` 提供 `LangProvider`/`useLang`/`t()` 和界面词典 `ui`；
   所有数据文件的文案都是 `{ zh, en }` 成对（类型 `L`），语言偏好存 localStorage，
-  导航栏「中 / EN」切换。新增文案必须两种语言都写。
+  工具条「中 / EN」切换。新增文案必须两种语言都写。
 - 真实模式接 API 时用官方 `@anthropic-ai/sdk`。
 
 ## 环境注意
@@ -68,7 +76,7 @@ AI agent 教学应用的项目背景。新会话请先读完这份文件再动�
 
 ## GitHub
 
-仓库：https://github.com/renrenmimi/AgentLab（目前 private，main 分支）。
+仓库：https://github.com/renrenmimi/AgentLab（public，main 分支）。
 提交/推送要用户明确要求才做。
 
 ## 文案风格（重要，全站贯穿）

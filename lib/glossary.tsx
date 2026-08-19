@@ -3,7 +3,14 @@
 // 初学者术语词典：正文里写 [[key:显示文字]]，RichText 会把它渲染成
 // 带虚线下划线的可点击术语，点开是一段“小朋友也能懂”的解释。
 
-import { useState, type ReactNode } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import { t, type L, type Lang } from "@/lib/i18n";
 
 export const glossary: Record<string, { word: L; def: L }> = {
@@ -38,15 +45,15 @@ export const glossary: Record<string, { word: L; def: L }> = {
   token: {
     word: { zh: "token", en: "token" },
     def: {
-      zh: "模型计量文本长度的单位，大致相当于一个词。发的内容越长 token 越多——越贵、也越慢。",
-      en: "The unit models use to count text — roughly one per word. More text means more tokens: pricier and slower.",
+      zh: "模型计量文本长度的单位，大致相当于一个短词。发的内容越长 token 越多——越贵、也越慢。",
+      en: "The unit a model uses to count text, roughly one token per short word. More text means more tokens, which costs more and takes longer.",
     },
   },
   stateless: {
     word: { zh: "无状态", en: "stateless" },
     def: {
-      zh: "每次请求处理完就不保留任何状态。API 不记得上一次的任何事，所以每次都要把完整历史重新发一遍。",
-      en: "Forgets everything after each request. The API remembers nothing, so you must resend the full history every time.",
+      zh: "每次请求处理完就不保留任何状态。上一次调用的内容 API 一点都不留，所以每次都要把完整历史重新发一遍。",
+      en: "No state is kept between requests. The API holds nothing from the previous call, so you resend the full history every time.",
     },
   },
 };
@@ -78,23 +85,112 @@ function Term({
   lang: Lang;
 }) {
   const [open, setOpen] = useState(false);
+  // 弹窗坐标（相对视口，配合 position:fixed）；null 表示尚未测量、先隐藏避免闪跳。
+  // place = 弹窗在术语的上/下方；caret = 小箭头相对弹窗左边的横向位置。
+  const [pos, setPos] = useState<{
+    top: number;
+    left: number;
+    place: "top" | "bottom";
+    caret: number;
+  } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLSpanElement>(null);
   const entry = glossary[termKey];
+
+  // 打开后测量并定位：优先放术语下方，空间不足则放上方；两轴都夹进视口。
+  // 弹窗通过 portal 渲染到 body，因此不再被任何 overflow:hidden 容器裁切。
+  useLayoutEffect(() => {
+    if (!open) {
+      setPos(null);
+      return;
+    }
+    const btn = btnRef.current;
+    const pop = popRef.current;
+    if (!btn || !pop) return;
+    const b = btn.getBoundingClientRect();
+    const pw = pop.offsetWidth;
+    const ph = pop.offsetHeight;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const gap = 10; // 留出箭头空间
+    const m = 8; // 视口边距
+    let place: "top" | "bottom" = "bottom";
+    let top = b.bottom + gap;
+    if (top + ph > vh - m && b.top - gap - ph > m) {
+      top = b.top - gap - ph;
+      place = "top";
+    }
+    top = Math.min(Math.max(top, m), Math.max(m, vh - ph - m));
+    const center = b.left + b.width / 2;
+    let left = center - pw / 2;
+    left = Math.min(Math.max(left, m), Math.max(m, vw - pw - m));
+    const caret = Math.min(Math.max(center - left, 16), Math.max(16, pw - 16));
+    setPos({ top, left, place, caret });
+  }, [open]);
+
+  // 打开时：点击外部 / 滚动 / 改窗口大小 / Esc 都关闭
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (btnRef.current?.contains(target) || popRef.current?.contains(target))
+        return;
+      setOpen(false);
+    };
+    const close = () => setOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   if (!entry) return <>{display}</>;
+
   return (
     <span className="term-wrap">
       <button
+        ref={btnRef}
         type="button"
         className={`term ${open ? "term-on" : ""}`}
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
       >
         {display}
       </button>
-      {open && (
-        <span className="term-pop" role="tooltip">
-          <b>{t(entry.word, lang)}</b>
-          {t(entry.def, lang)}
-        </span>
-      )}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <span
+            ref={popRef}
+            className={`term-pop term-pop-fixed${pos ? ` term-pop-${pos.place}` : ""}`}
+            role="tooltip"
+            style={{
+              top: pos ? pos.top : -9999,
+              left: pos ? pos.left : -9999,
+              visibility: pos ? "visible" : "hidden",
+            }}
+          >
+            <b>{t(entry.word, lang)}</b>
+            {t(entry.def, lang)}
+            {pos && (
+              <span
+                className="term-pop-caret"
+                style={{ left: pos.caret }}
+                aria-hidden
+              />
+            )}
+          </span>,
+          document.body,
+        )}
     </span>
   );
 }

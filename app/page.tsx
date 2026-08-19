@@ -57,7 +57,7 @@ export default function IntroPage() {
           <h1 className="page-title">{t(ui.intro.title, lang)}</h1>
           <p className="subtitle">{t(ui.intro.subtitle, lang)}</p>
         </div>
-        <div className="progress" aria-label="progress">
+        <div className="progress" aria-label={t(ui.a11y.progress, lang)}>
           {scenes.map((s, i) => (
             <button
               key={i}
