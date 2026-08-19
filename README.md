@@ -1,20 +1,18 @@
-# AgentLab — See Inside the Agent
+# AgentLab — An Interactive Introduction to AI Agents
 
 **▶ [Open the course](https://agent-lab-blond.vercel.app)** — runs in your browser, nothing to install.
 
-An interactive explainer for people starting from zero. It takes an AI agent apart and
-plays it back in slow motion: on the left, the conversation an ordinary user sees; on the
-right, an X-ray — the `messages` array being sent to the API, growing one step at a time.
+An interactive introduction to a simple tool-using agent. It presents the user-facing
+conversation beside the `messages` array sent to the model, then steps through the request,
+tool call, result, and follow-up loop.
 
-**The point: an agent is an array and a loop.**
+![A visual introduction to the agent loop](docs/home.jpg)
 
-![Stop one: what an agent actually is](docs/home.jpg)
+*A visual introduction to the agent loop*
 
-*Stop one: what an agent actually is*
+![The message history growing one step at a time](docs/loop.jpg)
 
-![The X-ray view — the messages array growing one step at a time](docs/loop.jpg)
-
-*The X-ray view — the messages array growing one step at a time*
+*The message history growing one step at a time*
 
 ## Three stops
 
@@ -24,7 +22,7 @@ right, an X-ray — the `messages` array being sent to the API, growing one step
    beats of the loop: send the task → call the model → run the tool → send the result back → …
    The code panel highlights the lines in play; the token counter shows the cost of resending
    the whole history each round.
-3. **`/build` — Write one yourself.** Fill in eight blanks in a real agent skeleton. Each
+3. **`/build` — Write one yourself.** Fill in eight blanks in a small agent skeleton. Each
    blank teaches the concept before asking, and every wrong answer gets a specific
    correction.
 
