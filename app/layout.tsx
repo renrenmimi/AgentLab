@@ -7,9 +7,9 @@ import Toolbar from "./toolbar";
 import CommandPalette from "./command-palette";
 
 export const metadata: Metadata = {
-  title: "AgentLab — See Inside the Agent",
+  title: "AgentLab — See inside the agent",
   description:
-    "An interactive course that takes an AI agent apart and plays it back in slow motion: the messages array, the tools, and the loop that ties them together. English and 中文.",
+    "An interactive course that takes an AI agent apart and plays it back in slow motion: the messages array, the tools, and the loop that ties them together. Available in English and Chinese.",
 };
 
 export default function RootLayout({
