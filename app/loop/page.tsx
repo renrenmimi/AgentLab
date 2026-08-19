@@ -100,7 +100,7 @@ export default function LoopChapter() {
           <h1 className="page-title">{t(ui.loop.title, lang)}</h1>
           <p className="subtitle">{t(ui.loop.subtitle, lang)}</p>
         </div>
-        <div className="progress" aria-label="progress">
+        <div className="progress" aria-label={t(ui.a11y.progress, lang)}>
           {steps.map((s, i) => (
             <button
               key={i}
@@ -132,7 +132,8 @@ export default function LoopChapter() {
           <details className="faq">
             <summary>
               <span className="faq-chick">🐣</span> {t(ui.loop.faqLabel, lang)}
-              ：{t(step.faq.q, lang)}
+              {t(ui.loop.faqSep, lang)}
+              {t(step.faq.q, lang)}
             </summary>
             <p>
               <RichText text={t(step.faq.a, lang)} lang={lang} />
@@ -142,7 +143,7 @@ export default function LoopChapter() {
       </section>
 
       <div className="grid">
-        <section className="panel" aria-label="chat">
+        <section className="panel" aria-label={t(ui.a11y.chatPanel, lang)}>
           <div className="panel-title">
             <span className="tdot tdot-chat" />
             {t(ui.loop.chatTitle, lang)}
@@ -165,7 +166,7 @@ export default function LoopChapter() {
           </div>
         </section>
 
-        <section className="panel" aria-label="x-ray">
+        <section className="panel" aria-label={t(ui.a11y.xrayPanel, lang)}>
           <div className="panel-title">
             <span className="tdot tdot-xray" />
             {t(ui.loop.xrayTitle, lang)}
@@ -224,7 +225,7 @@ export default function LoopChapter() {
         </section>
       </div>
 
-      <section className="code-panel" aria-label="code">
+      <section className="code-panel" aria-label={t(ui.a11y.codePanel, lang)}>
         <div className="panel-title">
           <span className="tdot tdot-code" />
           {t(ui.loop.codeTitle, lang)}

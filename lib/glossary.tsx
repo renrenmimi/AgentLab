@@ -45,15 +45,15 @@ export const glossary: Record<string, { word: L; def: L }> = {
   token: {
     word: { zh: "token", en: "token" },
     def: {
-      zh: "模型计量文本长度的单位，大致相当于一个词。发的内容越长 token 越多——越贵、也越慢。",
-      en: "The unit models use to count text — roughly one per word. More text means more tokens: pricier and slower.",
+      zh: "模型计量文本长度的单位，大致相当于一个短词。发的内容越长 token 越多——越贵、也越慢。",
+      en: "The unit a model uses to count text, roughly one token per short word. More text means more tokens, which costs more and takes longer.",
     },
   },
   stateless: {
     word: { zh: "无状态", en: "stateless" },
     def: {
-      zh: "每次请求处理完就不保留任何状态。API 不记得上一次的任何事，所以每次都要把完整历史重新发一遍。",
-      en: "Forgets everything after each request. The API remembers nothing, so you must resend the full history every time.",
+      zh: "每次请求处理完就不保留任何状态。上一次调用的内容 API 一点都不留，所以每次都要把完整历史重新发一遍。",
+      en: "No state is kept between requests. The API holds nothing from the previous call, so you resend the full history every time.",
     },
   },
 };
