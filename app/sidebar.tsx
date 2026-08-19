@@ -55,7 +55,7 @@ export default function Sidebar() {
           </span>
         </Link>
 
-        <nav className="side-nav" aria-label="Stops">
+        <nav className="side-nav" aria-label={t(ui.a11y.stops, lang)}>
           {STOPS.map((s, i) => {
             const active = i === activeIndex;
             return (

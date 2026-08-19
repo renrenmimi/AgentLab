@@ -457,7 +457,9 @@ body::after {
 .panel-title {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--text-3);
@@ -491,6 +493,8 @@ body::after {
 
 .len {
   margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   font-weight: 500;
@@ -549,6 +553,7 @@ body::after {
 .tool-chip-head {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 12px;
   font-weight: 650;
@@ -1293,7 +1298,7 @@ a.btn {
 
 .loop-node {
   position: absolute;
-  width: 152px;
+  width: 168px;
   text-align: center;
   padding: 12px 10px;
   font-size: 13px;
