@@ -134,7 +134,7 @@ export const blanks: Blank[] = [
   {
     lesson: {
       zh: '对象（object）＝带标签的小盒子，写法 { 标签: 内容 }。一条消息就是一个对象：role 标签记“谁说的”，content 标签记“说了什么”。文字（字符串）要加引号，比如 "hello"。',
-      en: 'An object = a labelled box, written { label: value }. One message is one object: the role label records where it came from, and the content label records what it says. Text (a string) needs quotes, like "hello".',
+      en: 'An object = a labeled box, written { label: value }. One message is one object: the role label records where it came from, and the content label records what it says. Text (a string) needs quotes, like "hello".',
     },
     q: {
       zh: '第一条消息是你布置的任务。role（谁说的）该填什么？',
