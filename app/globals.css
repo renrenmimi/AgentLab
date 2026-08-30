@@ -34,6 +34,7 @@
   --accent-deep: #655bd4;
   --accent-bg: rgba(138, 124, 246, 0.13);
   --accent-text: #cbc3ff;
+  --code-accent: #cbc3ff;
   --accent-glow: rgba(138, 124, 246, 0.26);
   /* 主按钮自己的一对渐变端点：白字压在上面要过 4.5:1，比强调色更深 */
   --btn-a: #6a5fdc;
@@ -103,6 +104,8 @@
   --accent-deep: #514ac0;
   --accent-bg: rgba(101, 91, 212, 0.1);
   --accent-text: #514097;
+  /* The code window is dark in both themes, so this one does not flip. */
+  --code-accent: #cbc3ff;
   --accent-glow: rgba(101, 91, 212, 0.22);
   --btn-a: #6a5fdc;
   --btn-b: #514ac0;
@@ -361,7 +364,10 @@ body::after {
 
 .n-step i {
   font-style: normal;
-  opacity: 0.55;
+  /* The total was dimmed to 0.55, which put it at 2.6:1 in the light theme. The
+     distinction it was drawing is between the step and the total, and weight
+     draws it without taking contrast away. */
+  font-weight: 400;
 }
 
 .n-head h2 {
@@ -572,7 +578,9 @@ body::after {
 
 .tool-chip-code {
   margin-top: 4px;
-  color: var(--teal);
+  /* --teal is the fill colour for marks and bars; on the tinted chip it reads
+     3.1:1 as text. --teal-text is the one meant to be read. */
+  color: var(--teal-text);
 }
 
 .tool-pending {
@@ -623,7 +631,6 @@ body::after {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   margin-bottom: 4px;
-  opacity: 0.85;
 }
 
 /* 旁白：讲解者插进对话里的一句话，不是对话本身 */
@@ -643,7 +650,6 @@ body::after {
   text-transform: uppercase;
   color: var(--text-3);
   margin-right: 8px;
-  opacity: 0.8;
 }
 
 /* ---------- 透视面板 ---------- */
@@ -1775,14 +1781,32 @@ a.btn {
 
 .blank-live::after {
   content: "▎";
-  color: var(--accent-2);
-  animation: pulse 1.1s infinite;
+  /* The code window is dark in both themes, so this cannot use a token that
+     flips with the theme. --accent-2 gave 3.3:1 in the light theme against the
+     same dark background. */
+  color: var(--code-accent);
+  /* `pulse` dips to 0.4 opacity, which took the caret below the requirement for
+     half of every cycle. It was never caught because an infinite animation was
+     read at whatever phase the clock was in. */
+  animation: caret 1.1s infinite;
+}
+
+@keyframes caret {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .blank-hole {
-  color: rgba(220, 220, 234, 0.35);
+  /* At 0.35 the placeholder sat at 2.0:1, and it is the thing the reader is
+     being asked to look at. */
+  color: rgba(220, 220, 234, 0.82);
   letter-spacing: 1px;
-  border-bottom: 1.5px dashed rgba(220, 220, 234, 0.3);
+  border-bottom: 1.5px dashed rgba(220, 220, 234, 0.5);
 }
 
 /* 运行终端（套在 code-window 里） */
@@ -1907,7 +1931,8 @@ a.btn {
   content: "?";
   font-size: 0.62em;
   vertical-align: super;
-  color: var(--accent);
+  /* 4.0:1 on the tinted cards in the light theme. */
+  color: var(--accent-text);
   margin-left: 1px;
   font-weight: 700;
 }
@@ -2766,7 +2791,9 @@ html[data-sidebar="collapsed"] .sidebar {
 /* 选中项除了配色，前面还加一个记号，不只靠颜色区分 */
 .lsn-choice.on .lsn-choice-name::before {
   content: "✓ ";
-  color: var(--accent);
+  /* This mark exists so selection is not carried by colour alone, and it was
+     itself at 4.35:1. --accent-text is the accent chosen for text. */
+  color: var(--accent-text);
 }
 
 .lsn-choice-hint {
@@ -3160,7 +3187,11 @@ html[data-sidebar="collapsed"] .sidebar {
 
 /* 被丢掉的消息：划掉 + 变淡，两个信号 */
 .ctx-dropped {
-  opacity: 0.45;
+  /* This stop exists so a reader can see what truncation threw away, and the
+     dimming put the discarded messages at 1.9:1 — the least readable text on a
+     page whose whole point is reading it. The strike-through and the dashed
+     border are the two signals; the fade was a third one that cost more than it
+     carried. */
   text-decoration: line-through;
   text-decoration-color: var(--risk);
   border-style: dashed;
@@ -3947,8 +3978,9 @@ html[data-sidebar="collapsed"] .sidebar {
   padding: 0 10px;
   font-size: 10.5px;
   line-height: 1.55;
+  /* --text-3 is already the quiet end of the scale; multiplying it by 0.9 as
+     well left this at 4.41:1. */
   color: var(--text-3);
-  opacity: 0.9;
 }
 
 /* 已读用一个记号写出来，颜色只是附带 */
@@ -4486,7 +4518,6 @@ html[data-sidebar="collapsed"] .sidebar {
 
 .cmdk-hint2 {
   margin-left: auto;
-  opacity: 0.85;
 }
 
 .cmdk-hint {

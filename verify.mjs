@@ -34,20 +34,31 @@ const EXPECTED = {
   // Counted as they run, so a check nobody calls lowers this.
   checks: 20,
   // Counted out of this file's own source, so an assertion appended after the
-  // exit below raises this even though it never executes.
-  failSites: 137,
+  // exit below raises this even though it never executes. This went from 137 to
+  // 150 without an assertion being added: the tokenizer used to lose sync on a
+  // regular expression containing a quote and stopped counting from there. The
+  // guard was under-counting itself.
+  failSites: 150,
   // The same two ideas for the in-page suite, which CI cannot run. Its source is
   // read as text here; its own copy of the total is compared at run time.
   suiteOkSites: 108,
   suiteAssertions: 115,
 };
 
-// Count call sites of a named function, ignoring comments and string literals so
-// that prose about ok() or fail() is not mistaken for a call. Written by hand
-// rather than with a regular expression over the raw text because this file and
-// the suite both discuss their own assertions in comments.
+// Count call sites of a named function, ignoring comments, string literals and
+// regular expressions, so that prose about ok() or fail() is not mistaken for a
+// call. Written by hand rather than with one big regular expression because both
+// files discuss their own assertions in their own comments.
+//
+// Regular expressions are skipped because they are the case that broke this. A
+// literal such as /^["']|["']$/ contains a quote, and a tokenizer that does not
+// know it is inside a regex reads that quote as the start of a string and loses
+// sync with the rest of the file. The count then came back as zero, which the
+// guard reported honestly and uselessly. A zero is now its own message.
 function callSites(source, name) {
   let code = "";
+  let previous = "";
+  const canPrecedeRegex = /[(,=:[!&|?{};+\-*%~^<>\n]/;
   for (let i = 0; i < source.length; ) {
     const c = source[i];
     const d = source[i + 1];
@@ -61,17 +72,46 @@ function callSites(source, name) {
       i += 2;
       continue;
     }
+    if (c === "/" && (previous === "" || canPrecedeRegex.test(previous))) {
+      i++;
+      let inClass = false;
+      while (i < source.length) {
+        const ch = source[i];
+        if (ch === "\\") {
+          i += 2;
+          continue;
+        }
+        if (ch === "[") inClass = true;
+        else if (ch === "]") inClass = false;
+        else if (ch === "/" && !inClass) break;
+        else if (ch === "\n") break;
+        i++;
+      }
+      i++;
+      code += "0";
+      previous = "0";
+      continue;
+    }
     if (c === '"' || c === "'" || c === "`") {
       i++;
       while (i < source.length && source[i] !== c) i += source[i] === "\\" ? 2 : 1;
       i++;
       code += '""';
+      previous = '"';
       continue;
     }
     code += c;
+    if (c.trim() !== "") previous = c;
     i++;
   }
-  return (code.match(new RegExp(`(?<![\\w.$])${name}\\(`, "g")) || []).length;
+  const found = (code.match(new RegExp(`(?<![\\w.$])${name}\\(`, "g")) || []).length;
+  if (found === 0 && source.includes(`${name}(`)) {
+    throw new Error(
+      `callSites lost sync counting ${name}(): the source plainly contains it and ` +
+        `the tokenizer found none. A construct in that file is being read as a string.`,
+    );
+  }
+  return found;
 }
 
 // ---------------------------------------------------------------- compilation
