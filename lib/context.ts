@@ -106,6 +106,66 @@ export const conversation: Msg[] = [
   },
 ];
 
+export type Row = { label: L; parent: L; actual: L; parentBad?: boolean };
+
+// 交出去的那一段，父 agent 看到的和实际发生的，是两本账。
+export const ledger: Row[] = [
+  {
+    label: { zh: "轮数", en: "Rounds" },
+    parent: { zh: "1 轮（发出去，拿回来）", en: "1 (asked, answered)" },
+    actual: { zh: "31 轮（子 agent 自己跑的）", en: "31, inside the subagent" },
+  },
+  {
+    label: { zh: "读了多少文件", en: "Files read" },
+    parent: { zh: "看不到", en: "not visible" },
+    actual: { zh: "30 个，其中 4 个被截断", en: "30, four of them truncated" },
+    parentBad: true,
+  },
+  {
+    label: { zh: "花掉的 token", en: "Tokens spent" },
+    parent: { zh: "约 400（问 + 答）", en: "about 400 (question and answer)" },
+    actual: { zh: "约 128,000", en: "about 128,000" },
+  },
+  {
+    label: { zh: "父 agent 数组增加", en: "Growth of the parent array" },
+    parent: { zh: "2 条消息，约 400 token", en: "2 messages, about 400 tokens" },
+    actual: { zh: "同左——子 agent 的 62 条消息一条都没进来", en: "the same; none of the subagent's 62 messages came across" },
+  },
+  {
+    label: { zh: "结论的依据", en: "What the conclusion rests on" },
+    parent: { zh: "一段 300 token 的文字", en: "a 300-token passage" },
+    actual: { zh: "30 个文件的实际内容", en: "the contents of 30 files" },
+    parentBad: true,
+  },
+];
+
+export const summary = {
+  ask: {
+    zh: "去看一遍 lib/ 下面的 30 个文件，告诉我哪些碰了鉴权。",
+    en: "Read the 30 files under lib/ and tell me which ones touch authentication.",
+  },
+  got: {
+    zh:
+      "有 4 个文件涉及鉴权：lib/auth/session.ts（读写会话 cookie）、" +
+      "lib/auth/verify.ts（校验 JWT）、lib/api/client.ts（附加 Authorization 头）、" +
+      "lib/middleware.ts（未登录时重定向）。其余 26 个文件与鉴权无关。",
+    en:
+      "Four files touch authentication: lib/auth/session.ts (reads and writes the session cookie), " +
+      "lib/auth/verify.ts (validates the JWT), lib/api/client.ts (attaches the Authorization header) and " +
+      "lib/middleware.ts (redirects when signed out). The other 26 are unrelated.",
+  },
+  missed: {
+    zh:
+      "实际上还有第 5 个：lib/cache.ts 用用户 id 拼了缓存键，缓存没有按会话隔离。" +
+      "子 agent 读到那个文件时内容被截断了，截断的那一段正好是这几行——" +
+      "而它在总结里没有提这次截断。",
+    en:
+      "There is in fact a fifth: lib/cache.ts builds cache keys from the user id, so the cache is not " +
+      "partitioned by session. The subagent read that file truncated, the truncated part is exactly those " +
+      "lines — and its summary does not mention that anything was cut.",
+  },
+};
+
 export type Strategy = "refuse" | "truncate" | "summarise";
 
 export type Outcome = {
@@ -185,17 +245,19 @@ export function apply(strategy: Strategy, msgs: Msg[], limit: number): Outcome {
 export const meta: LessonMeta = {
   title: { zh: "装不下的时候", en: "When it will not fit" },
   subtitle: {
-    zh: "上下文窗口是一个硬上限。到顶之后只有三条路，三条都要丢东西。",
-    en: "The context window is a hard ceiling. There are three ways past it, and all three lose something.",
+    zh: "上下文窗口是一个硬上限。到顶之后有四条路，四条都要丢东西。",
+    en: "The context window is a hard ceiling. There are four ways past it, and all four lose something.",
   },
   takeaway: {
     zh:
       "上下文满了不是一个可以「更聪明地解决」的问题，它是一个必须由你的代码回答的问题：丢掉什么。" +
-      "拒绝、截断、摘要，三条路各丢一样东西；不选，就等于选了最糟的那条——请求直接被退回。",
+      "拒绝、截断、摘要、交给另一个 agent，四条路各丢一样东西——前三条丢内容，第四条丢的是可核对性。" +
+      "不选，就等于选了最糟的那条：请求直接被退回。",
     en:
       "A full context is not a problem intelligence can solve. It is a question your code has to answer: what " +
-      "gets thrown away. Refuse, truncate, summarise — each loses something different. Declining to choose is " +
-      "choosing the worst one, where the request is simply refused.",
+      "gets thrown away. Refuse, truncate, summarise, or hand the work to another agent — each loses " +
+      "something different, and where the first three lose content the fourth loses the ability to check. " +
+      "Declining to choose is choosing the worst one, where the request is simply refused.",
   },
 };
 
@@ -298,10 +360,104 @@ export const blocks: Block[] = [
       },
     },
   },
+  {
+    title: { zh: "第四条路：根本不放进这段对话", en: "A fourth way: keep it out of this conversation" },
+    paras: [
+      {
+        zh:
+          "上面三条路都是在同一段对话里做取舍——留下什么、丢掉什么。" +
+          "还有第四条：有些内容压根不该进这个[[array:数组]]。" +
+          "「把 lib/ 下面 30 个文件都看一遍，找出碰鉴权的那些」就是典型：" +
+          "三十个文件进来，之后每一轮都要重发一次（[[stop:/cost]]），" +
+          "而你最终要的只是一份四五个文件的清单。",
+        en:
+          "The three ways above all trade inside one conversation: what stays and what goes. There is a " +
+          "fourth, which is that some material should never enter this [[array:array]] at all. \"Read the 30 " +
+          "files under lib/ and find the ones that touch authentication\" is the shape: thirty files come in " +
+          "and are resent every round afterwards ([[stop:/cost]]), and what you wanted was a list of four or " +
+          "five names.",
+      },
+      {
+        zh:
+          "办法是开第二个 agent：它有自己的数组、自己的循环、自己的一份预算。" +
+          "它读完三十个文件、跑三十一轮，只把结论交回来。" +
+          "在调用方那边，这整件事就是一次工具调用：一条消息出去，一条消息回来。" +
+          "上面那张表的两栏就是同一件事的两本账——" +
+          "调用方的数组只多了大约 400 个 token，而这件事真实花掉的是十二万八千。" +
+          "**省下的不是那十二万八千，是「它们不必跟着之后每一轮反复重发」。**",
+        en:
+          "The move is to start a second agent with its own array, its own loop and its own budget. It reads " +
+          "the thirty files across thirty-one rounds and hands back only the conclusion. On the caller's side " +
+          "the whole episode is one tool call: one message out, one message back. The two columns above are " +
+          "two ledgers for the same event — the caller's array grew by about 400 tokens while the episode " +
+          "cost a hundred and twenty-eight thousand. **What was saved is not those hundred and twenty-eight " +
+          "thousand but the fact that they are not resent on every later round.**",
+      },
+      {
+        zh:
+          "代价在最后两行，而它和前三条路丢掉的东西是不同种类的。" +
+          "截断丢的是内容，你知道自己丢了什么；" +
+          "交出去丢的是**可核对性**：调用方手里只有一段三百 token 的文字，它没有那三十个文件，" +
+          "所以它没有任何办法验证这段文字。" +
+          "这一次的摘要就漏了一个文件——子 agent 读 lib/cache.ts 时内容被截断了，" +
+          "而它在总结里没提这件事。调用方读到的是一份读起来很完整的清单。",
+        en:
+          "The price is in the last two rows, and it is a different kind of loss from the first three. " +
+          "Truncation loses content, and you know what you lost. Handing work off loses **the ability to " +
+          "check**: the caller holds a 300-token passage and not the thirty files, so it has no way to verify " +
+          "that passage. This summary did miss a file — the subagent read lib/cache.ts truncated and never " +
+          "mentioned it — and what reached the caller was a list that reads as complete.",
+      },
+      {
+        zh:
+          "这和[[stop:/loop]]那次「吞掉错误」是同一个形状，只是放大了一层：" +
+          "那次是一个工具没有把失败说出来，这次是一整个 agent 没有把截断说出来。" +
+          "**每加一层边界，就多一个可以静悄悄丢东西的地方，而外面那一层永远看不见里面。**" +
+          "实用的折中是让子 agent 连结论一起交回几行元数据：读了几个文件、有没有截断、" +
+          "有没有工具失败、哪里它自己也不确定。这几行几乎不占地方，" +
+          "却把「静悄悄漏掉」变成了「看得见的存疑」，而后者是可以处理的。",
+        en:
+          "This is the shape from [[stop:/loop]] again, one level up: there a tool failed to report a failure, " +
+          "and here an entire agent failed to report a truncation. **Every boundary you add is one more place " +
+          "information can quietly disappear, and the outer layer never sees inside the inner one.** The " +
+          "workable middle is to have the subagent return a few lines of metadata alongside its conclusion: " +
+          "how many files it read, whether anything was truncated, whether a tool failed, and where it was " +
+          "unsure. Those lines cost almost nothing and turn a silent omission into a visible doubt, which is " +
+          "something you can act on.",
+      },
+    ],
+    faq: {
+      q: {
+        zh: "什么时候值得交出去？",
+        en: "When is handing work off worth it?",
+      },
+      a: {
+        zh:
+          "看三件事：读得多不多、结论短不短、错了看不看得出来。" +
+          "「读三十个文件，回一份四五行的清单」三条都满足，很划算。" +
+          "「改这三个文件」不满足第三条——改错了不会有人告诉你，" +
+          "而调用方手里没有原文可以对照。" +
+          "反过来说，如果一件事做错了会静悄悄地错，就别隔着一层做。",
+        en:
+          "Three questions: does it read a lot, is the conclusion short, and would a mistake be visible? " +
+          "Reading thirty files and returning a four-line list answers yes to all three, and is worth it. " +
+          "Editing three files fails the third — a bad edit announces nothing, and the caller holds no " +
+          "original to compare against. Put the other way round: when a mistake would fail quietly, do not " +
+          "put a boundary in front of it.",
+      },
+    },
+  },
 ];
 
 export const bench = {
   title: { zh: "同一段对话，三种处理", en: "One conversation, three treatments" },
+  handoffTitle: { zh: "交出去的那一段：两本账", en: "The work handed off: two ledgers" },
+  handoffNote: { zh: "同一次委派", en: "one delegation" },
+  askWord: { zh: "调用方问", en: "The caller asks" },
+  gotWord: { zh: "子 agent 答", en: "The subagent answers" },
+  missedWord: { zh: "摘要里没有的东西", en: "What the summary left out" },
+  colParent: { zh: "调用方看到", en: "The caller sees" },
+  colActual: { zh: "实际", en: "Actually" },
   note: { zh: "窗口 1,000 token", en: "window of 1,000 tokens" },
   chooseLabel: { zh: "选一种处理办法", en: "Choose a treatment" },
   before: { zh: "处理前", en: "Before" },

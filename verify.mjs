@@ -137,7 +137,6 @@ const modules = {
   context: await load("lib/context.ts"),
   tools: await load("lib/tools.ts"),
   trust: await load("lib/trust.ts"),
-  delegate: await load("lib/delegate.ts"),
   measure: await load("lib/measure.ts"),
   permission: await load("lib/permission.ts"),
   chance: await load("lib/chance.ts"),
@@ -164,7 +163,7 @@ const roots = [
 // 第 4 站往后的每一站结构相同：meta + blocks + bench，外加自己的数据。
 const LESSON_STOPS = [
   "chance", "invent", "instructions", "tools",
-  "cost", "context", "delegate",
+  "cost", "context",
   "trust", "permission", "again", "measure", "next",
 ];
 for (const name of LESSON_STOPS) {
@@ -892,6 +891,38 @@ check("every figure quoted in prose is the figure the page computes", () => {
     }
   }
   void proseOf;
+});
+
+// 5f. Links to stops that no longer exist --------------------------------------
+// Folding a stop into another leaves references behind. The content walk catches
+// [[stop:…]] markers, but a plain href in a component would survive, and so
+// would a stale route directory. Both are swept here.
+check("nothing links to a route that is not a stop", () => {
+  const stops = new Set(modules.stops.STOPS.map((s) => s.href));
+  const external = /^(https?:|mailto:|#|\/api\/)/;
+  const sweep = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (![".next", "node_modules", ".git"].includes(entry.name)) sweep(full);
+        continue;
+      }
+      if (!/\.tsx?$/.test(entry.name)) continue;
+      const lines = readFileSync(full, "utf8").split("\n");
+      lines.forEach((line, i) => {
+        for (const m of line.matchAll(/href=(?:"([^"]+)"|\{"([^"]+)"\})/g)) {
+          const href = m[1] ?? m[2];
+          if (external.test(href)) continue;
+          if (!href.startsWith("/")) continue;
+          if (!stops.has(href)) {
+            fail(`${relative(ROOT, full)}:${i + 1}`, `links to "${href}", which is not a stop`);
+          }
+        }
+      });
+    }
+  };
+  sweep(join(ROOT, "app"));
+  sweep(join(ROOT, "lib"));
 });
 
 // 6. Routes --------------------------------------------------------------------

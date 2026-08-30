@@ -3343,7 +3343,7 @@ html[data-sidebar="collapsed"] .sidebar {
   background: var(--teal-bg);
 }
 
-/* ---------- /delegate：父子两侧的消息 ---------- */
+/* ---------- 交出去的那一段：调用方与子 agent 的两条消息（/context） ---------- */
 
 .dl-msgs {
   display: flex;
@@ -4056,4 +4056,23 @@ html[data-sidebar="collapsed"] .sidebar {
 
 .stop-ref:hover {
   text-decoration-style: solid;
+}
+
+/* 宽表格自己横向滚动，而不是把整页顶出去。窄屏上这是唯一不牺牲内容的做法。 */
+.lsn-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.lsn-scroll .lsn-table {
+  min-width: 460px;
+}
+
+.lsn-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.lsn-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
 }
