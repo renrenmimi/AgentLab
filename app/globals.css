@@ -4076,3 +4076,207 @@ html[data-sidebar="collapsed"] .sidebar {
   background: var(--border-strong);
   border-radius: 8px;
 }
+
+/* ---------- 每一组结尾的自我检验 ---------- */
+
+.gc {
+  margin: 30px 0 8px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+
+.gc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  flex-wrap: wrap;
+}
+
+.gc-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  background: var(--accent-bg);
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+.gc-title {
+  margin: 0;
+}
+
+.gc-title::before {
+  display: none;
+}
+
+.gc-intro {
+  margin-top: 8px;
+}
+
+.gc-note {
+  margin: 0 0 16px;
+}
+
+.gc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  counter-reset: gcq;
+}
+
+.gc-q {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel-2);
+}
+
+/* 答对之后左边加一道线，配合选项上的 ✓ 和文字，不只靠颜色 */
+.gc-solved {
+  border-left: 3px solid var(--teal);
+}
+
+.gc-field {
+  border: none;
+  margin: 0;
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+.gc-legend {
+  padding: 0;
+  display: block;
+  width: 100%;
+}
+
+.gc-setup {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--text-3);
+  white-space: pre-line;
+  margin-bottom: 7px;
+  border-left: 2px solid var(--border-strong);
+  padding-left: 11px;
+}
+
+.gc-ask {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 650;
+  line-height: 1.6;
+  color: var(--text);
+  counter-increment: gcq;
+}
+
+.gc-ask::before {
+  content: counter(gcq) ". ";
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.gc-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.gc-choice {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 9px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.gc-choice:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.gc-choice:disabled {
+  cursor: default;
+}
+
+.gc-mark {
+  flex-shrink: 0;
+  font-family: var(--mono);
+  color: var(--text-3);
+}
+
+.gc-text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 结果用记号 + 一个词写出来 */
+.gc-verdict {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.gc-right {
+  border-color: var(--teal-border);
+  background: var(--teal-bg);
+  color: var(--text);
+}
+
+.gc-right .gc-mark,
+.gc-right .gc-verdict {
+  color: var(--teal-text);
+}
+
+.gc-wrong {
+  border-color: var(--err-bg);
+  color: var(--text-3);
+}
+
+.gc-wrong .gc-mark,
+.gc-wrong .gc-verdict {
+  color: var(--risk);
+}
+
+.gc-correction {
+  margin: 6px 0 2px 13px;
+  padding: 9px 13px;
+  border-left: 2px solid var(--risk);
+  background: var(--err-bg);
+  border-radius: 0 8px 8px 0;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--text-2);
+}
+
+.gc-afterward {
+  margin: 12px 0 0;
+  padding-top: 11px;
+  border-top: 1px dashed var(--border);
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--teal-text);
+}
+
+.gc-again {
+  margin: 9px 0 0;
+  font-size: 12px;
+  color: var(--text-3);
+}

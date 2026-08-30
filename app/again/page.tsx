@@ -21,6 +21,7 @@ import {
   Takeaway,
   Workbench,
 } from "@/app/lesson";
+import GroupCheck from "@/app/group-check";
 
 const ms = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}s` : `${n}ms`);
 
@@ -127,6 +128,7 @@ export default function AgainStop() {
       <Prose block={blocks[2]} lang={lang} />
 
       <Takeaway text={meta.takeaway} lang={lang} />
+      <GroupCheck href="/again" lang={lang} />
       <StopNav lang={lang} />
     </main>
   );

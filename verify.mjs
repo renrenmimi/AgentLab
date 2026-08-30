@@ -144,6 +144,7 @@ const modules = {
   instructions: await load("lib/instructions.ts"),
   again: await load("lib/again.ts"),
   next: await load("lib/next.ts"),
+  checks: await load("lib/checks.ts"),
 };
 
 // Every exported value, rooted at a readable name for error messages.
@@ -152,6 +153,7 @@ const roots = [
   ["glossary", modules.glossary.glossary],
   ["stops", modules.stops.STOPS],
   ["groups", modules.stops.GROUPS],
+  ["checks", modules.checks.checks],
   ["intro.scenes", modules.intro.scenes],
   ["intro.stage", modules.intro.stage],
   ["scenarios", modules.scenarios.scenarios],
@@ -923,6 +925,99 @@ check("nothing links to a route that is not a stop", () => {
   };
   sweep(join(ROOT, "app"));
   sweep(join(ROOT, "lib"));
+});
+
+// 5g. The group checks ---------------------------------------------------------
+// The rule these questions live by is that a reader who skimmed gets them
+// wrong, which is not checkable. What is checkable is everything that would
+// make a question useless: no correct answer, two correct answers, a wrong
+// answer with nothing to say, or a distractor that repeats the right one.
+check("every group check is answerable and every wrong answer says why", () => {
+  const { checks } = modules.checks;
+  const stops = modules.stops.STOPS.map((s) => s.href);
+  const groups = modules.stops.GROUPS;
+
+  if (checks.length !== groups.length) {
+    fail("checks", `${checks.length} checks for ${groups.length} groups`);
+  }
+
+  const seenIds = new Set();
+  for (const c of checks) {
+    const at = `checks "${c.id}"`;
+    if (seenIds.has(c.id)) fail(at, "duplicate id");
+    seenIds.add(c.id);
+    if (!stops.includes(c.on)) fail(at, `sits on "${c.on}", which is not a stop`);
+
+    // A group's check belongs at the end of that group, not in the middle of
+    // it. The closing stop is the exception: /next says where the course stops
+    // and where to go, so it is an epilogue rather than a lesson, and a check
+    // after it would be testing material it does not teach.
+    const EPILOGUE = "/next";
+    const group = groups.find((g) => g.hrefs.includes(c.on));
+    if (!group) fail(at, `"${c.on}" is in no group`);
+    else {
+      const teaching = group.hrefs.filter((h) => h !== EPILOGUE);
+      if (teaching[teaching.length - 1] !== c.on) {
+        fail(at, `"${c.on}" is not the last teaching stop of its group`);
+      }
+    }
+
+    if (c.questions.length < 2 || c.questions.length > 3) {
+      fail(at, `${c.questions.length} questions; the design says two or three`);
+    }
+    if (!c.questions.some((q) => q.kind === "judgement")) {
+      fail(at, "no judgement question, so skimming would be enough to pass it");
+    }
+
+    const qIds = new Set();
+    for (const q of c.questions) {
+      const qAt = `${at}.${q.id}`;
+      if (qIds.has(q.id)) fail(qAt, "duplicate question id");
+      qIds.add(q.id);
+
+      const correct = q.options.filter((o) => o.correct);
+      if (correct.length !== 1) fail(qAt, `${correct.length} correct answers; exactly one is required`);
+      if (q.options.length < 3) fail(qAt, `${q.options.length} options is not a choice`);
+      if (!q.afterward) fail(qAt, "nothing said after a correct answer");
+
+      const optIds = new Set();
+      for (const o of q.options) {
+        if (optIds.has(o.id)) fail(qAt, `duplicate option id "${o.id}"`);
+        optIds.add(o.id);
+        if (o.correct) {
+          if (o.correction) fail(`${qAt}.${o.id}`, "the correct answer carries a correction");
+          continue;
+        }
+        if (!o.correction) {
+          fail(`${qAt}.${o.id}`, 'a wrong answer with nothing to say teaches nothing');
+        }
+      }
+
+      // A distractor that reads the same as the right answer in either
+      // language is not a distractor. Both languages are checked because a
+      // translation can collapse a distinction the original kept.
+      for (const lang of ["zh", "en"]) {
+        const seen = new Map();
+        for (const o of q.options) {
+          const text = (o.text?.[lang] ?? "").trim();
+          if (!text) fail(`${qAt}.${o.id}`, `empty option text in ${lang}`);
+          if (seen.has(text)) {
+            fail(qAt, `options "${o.id}" and "${seen.get(text)}" read identically in ${lang}`);
+          }
+          seen.set(text, o.id);
+        }
+      }
+    }
+  }
+
+  // No scoring anywhere: the design says a reader should find something out,
+  // not collect a number.
+  for (const [key, value] of Object.entries(modules.i18n.ui.check)) {
+    const text = `${value.zh ?? ""} ${value.en ?? ""}`;
+    if (/\bscore\b|\bstreak\b|得分|连对|积分/i.test(text)) {
+      fail(`ui.check.${key}`, "reads as scoring, which this is deliberately not");
+    }
+  }
 });
 
 // 6. Routes --------------------------------------------------------------------

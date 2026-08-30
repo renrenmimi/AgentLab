@@ -208,6 +208,20 @@ export const ui = {
     toolFailed: { zh: "工具报错", en: "tool failed" },
   },
 
+  check: {
+    label: { zh: "自我检验", en: "Check yourself" },
+    right: { zh: "对了", en: "Correct" },
+    wrong: { zh: "不是这个", en: "Not this one" },
+    tryAgain: { zh: "再选一个", en: "Try another" },
+    answered: { zh: "已作答", en: "answered" },
+    judgement: { zh: "判断题", en: "judgement" },
+    // 没有分数、没有进度条：这里要的是「发现一件自以为懂了的事」，不是一个数字。
+    noScore: {
+      zh: "这里不计分。每一道题都可以反复选，选错了会告诉你错在哪个念头上。",
+      en: "Nothing is scored here. Every question can be answered again, and a wrong answer names the idea it came from.",
+    },
+  },
+
   lesson: {
     // 所有新站点共用的一句话：这些页面上的模型行为都是写好的，不是现场调用。
     simulatedNote: {

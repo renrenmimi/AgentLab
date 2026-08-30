@@ -85,6 +85,9 @@ report is printed on the page and to the console. CI cannot run it, so the score
 - **Bilingual.** Every string is a `{ zh, en }` pair in `lib/i18n.tsx`.
 - **A glossary built into the prose.** Writing `[[key:label]]` renders a clickable term that
   pops up a beginner-level explanation.
+- **Each group ends with a check.** Two or three questions that a reader who skimmed gets
+  wrong, every wrong answer naming the misconception rather than saying "incorrect". No
+  score, no progress percentage: the point is finding out something you thought you knew.
 - **Progress is remembered** in `localStorage` and shown in the sidebar, with a visible way to
   clear it. No account, and nothing is sent anywhere.
 - **The content is checked, not just the types.** `node verify.mjs` imports the content
@@ -92,7 +95,7 @@ report is printed on the page and to the console. CI cannot run it, so the score
   highlighting a line the snippet does not have, a blank with no correction for a wrong
   answer, a `[[term]]` with no glossary entry, a stop with no page behind it.
 - **The behaviour is checked too.** `verify.mjs` cannot see a click. Opening any page with
-  `?selftest=1` runs 72 assertions against the live DOM — that the scenario picker is a real
+  `?selftest=1` runs 82 assertions against the live DOM — that the scenario picker is a real
   tablist, that stepping through a run and back leaves the panels where `stateAt()` says,
   that the cost slider's numbers satisfy the arithmetic the prose claims, that a wrong
   answer at stop 3 produces its own correction — plus keyboard reachability, focus rings
@@ -115,6 +118,7 @@ prerenders to static pages.
 | `lib/i18n.tsx` | Bilingual strings and the `useT()` hook |
 | `lib/glossary.tsx` | Term dictionary and the `[[key:label]]` renderer |
 | `lib/stops.ts` | The stop list shared by sidebar, breadcrumb, and ⌘K palette |
+| `lib/checks.ts` · `app/group-check.tsx` | The check at the end of each of the six groups |
 | `verify.mjs` | Static checks over all of the above |
 | `app/selftest.tsx` · `app/selftest-suite.ts` | `?selftest=1` — the assertions a static check cannot make |
 

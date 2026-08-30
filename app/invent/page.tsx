@@ -12,6 +12,7 @@ import {
   Takeaway,
   Workbench,
 } from "@/app/lesson";
+import GroupCheck from "@/app/group-check";
 import { RichText } from "@/lib/glossary";
 
 export default function InventStop() {
@@ -74,6 +75,7 @@ export default function InventStop() {
       ))}
 
       <Takeaway text={meta.takeaway} lang={lang} />
+      <GroupCheck href="/invent" lang={lang} />
       <StopNav lang={lang} />
     </main>
   );
