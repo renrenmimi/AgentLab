@@ -231,8 +231,8 @@ export const ui = {
     },
     runBtn: { zh: "▶ 运行你的 agent", en: "▶ Run your agent" },
     doneTitle: {
-      zh: "🎉 跑通了！你刚刚写出了一个 agent",
-      en: "🎉 It works. You just wrote an agent",
+      zh: "跑通了。你刚刚写出了一个 agent",
+      en: "It runs. You have just written an agent",
     },
     again: { zh: "↻ 再写一遍", en: "↻ Write it again" },
     backLoop: { zh: "回看慢动作", en: "Watch the slow motion again" },

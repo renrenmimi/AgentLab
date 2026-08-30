@@ -165,7 +165,6 @@ export default function BuildChapter() {
           </div>
           {current.lesson && (
             <div className="q-lesson">
-              <span className="q-lesson-icon">🎒</span>
               <span>
                 <b>{t(ui.build.lessonLabel, lang)}</b>
                 <RichText text={t(current.lesson, lang)} lang={lang} />
@@ -200,8 +199,8 @@ export default function BuildChapter() {
               {feedback.kind === "right"
                 ? "✓ "
                 : feedback.kind === "wrong"
-                  ? "✗ "
-                  : "💡 "}
+                  ? "✕ "
+                  : "→ "}
               {feedback.msg}
             </p>
           )}

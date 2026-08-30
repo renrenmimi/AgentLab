@@ -36,7 +36,7 @@ export function Prose({ block, lang }: { block: Block; lang: Lang }) {
       {block.faq && (
         <details className="faq">
           <summary>
-            <span className="faq-chick">🐣</span> {t(ui.loop.faqLabel, lang)}
+            {t(ui.loop.faqLabel, lang)}
             {t(ui.loop.faqSep, lang)}
             {t(block.faq.q, lang)}
           </summary>

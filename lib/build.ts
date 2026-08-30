@@ -12,7 +12,7 @@ export type WrongHint = {
 };
 
 export type Blank = {
-  lesson?: L; // 🎒 新知识：这个空需要的概念，先教后问（面向初学者的表述）
+  lesson?: L; // 新知识：这个空需要的概念，先教后问（面向初学者的表述）
   q: L; // 向学习者提出的问题
   placeholder: L; // 输入框占位提示
   answers: string[]; // 归一化后可接受的答案
@@ -111,7 +111,7 @@ export const blanks: Blank[] = [
       en: 'Arrays use square brackets. A pair of empty square brackets is an empty array.',
     },
     explain: {
-      zh: '对！这个数组就是 agent 的全部记忆，接下来所有事都是往里追加元素。',
+      zh: '对。这个数组就是 agent 的全部记忆，接下来所有事都是往里追加元素。',
       en: 'Correct. This array is the entire memory of the agent, and everything that follows just appends to it.',
     },
     wrong: [
@@ -148,7 +148,7 @@ export const blanks: Blank[] = [
       en: 'Only two roles go into the array: user, for anything shown to the model, and assistant, for anything the model produced. The task comes from you.',
     },
     explain: {
-      zh: '对！你说的话 role 都是 "user"。记住这个词，最后一个空还会考它。',
+      zh: '对。你说的话 role 都是 "user"。记住这个词，最后一个空还会考它。',
       en: 'Correct. Everything you write has the role "user". Remember this word — the last blank asks for it again.',
     },
     wrong: [
@@ -169,7 +169,7 @@ export const blanks: Blank[] = [
       {
         test: /human|me|我/,
         hint: {
-          zh: '意思对了！API 规定的取值是 user（用户）。',
+          zh: '意思对了。API 规定的取值写作 user。',
           en: 'Right idea. The value the API expects is spelled user.',
         },
       },
@@ -192,7 +192,7 @@ export const blanks: Blank[] = [
       en: 'Make the condition always hold: the boolean value that is always true. The exit is the break inside the loop.',
     },
     explain: {
-      zh: '对！while (true) 就是“无限转”。转几圈取决于模型的回复，够了就 break 出去。',
+      zh: '对。while (true) 就是“无限转”。转几圈取决于模型的回复，够了就 break 出去。',
       en: 'Correct. while (true) never stops on its own. How many rounds it runs depends on the replies, and break is what gets you out.',
     },
     wrong: [
@@ -229,14 +229,14 @@ export const blanks: Blank[] = [
       en: 'The name of the array defined on line 5. Every round sends all of it.',
     },
     explain: {
-      zh: '对！每一轮都是把整个 messages 数组全量重发——API 不保留任何东西，记忆就是这个数组。',
+      zh: '对。每一轮都是把整个 messages 数组全量重发——API 不保留任何东西，记忆就是这个数组。',
       en: 'Correct. Every round resends the whole messages array. The API keeps no state between calls, so this array is the memory.',
     },
     wrong: [
       {
         test: /\[/,
         hint: {
-          zh: '不是只发最后一条！API 不保留上一轮的任何东西，每一轮都要把完整历史从头发一遍。直接写数组的名字。',
+          zh: '不是只发最后一条。API 不保留上一轮的任何东西，每一轮都要把完整历史从头发一遍。直接写数组的名字。',
           en: 'Not just the last item. The API keeps nothing from the previous round, so every round has to resend the full history from the start. Write the name of the array.',
         },
       },
@@ -273,7 +273,7 @@ export const blanks: Blank[] = [
       en: 'Use a dot to take the content field out of res: res.content.',
     },
     explain: {
-      zh: '对！res 里还有 stop_reason 等元数据，进数组的只有内容本身。',
+      zh: '对。res 里还有 stop_reason 等元数据，进数组的只有内容本身。',
       en: 'Correct. res also carries metadata such as stop_reason and token usage. Only the content itself goes into the array.',
     },
     wrong: [
@@ -317,7 +317,7 @@ export const blanks: Blank[] = [
       en: 'It is the value on the amber badge at stop 2: tool_use.',
     },
     explain: {
-      zh: '对！这行的意思是：只要回复里不是在要工具，就说明做完了，跳出循环。',
+      zh: '对。这行的意思是：只要回复里不是在要工具，就说明做完了，跳出循环。',
       en: 'Correct. This line reads: if the reply is not a tool request, the task is done, so leave the loop.',
     },
     wrong: [
@@ -331,7 +331,7 @@ export const blanks: Blank[] = [
       {
         test: /tool(?!_use)/,
         hint: {
-          zh: '很接近了！完整的值是 tool_use（用下划线连接）。',
+          zh: '很接近了。完整的值是 tool_use，中间是下划线。',
           en: 'Very close. The full value is tool_use, joined with an underscore.',
         },
       },
@@ -354,7 +354,7 @@ export const blanks: Blank[] = [
       en: 'The JavaScript keyword for leaving a loop. Five letters.',
     },
     explain: {
-      zh: '对！break 是这个无限循环唯一的出口。',
+      zh: '对。break 是这个无限循环唯一的出口。',
       en: 'Correct. break is the only way out of this infinite loop.',
     },
     wrong: [
@@ -398,14 +398,14 @@ export const blanks: Blank[] = [
       en: 'One rule: was this message shown to the model, or produced by the model?',
     },
     explain: {
-      zh: '完全正确！凡是发给模型看的都是 user——你打的字是，工具结果也是。你已经掌握全部要点了。',
+      zh: '完全正确。凡是发给模型看的都是 user——你打的字是，工具结果也是。到这里，要点你已经全部掌握了。',
       en: 'Exactly right. Anything shown to the model is user: your own words, and tool results too. You now know every key point.',
     },
     wrong: [
       {
         test: /tool/,
         hint: {
-          zh: '最经典的错误！Claude API 里没有 tool 这个角色。判断标准：凡是“发给模型看的”都是 user——你打的字是，工具结果也是。',
+          zh: '这是最经典的一个错误。Claude API 里没有 tool 这个角色。判断标准：凡是“发给模型看的”都是 user——你打的字是，工具结果也是。',
           en: 'This is the most common mistake. The Claude API has no tool role. The rule: anything shown to the model is user, your own words and tool results alike.',
         },
       },
@@ -441,8 +441,8 @@ export const runScript: { zh: string[]; en: string[] } = {
     '      ▸ 结果追加到数组（现在 5 条）',
     '第 3 轮 ▸ 把 messages（5 条）重新发给模型…',
     '      ◂ 回复：stop_reason = end_turn ✓（没有工具请求）',
-    'break！循环结束。',
-    '🤖 最终回答：这是一个叫 AgentLab 的 Next.js 项目——一个把 agent 运行过程可视化的教学网站。',
+    'break：循环到此结束。',
+    '最终回答：这是一个叫 AgentLab 的 Next.js 项目——一个把 agent 运行过程可视化的教学网站。',
   ],
   en: [
     '$ node agent.js',
@@ -456,8 +456,8 @@ export const runScript: { zh: string[]; en: string[] } = {
     '      ▸ result appended to the array (now 5 messages)',
     'Round 3 ▸ resending messages (5) to the model…',
     '      ◂ reply: stop_reason = end_turn ✓ (no tool request)',
-    'break! The loop ends.',
-    '🤖 Final answer: this is a Next.js project called AgentLab — a site that visualizes how an agent runs.',
+    'break — the loop ends here.',
+    'Final answer: this is a Next.js project called AgentLab — a site that visualizes how an agent runs.',
   ],
 };
 

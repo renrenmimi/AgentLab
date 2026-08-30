@@ -77,15 +77,7 @@ function SideCol({ side, head, lang }: { side: Side; head: string; lang: Lang })
         <dt>{t(bench.resultWord, lang)}</dt>
         <dd>{t(side.result, lang)}</dd>
         <dt>{t(bench.answerWord, lang)}</dt>
-        <dd className="tl-answer">
-          {t(side.answer, lang)
-            .split("\\n")
-            .map((line, i) => (
-              <span key={i} className="tl-line">
-                {line}
-              </span>
-            ))}
-        </dd>
+        <dd className="tl-answer">{t(side.answer, lang)}</dd>
       </dl>
 
       <p className="tl-verdict">{t(side.verdict, lang)}</p>
