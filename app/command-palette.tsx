@@ -15,7 +15,8 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { ui, useLang, t, type L } from "@/lib/i18n";
 import { useShell } from "./theme-provider";
-import { STOPS } from "@/lib/stops";
+import { STOPS, VIEWS } from "@/lib/stops";
+import { search, type Hit } from "@/lib/search";
 
 type Dest = { href: string; label: L };
 
@@ -53,13 +54,32 @@ export default function CommandPalette() {
     return () => cancelAnimationFrame(id);
   }, [cmdkOpen]);
 
-  const results = useMemo(() => {
+  // 站点名先匹配，再搜正文。索引在第一次搜索时才建，不影响任何一页的加载。
+  const stopHits = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return DESTINATIONS;
-    return DESTINATIONS.filter((d) =>
+    const all = [
+      ...DESTINATIONS,
+      { href: "/all", label: ui.all.link },
+    ].filter((d) => VIEWS.includes(d.href) || STOPS.some((s) => s.href === d.href));
+    if (!q) return all;
+    return all.filter((d) =>
       [d.href, d.label.zh, d.label.en].join(" ").toLowerCase().includes(q),
     );
   }, [query]);
+
+  const proseHits = useMemo<Hit[]>(
+    () => (query.trim().length >= 2 ? search(query, lang) : []),
+    [query, lang],
+  );
+
+  // 两组结果拼成一个可以上下走的列表。
+  const results = useMemo(
+    () => [
+      ...stopHits.map((d) => ({ kind: "stop" as const, href: d.href, label: d.label })),
+      ...proseHits.map((h) => ({ kind: "prose" as const, href: `${h.href}#${h.anchor}`, hit: h })),
+    ],
+    [stopHits, proseHits],
+  );
 
   // Keep the active index in range as the result set changes.
   useEffect(() => {
@@ -132,22 +152,54 @@ export default function CommandPalette() {
           <div className="cmdk-empty">{t(ui.cmdk.empty, lang)}</div>
         ) : (
           <ul className="cmdk-list" role="listbox" ref={listRef}>
-            {results.map((d, i) => (
-              <li
-                key={d.href}
-                role="option"
-                aria-selected={i === active}
-                className={`cmdk-item${i === active ? " active" : ""}`}
-                onMouseEnter={() => setActive(i)}
-                onClick={() => go(d.href)}
-              >
-                <span className="cmdk-item-title">{t(d.label, lang)}</span>
-              </li>
-            ))}
+            {results.map((r, i) => {
+              const firstProse =
+                r.kind === "prose" && results.findIndex((x) => x.kind === "prose") === i;
+              const firstStop =
+                r.kind === "stop" && i === 0 && proseHits.length > 0;
+              return (
+                <li
+                  key={`${r.kind}-${r.href}-${i}`}
+                  role="option"
+                  aria-selected={i === active}
+                  className={`cmdk-item${i === active ? " active" : ""}${
+                    firstProse || firstStop ? " cmdk-first" : ""
+                  }`}
+                  onMouseEnter={() => setActive(i)}
+                  onClick={() => go(r.href)}
+                >
+                  {(firstStop || firstProse) && (
+                    <span className="cmdk-group">
+                      {t(firstProse ? ui.cmdk.proseHeading : ui.cmdk.stopsHeading, lang)}
+                    </span>
+                  )}
+                  {r.kind === "stop" ? (
+                    <span className="cmdk-item-title">{t(r.label, lang)}</span>
+                  ) : (
+                    <>
+                      <span className="cmdk-item-title">
+                        {t(r.hit.heading, lang)}
+                        <span className="cmdk-where">{t(r.hit.stop, lang)}</span>
+                      </span>
+                      <span className="cmdk-snippet">
+                        {r.hit.snippet.slice(0, r.hit.at[0])}
+                        <mark>{r.hit.snippet.slice(r.hit.at[0], r.hit.at[1])}</mark>
+                        {r.hit.snippet.slice(r.hit.at[1])}
+                      </span>
+                    </>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
 
-        <div className="cmdk-hint">{t(ui.cmdk.navHint, lang)}</div>
+        <div className="cmdk-hint">
+          {t(ui.cmdk.navHint, lang)}
+          {query.trim().length < 2 && (
+            <span className="cmdk-hint2">{t(ui.cmdk.hint2, lang)}</span>
+          )}
+        </div>
       </div>
     </div>,
     document.body,

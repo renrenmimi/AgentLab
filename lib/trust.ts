@@ -237,13 +237,13 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "这件事叫提示注入（prompt injection）。它之所以难，不是因为模型不够聪明，" +
+          "这件事叫[[injection:提示注入]]（prompt injection）。它之所以难，不是因为模型不够聪明，" +
           "而是因为数组里根本没有一个字段用来区分「这是我的指令」和「这是外面来的数据」。" +
           "回想[[stop:/loop]]那条规则：能进数组的角色只有 user 和 assistant，" +
           "而工具结果走的正是 user——和你亲手打的字用的是同一个 role。" +
           "从模型的角度看，你的任务和那段藏起来的文字，是同一个人在同一个对话里说的两句话。",
         en:
-          "This is called prompt injection. What makes it hard is not that the model is not clever enough; it " +
+          "This is called [[injection:prompt injection]]. What makes it hard is not that the model is not clever enough; it " +
           "is that the array has no field distinguishing \"this is my instruction\" from \"this is data from " +
           "outside\". Recall the rule from [[stop:/loop]]: only user and assistant appear in the array, and tool " +
           "results travel as user — the same role as the words you type yourself. From the model's position, " +

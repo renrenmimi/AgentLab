@@ -231,13 +231,13 @@ export const blocks: Block[] = [
           "重试本身有两条几乎不用讨论的规矩。" +
           "第一条：**次数要有上限。**没有上限的重试和[[stop:/loop]]那个停不下来的循环是同一种东西，" +
           "只是它连模型的钱都不花，直接把对面打垮。" +
-          "第二条：**每次之间要等，而且越等越久**（指数退避）。" +
+          "第二条：**每次之间要等，而且越等越久**（指数[[backoff:退避]]）。" +
           "上面那张表就是 500 毫秒起步、每次翻倍的样子。",
         en:
           "Two rules about retries barely need arguing. First, **cap the number of attempts.** Uncapped " +
           "retries are the same object as the loop that would not stop at [[stop:/loop]], except that this one does " +
           "not even spend model tokens — it just flattens whatever it is calling. Second, **wait between " +
-          "them, and wait longer each time** (exponential backoff). The table above is 500 ms doubling.",
+          "them, and wait longer each time** (exponential [[backoff:backoff]]). The table above is 500 ms doubling.",
       },
       {
         zh:
@@ -259,12 +259,12 @@ export const blocks: Block[] = [
         zh:
           "上面第二张表把四个工具排在一起。前两个重复调用完全无害：" +
           "搜两次和搜一次结果一样，读两次和读一次结果一样。" +
-          "这类工具叫**幂等**（idempotent）——做一次和做很多次，效果相同。" +
+          "这类工具叫**[[idempotent:幂等]]**（idempotent）——做一次和做很多次，效果相同。" +
           "对它们，重试不需要任何额外的设计。",
         en:
           "The second table above puts four tools side by side. The first two repeat harmlessly: searching " +
           "twice gives what searching once gave, and so does reading. Tools like that are called " +
-          "**idempotent** — doing it many times has the same effect as doing it once. For them, retrying " +
+          "**[[idempotent:idempotent]]** — doing it many times has the same effect as doing it once. For them, retrying " +
           "needs no design at all.",
       },
       {

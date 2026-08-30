@@ -89,6 +89,10 @@ const LABELS: Record<string, L> = {
   "/next": ui.nav.next,
 };
 
+// Routes that are not stops but are still real pages. /all is the whole course
+// on one page, for someone who has read it once and wants one paragraph back.
+export const VIEWS: string[] = ["/all"];
+
 export const STOPS: SideStop[] = GROUPS.flatMap((g, gi) =>
   g.hrefs.map((href) => ({ href, label: LABELS[href], group: gi })),
 ).map((s, i) => ({ ...s, glyph: String(i + 1) }));

@@ -78,6 +78,10 @@ export default function Sidebar() {
           ))}
         </nav>
 
+        <Link href="/all" className="side-all" onClick={close}>
+          {t(ui.all.link, lang)} →
+        </Link>
+
         <div className="side-status">
           <div className="eyebrow">{t(ui.side.status, lang)}</div>
           <div className="side-status-label">

@@ -114,8 +114,11 @@ export const ui = {
     search: { zh: "搜索 / Search…", en: "Search…" },
   },
   cmdk: {
-    placeholder: { zh: "搜索所有站点 / Search…", en: "Search the stops…" },
+    placeholder: { zh: "搜索站点与正文 / Search…", en: "Search the stops and the prose…" },
     empty: { zh: "没有匹配项", en: "No matches" },
+    stopsHeading: { zh: "站点", en: "Stops" },
+    proseHeading: { zh: "正文", en: "In the prose" },
+    hint2: { zh: "输入两个字以上开始搜正文", en: "Type two characters or more to search the prose" },
     navHint: {
       zh: "↑↓ 选择 · ↵ 跳转 · esc 关闭",
       en: "↑↓ select · ↵ open · esc close",
@@ -207,6 +210,30 @@ export const ui = {
     meterOver: { zh: "已超出", en: "over" },
     asideLabel: { zh: "旁白", en: "note" },
     toolFailed: { zh: "工具报错", en: "tool failed" },
+  },
+
+  all: {
+    title: { zh: "一页读完", en: "The whole course on one page" },
+    subtitle: {
+      zh: "十四站的正文，按阅读顺序排在一页里。每个小标题都有锚点，可以直接链到某一段。",
+      en: "The prose of all fourteen stops, in reading order, on one page. Every heading is anchored, so a link can point at a paragraph.",
+    },
+    openStop: { zh: "打开这一站", en: "Open this stop" },
+    staticNote: {
+      zh: "原页面上这里是一块可以操作的东西，这份文本里只留了它的结论。",
+      en: "On the stop itself this is something you can operate; here only its conclusion is kept.",
+    },
+    intro: {
+      zh:
+        "这一页是给回头查东西的人准备的：读过一遍之后，你多半只想找回其中一段，" +
+        "而不是重新点过十四站。互动的部分在这里只留结论，并且会标出来。",
+      en:
+        "This page is for coming back. Having read the course once, you usually want one paragraph " +
+        "again rather than fourteen stops. Where a stop has something to operate, only its conclusion " +
+        "is kept here, and it is marked.",
+    },
+    toc: { zh: "目录", en: "Contents" },
+    link: { zh: "一页读完", en: "Read on one page" },
   },
 
   check: {
