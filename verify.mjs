@@ -20,6 +20,60 @@ import ts from "typescript";
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const CACHE = join(ROOT, "node_modules", ".cache", "agentlab-verify");
 
+// ------------------------------------------------------------- counted guards
+//
+// The sibling project found a block of assertions appended after this file's
+// process.exit. Nothing failed, because nothing ran. The only symptom was that
+// the printed count did not move, and nobody was reading the count. A check that
+// does not run has to be louder than that, so the numbers are declared here and
+// compared against both what the source contains and what actually executed.
+//
+// Editing an assertion means editing a number below. That is deliberate: the
+// change then appears in the diff, where a reviewer can see it.
+const EXPECTED = {
+  // Counted as they run, so a check nobody calls lowers this.
+  checks: 20,
+  // Counted out of this file's own source, so an assertion appended after the
+  // exit below raises this even though it never executes.
+  failSites: 137,
+  // The same two ideas for the in-page suite, which CI cannot run. Its source is
+  // read as text here; its own copy of the total is compared at run time.
+  suiteOkSites: 108,
+  suiteAssertions: 115,
+};
+
+// Count call sites of a named function, ignoring comments and string literals so
+// that prose about ok() or fail() is not mistaken for a call. Written by hand
+// rather than with a regular expression over the raw text because this file and
+// the suite both discuss their own assertions in comments.
+function callSites(source, name) {
+  let code = "";
+  for (let i = 0; i < source.length; ) {
+    const c = source[i];
+    const d = source[i + 1];
+    if (c === "/" && d === "/") {
+      while (i < source.length && source[i] !== "\n") i++;
+      continue;
+    }
+    if (c === "/" && d === "*") {
+      i += 2;
+      while (i < source.length && !(source[i] === "*" && source[i + 1] === "/")) i++;
+      i += 2;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === "`") {
+      i++;
+      while (i < source.length && source[i] !== c) i += source[i] === "\\" ? 2 : 1;
+      i++;
+      code += '""';
+      continue;
+    }
+    code += c;
+    i++;
+  }
+  return (code.match(new RegExp(`(?<![\\w.$])${name}\\(`, "g")) || []).length;
+}
+
 // ---------------------------------------------------------------- compilation
 
 // Transpile a TS/TSX module and everything it imports into plain .mjs inside a
@@ -824,9 +878,6 @@ check("every stop sits in exactly one group, and every group says why it follows
 // twice. Each claim below names the sentence and the function that produces the
 // figure, so the prose cannot drift away from the page.
 check("every figure quoted in prose is the figure the page computes", () => {
-  const proseOf = (mod, path) =>
-    path.reduce((acc, k) => (acc == null ? acc : acc[k]), mod);
-
   const claims = [];
 
   // /cost — the caching paragraph and the pasted-document paragraph.
@@ -897,7 +948,6 @@ check("every figure quoted in prose is the figure the page computes", () => {
       }
     }
   }
-  void proseOf;
 });
 
 // 5f. Links to stops that no longer exist --------------------------------------
@@ -1129,6 +1179,48 @@ check("every stop has its own title and description, and none is a template", ()
   }
 });
 
+// 7. The counters themselves --------------------------------------------------
+// Everything above trusts that it ran. This does not. It reads both assertion
+// files as text and compares what they contain against the numbers declared at
+// the top, which is the only way to notice an assertion that was added, deleted,
+// or written somewhere it can never execute.
+check("every assertion in both files is accounted for", () => {
+  const here = readFileSync(join(ROOT, "verify.mjs"), "utf8");
+  const fails = callSites(here, "fail");
+  if (fails !== EXPECTED.failSites) {
+    fail(
+      "verify.mjs",
+      `${fails} fail() call sites, but EXPECTED.failSites says ${EXPECTED.failSites}. ` +
+        `If you added or removed one, update the number. If you did not, an assertion ` +
+        `has moved somewhere it will not run.`,
+    );
+  }
+
+  const suitePath = join(ROOT, "app", "selftest-suite.ts");
+  const suite = readFileSync(suitePath, "utf8");
+  const oks = callSites(suite, "ok");
+  if (oks !== EXPECTED.suiteOkSites) {
+    fail(
+      "app/selftest-suite.ts",
+      `${oks} ok() call sites, but EXPECTED.suiteOkSites says ${EXPECTED.suiteOkSites}. ` +
+        `An assertion written after the report call would raise this and still never run.`,
+    );
+  }
+
+  // The suite carries its own copy of the total, because it is the only one that
+  // can compare it against assertions that actually executed. CI cannot run the
+  // suite, but it can read that number and refuse to let the two drift apart.
+  const declared = suite.match(/EXPECTED_ASSERTIONS\s*=\s*(\d+)/);
+  if (!declared) {
+    fail("app/selftest-suite.ts", "no EXPECTED_ASSERTIONS declaration; the suite cannot count itself");
+  } else if (Number(declared[1]) !== EXPECTED.suiteAssertions) {
+    fail(
+      "app/selftest-suite.ts",
+      `the suite expects ${declared[1]} assertions, this file expects ${EXPECTED.suiteAssertions}`,
+    );
+  }
+});
+
 // 6. Routes --------------------------------------------------------------------
 check("every stop in the sidebar has a page, and every page is a stop", () => {
   const pageFor = (href) =>
@@ -1157,6 +1249,16 @@ check("every stop in the sidebar has a page, and every page is a stop", () => {
 });
 
 // --------------------------------------------------------------------- summary
+
+// Counted as the checks ran, not read out of the source: a check defined but
+// never called, or one that returned early, shows up here and nowhere else.
+if (checksRun !== EXPECTED.checks) {
+  fail(
+    "verify.mjs",
+    `${checksRun} checks ran, but EXPECTED.checks says ${EXPECTED.checks}. ` +
+      `A check that is defined and never called fails here and nowhere else.`,
+  );
+}
 
 const unused = Object.keys(modules.glossary.glossary).filter((k) => !referencedTerms.has(k));
 if (unused.length) note(`glossary entries never referenced in prose: ${unused.join(", ")}`);
