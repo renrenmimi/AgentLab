@@ -93,6 +93,14 @@ prerenders to static pages.
 | `lib/stops.ts` | The stop list shared by sidebar, breadcrumb, and ⌘K palette |
 | `verify.mjs` | Static checks over all of the above |
 
+## After the loop
+
+Every run in this course was written: each step and each token count was chosen to make one
+point clearly. Real runs are not this tidy. If you want to keep going, the next step is a run
+nobody arranged — [AgentTape](https://github.com/renrenmimi/AgentTape) replays a Claude Code
+session that already happened, with the same three things you have been reading here: a
+timeline, the `messages` array getting longer, and where the tokens went.
+
 ---
 
 © 2026 Weiren Feng. All rights reserved. Published for reading and portfolio purposes; not

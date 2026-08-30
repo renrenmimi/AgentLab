@@ -7,6 +7,7 @@ import {
   broke,
   fixed,
   meta,
+  onward,
   score,
   tasks,
   versions,
@@ -134,6 +135,17 @@ export default function MeasureStop() {
       <Prose block={blocks[2]} lang={lang} />
 
       <Takeaway text={meta.takeaway} lang={lang} />
+
+      <section className="lsn-block lsn-onward">
+        <h2 className="lsn-h">{t(onward.title, lang)}</h2>
+        <p className="lsn-p">
+          {t(onward.body, lang)}{" "}
+          <a href={onward.href} target="_blank" rel="noreferrer">
+            {t(onward.linkText, lang)}
+          </a>
+        </p>
+      </section>
+
       <StopNav lang={lang} />
     </main>
   );

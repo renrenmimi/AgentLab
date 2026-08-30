@@ -3428,3 +3428,20 @@ html[data-sidebar="collapsed"] .sidebar {
   line-height: 1.8;
   color: var(--text-2);
 }
+
+/* 课程结尾那一段：正常的正文，不是横幅 */
+.lsn-onward {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.lsn-onward a {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.lsn-onward a:hover {
+  color: var(--accent);
+}
