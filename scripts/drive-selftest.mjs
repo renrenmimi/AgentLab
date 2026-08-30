@@ -185,33 +185,75 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------------------------------------------------------------- serving
 
+/** Is something already listening here? */
+async function portInUse(port) {
+  try {
+    await fetch(`http://localhost:${port}`, { signal: AbortSignal.timeout(1500) });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Serve a production build unless a URL was given. `next start` is used rather
  * than `next dev` so the suite runs against what actually ships.
+ *
+ * The port is checked first, and an occupied one is a hard error rather than
+ * something to work around. Without that check a leftover server keeps the port,
+ * the spawned `next start` fails to bind, `fetch` succeeds against the leftover,
+ * and the run reports a score for a build that is not the one on disk. A test
+ * harness that can quietly grade the wrong code is worse than one that refuses
+ * to start.
  */
 async function serve(port) {
+  if (await portInUse(port)) {
+    fail(
+      `something is already listening on port ${port}. Stop it, or pass --port, ` +
+        `or point at it directly with --url http://localhost:${port} if that is ` +
+        `deliberate. Refusing to run in case it is serving a different build.`,
+    );
+  }
+
+  // Spawned in its own process group and killed as a group. Going through npx
+  // and killing only the wrapper leaves the real next-server orphaned, holding
+  // the port — which the check above then reports on the next run instead of the
+  // score. Ask how that was discovered.
   const proc = spawn(
-    "npx",
-    ["next", "start", "-p", String(port)],
-    { cwd: ROOT, stdio: ["ignore", "ignore", "pipe"] },
+    process.execPath,
+    [join(ROOT, "node_modules", "next", "dist", "bin", "next"), "start", "-p", String(port)],
+    { cwd: ROOT, stdio: ["ignore", "ignore", "pipe"], detached: true },
   );
   let stderr = "";
   proc.stderr.on("data", (d) => (stderr += d));
+
+  const stop = () => {
+    try {
+      process.kill(-proc.pid, "SIGKILL");
+    } catch {
+      try {
+        proc.kill("SIGKILL");
+      } catch {
+        /* already gone */
+      }
+    }
+  };
 
   const url = `http://localhost:${port}`;
   for (let i = 0; i < 120; i++) {
     try {
       const res = await fetch(url, { signal: AbortSignal.timeout(1000) });
-      if (res.ok) return { url, stop: () => proc.kill("SIGKILL") };
+      if (res.ok) return { url, stop };
     } catch {
       /* still starting */
     }
     if (proc.exitCode !== null) {
+      stop();
       fail(`next start exited: ${stderr.trim() || `code ${proc.exitCode}`}`);
     }
     await sleep(500);
   }
-  proc.kill("SIGKILL");
+  stop();
   fail("next start did not answer in 60 seconds; is there a build? (npx next build)");
 }
 

@@ -38,6 +38,7 @@
   /* 主按钮自己的一对渐变端点：白字压在上面要过 4.5:1，比强调色更深 */
   --btn-a: #6a5fdc;
   --btn-b: #514ac0;
+  --teal-deep: #2f8a70;
 
   /* 语义色（状态优先） */
   --ok: #53c6a5;
@@ -105,9 +106,10 @@
   --accent-glow: rgba(101, 91, 212, 0.22);
   --btn-a: #6a5fdc;
   --btn-b: #514ac0;
+  --teal-deep: #2f8a70;
 
   --ok: #1f9d78;
-  --warn: #8f5f0e;
+  --warn: #7d5209;
   --risk: #a03c3c;
   --info: #3f7cbf;
 
@@ -115,7 +117,7 @@
   --teal-bg: rgba(31, 157, 120, 0.1);
   --teal-border: rgba(31, 157, 120, 0.3);
   --teal-text: #125f4a;
-  --amber: #8f5f0e;
+  --amber: #7d5209;
   --amber-bg: rgba(180, 120, 24, 0.12);
   --green: #1f9d78;
   --green-bg: rgba(31, 157, 120, 0.12);
@@ -527,7 +529,9 @@ body::after {
 .bubble-user {
   align-self: flex-end;
   max-width: 88%;
-  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  /* White on the accent pair is 2.4:1. The darker pair is the one the primary
+     button already uses for the same reason. */
+  background: linear-gradient(135deg, var(--btn-a), var(--btn-b));
   color: #fff;
   border-radius: 16px 16px 4px 16px;
   padding: 9px 15px;
@@ -1637,11 +1641,13 @@ a.btn {
 }
 
 .f-agent {
+  /* White on --accent-2 is 2.4:1 and on --teal is 2.1:1. The deeper pair keeps
+     the purple-to-green sweep and clears the 3:1 that large text needs. */
   background: linear-gradient(
     120deg,
-    var(--accent-2),
-    var(--teal),
-    var(--accent-2)
+    var(--btn-a),
+    var(--teal-deep),
+    var(--btn-a)
   );
   background-size: 220% 100%;
   color: #fff;
