@@ -4,9 +4,11 @@
 
 **▶ [Open the course](https://agent-lab-blond.vercel.app)** — runs in your browser, nothing to install.
 
-An interactive introduction to a simple tool-using agent. It presents the user-facing
-conversation beside the `messages` array sent to the model, then steps through the request,
-tool call, result, and follow-up loop.
+An interactive course on tool-using AI agents. It presents the user-facing conversation
+beside the `messages` array sent to the model, steps through the request, tool call, result
+and follow-up loop — and then goes on to the parts that are actually hard: what a run
+costs, what happens when the history stops fitting, how to describe a tool so it gets used
+correctly, why a tool result cannot be trusted, and how to tell whether a change helped.
 
 ![A visual introduction to the agent loop](docs/home.jpg)
 
@@ -16,20 +18,38 @@ tool call, result, and follow-up loop.
 
 *The message history growing one step at a time*
 
-## Three stops
+## Nine stops
+
+The first three build the mental model. The next six are about everything that makes
+agents actually hard — the questions a reader still could not answer after finishing the
+first three.
 
 1. **`/` — What an agent is.** From "a model only turns text into text" to "a program that
    loops and calls tools", without a line of code.
 2. **`/loop` — Watch it run.** Step through complete runs. The button labels *are* the
    beats of the loop: send the task → call the model → run the tool → send the result back → …
-   The code panel highlights the lines in play; the token counter shows the cost of resending
-   the whole history each round. Five runs are recorded: one that goes cleanly, and four that
-   go wrong — a loop that will not stop, a model that picks the wrong tool, a history that no
-   longer fits, and a tool that fails. Each failing run ends by replaying itself with the
-   mistake fixed.
+   Five recorded runs: one that goes cleanly, and four that go wrong — a loop that will not
+   stop, a model that picks the wrong tool, a history that no longer fits, and a tool that
+   fails. Each failing run ends by replaying itself with the mistake fixed.
 3. **`/build` — Write one yourself.** Fill in eight blanks in a small agent skeleton. Each
    blank teaches the concept before asking, and every wrong answer gets a specific
    correction.
+4. **`/cost` — Why it costs what it costs.** The whole array is resent every round, so
+   spending grows with the square of the number of rounds. Drag the slider and watch the
+   curve bend; switch caching on and watch it bend less steeply — but still bend.
+5. **`/context` — When it will not fit.** What a token is, what a context window is, and the
+   three things a system can do when the array is too large: refuse, truncate, or summarise.
+   All three are applied to the same conversation so the reader can see what each one loses.
+6. **`/tools` — How to describe a tool.** A description is a prompt, not documentation.
+   Three tasks, each exposing a different omission: what the tool does not do, where the
+   toolset stops, and how much comes back.
+7. **`/trust` — Tool output is not your friend.** Prompt injection, shown before it is named:
+   a page whose visible text is ordinary and whose fetched text is not. Then the mitigations,
+   each with what it does not stop.
+8. **`/delegate` — Handing work to another agent.** One idea: a subagent buys context and
+   costs you the ability to check its work.
+9. **`/measure` — How you know it got better.** Ten saved tasks and a pass count. A prompt
+   change that fixes three of them and quietly breaks two.
 
 ## Running locally
 
@@ -64,6 +84,9 @@ prerenders to static pages.
 |---|---|
 | `lib/intro.ts` | Stop 1 content |
 | `lib/scenarios/` | Stop 2 — five recorded runs, frame by frame, one file each |
+| `lib/cost.ts` `lib/context.ts` `lib/tools.ts` | Stops 4–6: the model behind each one, plus its prose |
+| `lib/trust.ts` `lib/delegate.ts` `lib/measure.ts` | Stops 7–9, same shape |
+| `lib/lesson.ts` · `app/lesson.tsx` | The shared shape of a stop from 4 onward |
 | `lib/build.ts` | Stop 3 — the blanks, answers, and per-mistake corrections |
 | `lib/i18n.tsx` | Bilingual strings and the `useT()` hook |
 | `lib/glossary.tsx` | Term dictionary and the `[[key:label]]` renderer |

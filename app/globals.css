@@ -2204,6 +2204,9 @@ html[data-sidebar="collapsed"] .sidebar {
   gap: 1px;
   padding: 12px 10px;
   flex: 1;
+  /* 九站之后这里可能装不下，让列表自己滚，品牌区和进度条留在原位 */
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .side-link {
@@ -2622,4 +2625,806 @@ html[data-sidebar="collapsed"] .sidebar {
     animation: none;
     transition: none;
   }
+}
+
+/* ---------- 第 4 站起：教学页共用版面 ---------- */
+
+.lsn-block {
+  margin-bottom: 22px;
+}
+
+.lsn-h {
+  font-size: 17px;
+  font-weight: 650;
+  margin: 0 0 10px;
+  letter-spacing: 0.01em;
+}
+
+.lsn-h::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin-right: 9px;
+  vertical-align: middle;
+}
+
+.lsn-p {
+  margin: 0 0 10px;
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: var(--text-2);
+  max-width: 72ch;
+}
+
+.lsn-p:last-of-type {
+  margin-bottom: 0;
+}
+
+.lsn-sim {
+  margin: 0 0 18px;
+  padding: 9px 14px;
+  border-left: 2px solid var(--border-strong);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-3);
+  max-width: 72ch;
+}
+
+.lsn-bench {
+  min-height: 0;
+  margin-bottom: 22px;
+}
+
+.lsn-bench-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lsn-take {
+  position: relative;
+  border: 1px solid var(--accent-glow);
+  background: var(--accent-bg);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin: 26px 0 8px;
+}
+
+.lsn-take-tag {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  margin-bottom: 6px;
+}
+
+.lsn-take p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.lsn-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.lsn-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lsn-choice {
+  font: inherit;
+  text-align: left;
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.lsn-choice:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.lsn-choice.on {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--text);
+}
+
+.lsn-choice-name {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+/* 选中项除了配色，前面还加一个记号，不只靠颜色区分 */
+.lsn-choice.on .lsn-choice-name::before {
+  content: "✓ ";
+  color: var(--accent);
+}
+
+.lsn-choice-hint {
+  display: block;
+  font-size: 11.5px;
+  margin-top: 2px;
+  color: var(--text-3);
+}
+
+/* 数值读数：一排「标签 + 大数字」 */
+.lsn-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lsn-stat {
+  flex: 1 1 130px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 13px;
+  background: var(--panel-2);
+}
+
+.lsn-stat-k {
+  display: block;
+  font-size: 11px;
+  color: var(--text-3);
+  margin-bottom: 3px;
+}
+
+.lsn-stat-v {
+  display: block;
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.lsn-stat-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.lsn-stat-bad .lsn-stat-v {
+  color: var(--risk);
+}
+
+.lsn-stat-good .lsn-stat-v {
+  color: var(--teal);
+}
+
+/* 滑块 */
+.lsn-slider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.lsn-slider label {
+  font-size: 13px;
+  color: var(--text-2);
+  min-width: 120px;
+}
+
+.lsn-slider input[type="range"] {
+  flex: 1 1 220px;
+  accent-color: var(--accent);
+  height: 22px;
+}
+
+.lsn-slider-v {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  min-width: 5ch;
+  text-align: right;
+}
+
+/* 表格：/measure 的用例清单、/tools 的对照 */
+.lsn-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.lsn-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.lsn-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
+  vertical-align: top;
+}
+
+.lsn-table tr:last-child td {
+  border-bottom: none;
+}
+
+.lsn-table .num {
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+
+/* 通过 / 失败：文字 + 记号，不只靠颜色 */
+.mark-pass {
+  color: var(--teal);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mark-fail {
+  color: var(--risk);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mark-new {
+  color: var(--accent-text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 并排两栏（对照用）。窄屏自动堆叠。 */
+.lsn-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 780px) {
+  .lsn-two {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lsn-col {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 13px 15px;
+  background: var(--panel-2);
+}
+
+.lsn-col-h {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.lsn-col-bad {
+  border-color: var(--err-bg);
+}
+
+.lsn-col-bad .lsn-col-h {
+  color: var(--risk);
+}
+
+.lsn-col-good {
+  border-color: var(--teal-border);
+}
+
+.lsn-col-good .lsn-col-h {
+  color: var(--teal-text);
+}
+
+.lsn-quote {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-2);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.lsn-note {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-3);
+  margin: 0;
+}
+
+/* ---------- 开关与图表（/cost 等站点用） ---------- */
+
+.lsn-switches {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lsn-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.lsn-switch input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.lsn-switch:hover {
+  color: var(--text);
+}
+
+.chart {
+  margin: 0;
+}
+
+.chart-cap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-3);
+  margin-bottom: 8px;
+}
+
+.chart-key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+}
+
+.chart-key i {
+  display: inline-block;
+  width: 15px;
+  height: 0;
+  border-top-width: 2px;
+  border-top-style: solid;
+  margin-left: 8px;
+}
+
+.chart-key i:first-child {
+  margin-left: 0;
+}
+
+.k-plain {
+  border-top-color: var(--accent);
+}
+
+.k-cache {
+  border-top-color: var(--teal);
+}
+
+.k-linear {
+  border-top-color: var(--text-3);
+  border-top-style: dashed !important;
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.chart-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.chart-tick {
+  fill: var(--text-3);
+  font-size: 10px;
+  font-family: var(--mono);
+}
+
+.chart-line {
+  fill: none;
+  stroke-width: 2.25;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-plain {
+  stroke: var(--accent);
+}
+
+.chart-cache {
+  stroke: var(--teal);
+}
+
+/* 参照线用虚线，不靠颜色区分 */
+.chart-linear {
+  stroke: var(--text-3);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+  opacity: 0.75;
+}
+
+.chart-dot {
+  fill: var(--accent);
+  stroke: var(--panel);
+  stroke-width: 2;
+}
+
+/* ---------- /context：消息清单 ---------- */
+
+.ctx-sum {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-3);
+}
+
+.ctx-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ctx-row {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+}
+
+.ctx-role {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+  min-width: 62px;
+  flex-shrink: 0;
+}
+
+.ctx-body {
+  flex: 1;
+  color: var(--text-2);
+  line-height: 1.6;
+  min-width: 0;
+}
+
+.ctx-body b {
+  display: block;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.ctx-tok {
+  color: var(--text-3);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+/* 被丢掉的消息：划掉 + 变淡，两个信号 */
+.ctx-dropped {
+  opacity: 0.45;
+  text-decoration: line-through;
+  text-decoration-color: var(--risk);
+  border-style: dashed;
+}
+
+.ctx-new {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.ctx-task-tag {
+  display: inline-block;
+  margin-left: 7px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+  background: var(--accent-bg);
+  border-radius: 999px;
+  padding: 1px 7px;
+  vertical-align: middle;
+  text-decoration: none;
+}
+
+.ctx-warn {
+  margin: 10px 0 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--err-bg);
+  color: var(--risk);
+  font-size: 12.5px;
+  line-height: 1.65;
+  font-weight: 550;
+}
+
+/* ---------- /tools：工具定义对照 ---------- */
+
+.tl-def {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 11px;
+  background: var(--panel);
+  margin-bottom: 10px;
+}
+
+.tl-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent-text);
+  margin-bottom: 6px;
+}
+
+.tl-field {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.65;
+  margin-top: 4px;
+}
+
+.tl-k {
+  flex-shrink: 0;
+  min-width: 82px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+  padding-top: 2px;
+}
+
+.tl-v {
+  color: var(--text-2);
+  min-width: 0;
+  word-break: break-word;
+}
+
+.tl-run {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+}
+
+.tl-run dt {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-top: 8px;
+}
+
+.tl-run dd {
+  margin: 3px 0 0;
+  color: var(--text-2);
+  line-height: 1.65;
+  word-break: break-word;
+}
+
+.tl-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tl-line {
+  display: block;
+}
+
+.tl-verdict {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--text-2);
+  border-top: 1px solid var(--border);
+  padding-top: 9px;
+}
+
+/* ---------- /trust：页面取回与缓解办法 ---------- */
+
+.tr-frame {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--panel-2);
+}
+
+.tr-bar {
+  padding: 7px 12px;
+  font-size: 11px;
+  color: var(--text-3);
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.tr-page {
+  margin: 0;
+  padding: 13px 15px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.75;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 320px;
+  overflow: auto;
+}
+
+/* 原始视图：那段藏起来的 div 在这里是普通文字，用左边一道线标出来 */
+.tr-page-raw {
+  border-left: 3px solid var(--risk);
+  background: var(--err-bg);
+}
+
+.tr-note {
+  margin: 9px 0 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--risk);
+}
+
+.tr-mit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tr-what {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--text-2);
+}
+
+.tr-tag {
+  align-self: flex-start;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+.tr-tag-text {
+  color: var(--amber);
+  background: var(--amber-bg);
+}
+
+.tr-tag-structural {
+  color: var(--teal-text);
+  background: var(--teal-bg);
+}
+
+/* ---------- /delegate：父子两侧的消息 ---------- */
+
+.dl-msgs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dl-msg {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 13px;
+  background: var(--panel-2);
+}
+
+.dl-msg p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+
+.dl-k {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ---------- /measure：评测表 ---------- */
+
+.ms-prompt {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 13px;
+  background: var(--panel-2);
+}
+
+.ms-prompt p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+
+.ms-check {
+  font-size: 12px;
+  color: var(--text-3);
+  max-width: 34ch;
+}
+
+.ms-why {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text-3);
+  border-left: 2px solid var(--border-strong);
+  padding-left: 9px;
+}
+
+.ms-flip {
+  display: block;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* 第 3 站完成卡：课程还没结束，往下指一句 */
+.win-more {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--text-2);
 }

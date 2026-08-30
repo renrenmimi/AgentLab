@@ -13,6 +13,15 @@ export const STOPS: SideStop[] = [
   { href: "/", glyph: "1", label: ui.nav.stop1 },
   { href: "/loop", glyph: "2", label: ui.nav.stop2 },
   { href: "/build", glyph: "3", label: ui.nav.stop3 },
+  // 前三站讲「agent 是什么」。后六站讲「为什么它难」，顺序是有意的：
+  // 先讲数组变长带来的两个后果（钱、上下文上限），再讲工具的两端
+  // （怎么描述它、它返回的东西能不能信），然后是把工作交出去，最后是怎么衡量。
+  { href: "/cost", glyph: "4", label: ui.nav.stop4 },
+  { href: "/context", glyph: "5", label: ui.nav.stop5 },
+  { href: "/tools", glyph: "6", label: ui.nav.stop6 },
+  { href: "/trust", glyph: "7", label: ui.nav.stop7 },
+  { href: "/delegate", glyph: "8", label: ui.nav.stop8 },
+  { href: "/measure", glyph: "9", label: ui.nav.stop9 },
 ];
 
 // Which stop is active for a given path ("/loop/x" still counts as /loop).

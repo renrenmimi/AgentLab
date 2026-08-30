@@ -269,6 +269,7 @@ export default function BuildChapter() {
               careful loop around them.
             </p>
           )}
+          <p className="win-more">{t(ui.build.halfway, lang)}</p>
           <div className="q-form">
             <button className="btn" onClick={restart}>
               {t(ui.build.again, lang)}
@@ -276,8 +277,8 @@ export default function BuildChapter() {
             <Link className="btn" href="/loop">
               {t(ui.build.backLoop, lang)}
             </Link>
-            <Link className="btn btn-primary" href="/">
-              {t(ui.build.backIntro, lang)}
+            <Link className="btn btn-primary" href="/cost">
+              {t(ui.build.toCost, lang)}
             </Link>
           </div>
         </section>
