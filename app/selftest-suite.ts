@@ -503,7 +503,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   const nameless: string[] = [];
   const positiveTab: string[] = [];
   const colourOnly: string[] = [];
-  const lowContrast: string[] = [];
+  const lowContrast: { id: string; where: string; ratio: number; need: number }[] = [];
   // Traversal reports two numbers, not one. How many surfaces failed is the
   // obvious one; how many were measured at all is the one that went wrong last
   // round, when a list of sixty selectors matched forty-three elements and
@@ -523,7 +523,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     for (const s of pass.skipped) skipTally.set(s.reason, (skipTally.get(s.reason) ?? 0) + 1);
     for (const m of pass.measured) {
       if (m.ratio < m.need) {
-        lowContrast.push(`${theme}${where} ${m.id} ${m.ratio.toFixed(2)}:1 (needs ${m.need})`);
+        lowContrast.push({ id: m.id, where: `${theme}${where}`, ratio: m.ratio, need: m.need });
       }
     }
   };
@@ -1542,11 +1542,34 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     silent.join(", ") || `${expectedPasses.length} stop-and-theme pairs`,
   );
 
-  const unique = [...new Set(lowContrast)];
+  // Grouped by surface, worst first, rather than listed as found.
+  //
+  // Traversal reports a failing surface once for every element and every pass it
+  // appears in, so a single bad token can produce dozens of entries. Listing the
+  // first few of those then hides every other surface behind it: reverting one
+  // colour pair made three surfaces fail, and the report showed two of them
+  // because the third was thirty entries down. The detector had detected it.
+  const bySurface = new Map<string, { worst: number; need: number; where: string; seen: number }>();
+  for (const f of lowContrast) {
+    const held = bySurface.get(f.id);
+    if (!held) bySurface.set(f.id, { worst: f.ratio, need: f.need, where: f.where, seen: 1 });
+    else {
+      held.seen++;
+      if (f.ratio < held.worst) {
+        held.worst = f.ratio;
+        held.where = f.where;
+      }
+    }
+  }
+  const worstFirst = [...bySurface.entries()].sort((a, b) => a[1].worst - b[1].worst);
+  const shown = worstFirst
+    .slice(0, 10)
+    .map(([id, v]) => `${id} ${v.worst.toFixed(2)}:1 (needs ${v.need}) at ${v.where}`);
+  if (worstFirst.length > 10) shown.push(`and ${worstFirst.length - 10} more surfaces`);
   ok(
-    unique.length === 0,
+    bySurface.size === 0,
     "body text, headings and accents clear their contrast requirement in both themes",
-    unique.slice(0, 8).join("; ") || "all pairs pass",
+    shown.join("; ") || "all pairs pass",
   );
 
   // ---- window surface ---------------------------------------------------

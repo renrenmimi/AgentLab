@@ -35,7 +35,7 @@
 // can be pasted into a pull request body.
 
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -53,7 +53,7 @@ const WIDTHS = [
 // ---------------------------------------------------------------- arguments
 
 function parseArgs(argv) {
-  const args = { url: null, widths: WIDTHS, port: 3210, keep: false };
+  const args = { url: null, widths: WIDTHS, port: 3210, keep: false, inject: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--url") args.url = argv[++i];
@@ -62,10 +62,12 @@ function parseArgs(argv) {
       const w = Number(argv[++i]);
       const known = WIDTHS.find((x) => x.width === w);
       args.widths = [known ?? { width: w, height: 900 }];
-    } else if (a === "--keep-open") args.keep = true;
+    } else if (a === "--inject") args.inject = readFileSync(argv[++i], "utf8");
+    else if (a === "--keep-open") args.keep = true;
     else if (a === "--help" || a === "-h") {
       console.log(
-        "usage: node scripts/drive-selftest.mjs [--url URL] [--width 1440|768|390] [--port N]",
+        "usage: node scripts/drive-selftest.mjs [--url URL] [--width 1440|768|390]\n" +
+          "                                       [--port N] [--inject FILE.css]",
       );
       process.exit(0);
     }
@@ -259,7 +261,7 @@ async function serve(port) {
 
 // ---------------------------------------------------------------- one run
 
-async function runAt(chrome, url, { width, height }, keepOpen) {
+async function runAt(chrome, url, { width, height }, keepOpen, injectCss) {
   const profile = mkdtempSync(join(tmpdir(), "agentlab-selftest-"));
   const port = 9200 + Math.floor(Math.random() * 700);
   const proc = spawn(
@@ -300,6 +302,21 @@ async function runAt(chrome, url, { width, height }, keepOpen) {
       deviceScaleFactor: 1,
       mobile: false,
     });
+
+    // A stylesheet applied before anything on the page runs. This exists for
+    // scripts/prove-contrast-catches.mjs, which puts a repaired surface back the
+    // way it was and checks that the suite notices — a detector nobody has seen
+    // fire is not a detector. Injecting rather than editing app/globals.css means
+    // no build, and no tracked file is touched.
+    if (injectCss) {
+      await send("Page.addScriptToEvaluateOnNewDocument", {
+        source:
+          `(() => { const s = document.createElement("style");` +
+          ` s.id = "__injected"; s.textContent = ${JSON.stringify(injectCss)};` +
+          ` const put = () => document.head && document.head.appendChild(s);` +
+          ` if (document.head) put(); else addEventListener("DOMContentLoaded", put); })();`,
+      });
+    }
 
     await send("Page.navigate", { url: `${url}/?selftest=1` });
 
@@ -387,7 +404,7 @@ console.log("");
 const runs = [];
 try {
   for (const size of args.widths) {
-    const run = await runAt(chrome, url, size, args.keep);
+    const run = await runAt(chrome, url, size, args.keep, args.inject);
     runs.push(run);
     if (run.threw) {
       console.log(`${run.width}px — the suite threw before reporting`);
