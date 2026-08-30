@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "verify": "node verify.mjs",
-    "selftest": "node scripts/drive-selftest.mjs"
+    "selftest": "node scripts/drive-selftest.mjs",
+    "counters": "node scripts/check-the-counters.mjs"
   },
   "dependencies": {
     "next": "^15.3.0",

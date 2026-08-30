@@ -178,6 +178,12 @@ function required(el: Element): number {
  * regression shows up on one selector at a time, and the ones that go first are
  * always the quiet ones — a caption, a line number, a code comment.
  */
+// The total this suite reports when every block ran. Declared here so the suite
+// can compare it against the assertions that actually executed, and read out of
+// this file by verify.mjs so CI notices a change even though CI cannot run the
+// suite itself. Changing an assertion means changing this number.
+const EXPECTED_ASSERTIONS = 115;
+
 const TEXT_SELECTORS = [
   ".lsn-p", ".n-body", ".page-title", ".lsn-h", ".subtitle", ".lsn-note",
   ".card-tag", ".card-body", ".card-idx", ".chip", ".side-label", ".ctx-role",
@@ -1249,6 +1255,24 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     (k) => !globalsBefore.has(k) && k !== "__selftest",
   );
   ok(added.length === 0, "the suite adds nothing to window but its report", added.join(", ") || "none");
+
+  // ---- the count itself -------------------------------------------------
+  // A block that never runs cannot fail, so the number of assertions that did
+  // run is itself asserted. The sibling project lost eighteen assertions for a
+  // full round to exactly this: they stopped executing, nothing turned red, and
+  // the only trace was a total that had quietly stopped moving.
+  //
+  // This assertion counts itself, which is why the comparison adds one:
+  // EXPECTED_ASSERTIONS is the total the driver should print, this one included.
+  // Its twin lives in verify.mjs, which reads this file as text on every push
+  // and refuses to let the two numbers drift apart.
+  ok(
+    results.length + 1 === EXPECTED_ASSERTIONS,
+    `all ${EXPECTED_ASSERTIONS} assertions ran`,
+    results.length + 1 === EXPECTED_ASSERTIONS
+      ? "none skipped"
+      : `${results.length + 1} ran; a block was skipped, or one was added without updating the number`,
+  );
 
   report(results, width);
 }
