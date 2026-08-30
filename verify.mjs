@@ -812,6 +812,88 @@ check("every stop sits in exactly one group, and every group says why it follows
   if (glyphs !== expected) fail("stops", `numbering is ${glyphs}`);
 });
 
+// 5e. Figures written into the prose ------------------------------------------
+// Several stops quote a number in a sentence — a total, a token count, a score.
+// Those were computed once, by hand, and then the model changed underneath them
+// twice. Each claim below names the sentence and the function that produces the
+// figure, so the prose cannot drift away from the page.
+check("every figure quoted in prose is the figure the page computes", () => {
+  const proseOf = (mod, path) =>
+    path.reduce((acc, k) => (acc == null ? acc : acc[k]), mod);
+
+  const claims = [];
+
+  // /cost — the caching paragraph and the pasted-document paragraph.
+  {
+    const { ASSUMPTIONS, MAX_ROUNDS, runCost, money } = modules.cost;
+    const plain = runCost(ASSUMPTIONS, MAX_ROUNDS, { cached: false }).total;
+    const cached = runCost(ASSUMPTIONS, MAX_ROUNDS, { cached: true }).total;
+    const doc = runCost(ASSUMPTIONS, MAX_ROUNDS, { cached: false, extra: 20000 }).total;
+    const docAlone = (20000 * ASSUMPTIONS.priceIn) / 1e6;
+    const caching = modules.cost.blocks[1].paras[1];
+    const paste = modules.cost.blocks[2].paras[0];
+    claims.push(
+      ["cost caching, zh", caching.zh, [money(plain), money(cached)]],
+      ["cost caching, en", caching.en, [money(plain), money(cached)]],
+      ["cost document, zh", paste.zh, [money(plain), money(doc), money(doc - plain)]],
+      ["cost document, en", paste.en, [money(plain), money(doc), money(doc - plain)]],
+    );
+    // The "about four and a half times" claim, checked as a ratio.
+    const ratio = plain / cached;
+    if (!(ratio > 4.3 && ratio < 4.8)) {
+      fail("cost", `caching saves ${ratio.toFixed(2)}x; the prose says about four and a half`);
+    }
+    if (Math.abs(docAlone - 0.06) > 0.005) {
+      fail("cost", `the document costs ${docAlone.toFixed(3)} once; the prose says six cents`);
+    }
+  }
+
+  // /context — the conversation is 1,210 tokens against a 1,000 window.
+  {
+    const total = modules.context.totalTokens(modules.context.conversation);
+    const limit = modules.context.LIMIT;
+    const p = modules.context.blocks[1].paras[0];
+    claims.push(
+      ["context sizes, zh", p.zh, [total.toLocaleString("en-US"), limit.toLocaleString("en-US")]],
+      ["context sizes, en", p.en, [total.toLocaleString("en-US"), limit.toLocaleString("en-US")]],
+    );
+  }
+
+  // /measure — the net result of the prompt change.
+  {
+    const v1 = modules.measure.score("v1");
+    const v2 = modules.measure.score("v2");
+    const p = modules.measure.blocks[2].paras[1];
+    claims.push(
+      ["measure score, zh", p.zh, [`${v1} → ${v2}`]],
+      ["measure score, en", p.en, [`${v1} to ${v2}`]],
+    );
+  }
+
+  // /instructions — the length of the system prompt it prices.
+  {
+    const tokens = modules.instructions.SYSTEM_TOKENS;
+    const p = modules.instructions.blocks[1].paras[0];
+    claims.push(
+      ["instructions prompt length, zh", p.zh, [String(tokens)]],
+      ["instructions prompt length, en", p.en, [String(tokens)]],
+    );
+  }
+
+  for (const [label, text, wanted] of claims) {
+    if (typeof text !== "string") {
+      fail(label, "the sentence this claim points at is missing");
+      continue;
+    }
+    for (const figure of wanted) {
+      if (!text.includes(figure)) {
+        fail(label, `does not contain ${figure}, which is what the page computes`);
+      }
+    }
+  }
+  void proseOf;
+});
+
 // 6. Routes --------------------------------------------------------------------
 check("every stop in the sidebar has a page, and every page is a stop", () => {
   const pageFor = (href) =>

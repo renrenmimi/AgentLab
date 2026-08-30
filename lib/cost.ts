@@ -1,4 +1,4 @@
-//「它为什么这么贵」：一个可以算的成本模型 + 文案。
+// 「它为什么这么贵」：一个可以算的成本模型 + 文案。
 //
 // 模型本身是纯函数，页面和 verify.mjs 用的是同一份。
 // 这里所有价格都是这一页自己设的示例价，不是任何厂商的实时价目表；
@@ -92,8 +92,10 @@ export function linearReference(a: Assumptions, rounds: number, extra = 0): numb
   return Array.from({ length: rounds }, (_, i) => first * (i + 1));
 }
 
-// 页面和自检用同一个格式化函数，比较渲染出来的字符串才有意义。
-export const money = (n: number) => (n >= 1 ? `$${n.toFixed(2)}` : `$${n.toFixed(3)}`);
+// 页面、正文和自检用同一个格式化函数，读者在两处看到的数字才对得上。
+// 一分钱以上给两位小数；再小才加第三位，否则单轮的花费会被抹成 $0.01。
+export const money = (n: number) =>
+  n >= 0.01 ? `$${n.toFixed(2)}` : `$${n.toFixed(3)}`;
 
 // ---------------------------------------------------------------- 文案
 

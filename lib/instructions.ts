@@ -1,4 +1,4 @@
-//「数组外面的那段话」：system 提示词。
+// 「数组外面的那段话」：system 提示词。
 // 三种条件跑同一个任务，最后一条说明「说一句」和「不给工具」不是一个量级。
 
 import type { L } from "@/lib/i18n";
@@ -157,7 +157,7 @@ export const setups: Setup[] = [
 ];
 
 // 一段 system 提示词在一次 40 轮的运行里被重发多少次、要多少钱。
-// 数字取自[[stop:/cost]]那个成本模型，不是另写的一份。
+// 数字取自 lib/cost.ts 那个成本模型，不是另写的一份。
 export const SYSTEM_TOKENS = 900;
 
 export function systemBill(rounds = 40) {
