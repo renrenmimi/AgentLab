@@ -12,6 +12,7 @@ import {
   Takeaway,
   Workbench,
 } from "@/app/lesson";
+import GroupCheck from "@/app/group-check";
 
 export default function ToolsStop() {
   const { lang } = useLang();
@@ -47,6 +48,7 @@ export default function ToolsStop() {
       <Prose block={blocks[1]} lang={lang} />
 
       <Takeaway text={meta.takeaway} lang={lang} />
+      <GroupCheck href="/tools" lang={lang} />
       <StopNav lang={lang} />
     </main>
   );

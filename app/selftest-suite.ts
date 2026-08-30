@@ -4,7 +4,8 @@ import { GROUPS, STOPS } from "@/lib/stops";
 import { scenarios, stateAt } from "@/lib/scenarios";
 import { ASSUMPTIONS, MAX_ROUNDS, money, runCost } from "@/lib/cost";
 import { blanks, normalize } from "@/lib/build";
-import type { Lang } from "@/lib/i18n";
+import { checks } from "@/lib/checks";
+import { t, type Lang } from "@/lib/i18n";
 
 type Result = { ok: boolean; label: string; note?: string };
 
@@ -188,6 +189,8 @@ const TEXT_SELECTORS = [
   ".tk-cmt", ".tk-str", ".tk-kw", ".cl.on .ct", ".sc-caption", ".code-note",
   ".bubble-user", ".bubble-assistant", ".bubble-aside", ".tool-output",
   ".tool-chip-head", ".empty", ".q-feedback", ".cmdk-hint", ".eyebrow",
+  ".gc-tag", ".gc-setup", ".gc-ask", ".gc-choice", ".gc-verdict",
+  ".gc-correction", ".gc-afterward", ".gc-again", ".gc-intro",
 ];
 
 // ---------------------------------------------------------------- suite
@@ -725,6 +728,89 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   // Put the reader back where they were rather than leaving a wiped rail.
   await go("/loop");
   await go("/");
+
+  // ---- the group checks -------------------------------------------------
+  // The claim worth testing in a browser is that the correct answer cannot be
+  // found without answering: no attribute, class or hidden text gives it away
+  // before a reader commits.
+  const leaked: string[] = [];
+  const noCorrection: string[] = [];
+  const wrongVerdicts: string[] = [];
+
+  for (const check of checks) {
+    if (!(await go(check.on))) continue;
+    const blocks = $$(".gc-q");
+    ok(
+      blocks.length === check.questions.length,
+      `${check.on} shows its ${check.questions.length} questions`,
+      `${blocks.length} rendered`,
+    );
+
+    check.questions.forEach((q, qi) => {
+      const block = blocks[qi];
+      if (!block) return;
+      const buttons = Array.from(block.querySelectorAll<HTMLButtonElement>(".gc-choice"));
+      if (buttons.length !== q.options.length) {
+        leaked.push(`${q.id}: ${buttons.length} of ${q.options.length} options rendered`);
+        return;
+      }
+      // Nothing in the markup may separate the right answer from the rest.
+      const fingerprint = buttons.map(
+        (b) => `${b.className}|${b.getAttribute("aria-pressed")}|${b.disabled}`,
+      );
+      const correctAt = q.options.findIndex((o) => o.correct);
+      const others = fingerprint.filter((_, i) => i !== correctAt);
+      if (others.some((f) => f !== fingerprint[correctAt])) {
+        leaked.push(`${q.id}: the correct option is distinguishable before answering`);
+      }
+      // And no correction text is in the DOM before it is earned.
+      const html = block.innerHTML;
+      for (const o of q.options) {
+        const hint = o.correction ? t(o.correction, lang()).slice(0, 18) : null;
+        if (hint && html.includes(hint)) {
+          leaked.push(`${q.id}: the correction for "${o.id}" is in the DOM unanswered`);
+        }
+      }
+    });
+
+    // Answer the first question of each check wrongly, then correctly.
+    const first = check.questions[0];
+    const wrong = first.options.find((o) => !o.correct);
+    const right = first.options.find((o) => o.correct);
+    const block = blocks[0];
+    if (block && wrong && right) {
+      const at = (id: string) =>
+        Array.from(block.querySelectorAll<HTMLButtonElement>(".gc-choice"))[
+          first.options.findIndex((o) => o.id === id)
+        ];
+      at(wrong.id)?.click();
+      await settle(3);
+      const correction = text(block.querySelector(".gc-correction"));
+      if (!correction.includes(t(wrong.correction!, lang()).slice(0, 18))) {
+        noCorrection.push(`${check.on}/${first.id}`);
+      }
+      if (!text(block.querySelector(".gc-wrong .gc-verdict"))) {
+        wrongVerdicts.push(`${check.on}/${first.id}`);
+      }
+      at(right.id)?.click();
+      await settle(3);
+      if (!block.classList.contains("gc-solved")) {
+        wrongVerdicts.push(`${check.on}/${first.id}: correct answer not accepted`);
+      }
+    }
+  }
+
+  ok(leaked.length === 0, "no group check gives its answer away in the markup", leaked.slice(0, 3).join("; ") || `${checks.length} checks`);
+  ok(noCorrection.length === 0, "a wrong answer shows that option's own correction", noCorrection.join("; ") || "all six");
+  ok(wrongVerdicts.length === 0, "right and wrong are stated in words, not only in colour", wrongVerdicts.join("; ") || "all six");
+
+  // No scoring anywhere on the page: that was a design constraint, not a
+  // preference, so it is worth failing on.
+  await go("/measure");
+  const scoreish = $$(".gc *").filter((el) =>
+    /\b\d+\s*\/\s*\d+\b|%/.test(text(el)) && el.children.length === 0,
+  );
+  ok(scoreish.length === 0, "the checks show no score", scoreish.slice(0, 2).map(text).join("; ") || "none");
 
   // ---- both themes ------------------------------------------------------
   const root = document.documentElement;

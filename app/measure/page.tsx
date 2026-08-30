@@ -22,6 +22,7 @@ import {
   Takeaway,
   Workbench,
 } from "@/app/lesson";
+import GroupCheck from "@/app/group-check";
 
 export default function MeasureStop() {
   const { lang } = useLang();
@@ -136,6 +137,7 @@ export default function MeasureStop() {
       <Takeaway text={meta.takeaway} lang={lang} />
 
 
+      <GroupCheck href="/measure" lang={lang} />
       <StopNav lang={lang} />
     </main>
   );

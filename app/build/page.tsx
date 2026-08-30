@@ -12,6 +12,7 @@ import { codeTemplate, blanks, runScript, normalize } from "@/lib/build";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { RichText } from "@/lib/glossary";
 import { useStopHeading } from "@/app/lesson";
+import GroupCheck from "@/app/group-check";
 
 type Phase = "write" | "ready" | "running" | "done";
 
@@ -317,6 +318,7 @@ export default function BuildChapter() {
         </div>
         <p className="code-note">{t(ui.build.codeNote, lang)}</p>
       </section>
+      <GroupCheck href="/build" lang={lang} />
     </main>
   );
 }
