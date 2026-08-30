@@ -20,10 +20,13 @@ tool call, result, and follow-up loop.
 
 1. **`/` — What an agent is.** From "a model only turns text into text" to "a program that
    loops and calls tools", without a line of code.
-2. **`/loop` — Watch it run.** Step through one complete run. The button labels *are* the
+2. **`/loop` — Watch it run.** Step through complete runs. The button labels *are* the
    beats of the loop: send the task → call the model → run the tool → send the result back → …
    The code panel highlights the lines in play; the token counter shows the cost of resending
-   the whole history each round.
+   the whole history each round. Five runs are recorded: one that goes cleanly, and four that
+   go wrong — a loop that will not stop, a model that picks the wrong tool, a history that no
+   longer fits, and a tool that fails. Each failing run ends by replaying itself with the
+   mistake fixed.
 3. **`/build` — Write one yourself.** Fill in eight blanks in a small agent skeleton. Each
    blank teaches the concept before asking, and every wrong answer gets a specific
    correction.
@@ -41,7 +44,7 @@ npm run verify  # static checks over the course content
 
 ## Notes on design
 
-- **Simulated by default.** Every response comes from recorded data in `lib/scenario.ts` —
+- **Simulated by default.** Every response comes from recorded data in `lib/scenarios/` —
   so it runs without an API key.
 - **Bilingual.** Every string is a `{ zh, en }` pair in `lib/i18n.tsx`.
 - **A glossary built into the prose.** Writing `[[key:label]]` renders a clickable term that
@@ -60,7 +63,7 @@ prerenders to static pages.
 | File | Role |
 |---|---|
 | `lib/intro.ts` | Stop 1 content |
-| `lib/scenario.ts` | Stop 2 — the recorded run, frame by frame |
+| `lib/scenarios/` | Stop 2 — five recorded runs, frame by frame, one file each |
 | `lib/build.ts` | Stop 3 — the blanks, answers, and per-mistake corrections |
 | `lib/i18n.tsx` | Bilingual strings and the `useT()` hook |
 | `lib/glossary.tsx` | Term dictionary and the `[[key:label]]` renderer |

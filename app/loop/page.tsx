@@ -2,53 +2,45 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { steps, agentCode, type ChatItem, type MsgCard } from "@/lib/scenario";
+import { scenarios, stateAt, type ChatItem, type Meter } from "@/lib/scenarios";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { RichText } from "@/lib/glossary";
 
 export default function LoopChapter() {
+  const [pick, setPick] = useState(0);
   const [cursor, setCursor] = useState(0);
   const [auto, setAuto] = useState(false);
   const { lang } = useLang();
 
+  const scenario = scenarios[pick];
+  const steps = scenario.steps;
+  const code = scenario.code[lang];
+
   const atEnd = cursor >= steps.length - 1;
   const step = steps[cursor];
   const nextAction = atEnd ? null : steps[cursor + 1].action;
-  const code = agentCode[lang];
 
-  // 把第 0..cursor 步的增量数据累积成当前画面
-  const state = useMemo(() => {
-    const chat: ChatItem[] = [];
-    const msgs: MsgCard[] = [];
-    let round = 0;
-    let stopReason: string | null = null;
-    let tokens = 0;
-    for (let i = 0; i <= cursor; i++) {
-      const s = steps[i];
-      if (s.chat) chat.push(...s.chat);
-      if (s.msgs) msgs.push(...s.msgs);
-      if (s.round !== undefined) round = s.round;
-      if (s.stopReason !== undefined) stopReason = s.stopReason;
-      if (s.tokens !== undefined) tokens = s.tokens;
-    }
-    return { chat, msgs, round, stopReason, tokens };
-  }, [cursor]);
+  // 面板状态由 lib/scenarios 里的纯函数算出来，verify.mjs 用的是同一个函数。
+  const state = useMemo(() => stateAt(steps, cursor), [cursor, steps]);
 
   const arrayLen = state.msgs.filter((m) => !m.sys).length;
   const tokens = useCountUp(state.tokens);
 
-  // 语法高亮只跟语言有关。tokens 滚动动画每帧都会重渲染本组件，
-  // 不缓存的话这 32 行会被重新 tokenize 几十次。
+  // 语法高亮只跟场景和语言有关。tokens 滚动动画每帧都会重渲染本组件，
+  // 不缓存的话这些行会被重新 tokenize 几十次。
   const codeLines = useMemo(() => code.map((line) => tokenize(line)), [code]);
 
-  const advance = () => {
-    setCursor((c) => Math.min(c + 1, steps.length - 1));
-  };
+  const advance = () => setCursor((c) => Math.min(c + 1, steps.length - 1));
   const back = () => {
     setCursor((c) => Math.max(c - 1, 0));
     setAuto(false);
   };
   const reset = () => {
+    setCursor(0);
+    setAuto(false);
+  };
+  const choose = (i: number) => {
+    setPick(i);
     setCursor(0);
     setAuto(false);
   };
@@ -63,10 +55,10 @@ export default function LoopChapter() {
     // 注意：别用 `t` 当变量名，会遮蔽 i18n 的 t() 翻译函数
     const timer = setTimeout(
       () => setCursor((c) => Math.min(c + 1, steps.length - 1)),
-      4000
+      4500,
     );
     return () => clearTimeout(timer);
-  }, [auto, cursor]);
+  }, [auto, cursor, steps.length]);
 
   // 键盘：空格 / → 推进，← 回退
   useEffect(() => {
@@ -85,7 +77,19 @@ export default function LoopChapter() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [steps.length]);
+
+  // 选择器用左右方向键在场景之间移动（tablist 的标准行为）
+  const onTabKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    e.stopPropagation();
+    const delta = e.key === "ArrowRight" ? 1 : -1;
+    const next = (pick + delta + scenarios.length) % scenarios.length;
+    choose(next);
+    const el = document.getElementById(`scn-tab-${scenarios[next].id}`);
+    el?.focus();
+  };
 
   // 当前步骤要点亮的代码行
   const isFocused = (line: number) =>
@@ -118,10 +122,45 @@ export default function LoopChapter() {
         </div>
       </header>
 
-      <section className="narration appear" key={`n-${cursor}-${lang}`}>
+      <section className="scn" aria-label={t(ui.loop.pickerLabel, lang)}>
+        <div className="scn-tabs" role="tablist" aria-label={t(ui.loop.pickerLabel, lang)}>
+          {scenarios.map((s, i) => {
+            const on = i === pick;
+            return (
+              <button
+                key={s.id}
+                id={`scn-tab-${s.id}`}
+                role="tab"
+                aria-selected={on}
+                aria-controls="scn-body"
+                tabIndex={on ? 0 : -1}
+                className={`scn-tab${on ? " on" : ""} scn-${s.outcome}`}
+                onClick={() => choose(i)}
+                onKeyDown={onTabKey}
+              >
+                <span className="scn-tag">
+                  {t(
+                    s.outcome === "clean"
+                      ? ui.loop.outcomeClean
+                      : ui.loop.outcomeFault,
+                    lang,
+                  )}
+                </span>
+                <span className="scn-name">{t(s.name, lang)}</span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="scn-line" id="scn-body">
+          {t(scenario.tagline, lang)}
+        </p>
+      </section>
+
+      <section className="narration appear" key={`n-${scenario.id}-${cursor}-${lang}`}>
         <div className="n-head">
           <span className="n-step">
-            STEP {cursor + 1}<i>/{steps.length}</i>
+            STEP {cursor + 1}
+            <i>/{steps.length}</i>
           </span>
           <h2>{t(step.title, lang)}</h2>
         </div>
@@ -178,13 +217,9 @@ export default function LoopChapter() {
               return (
                 <div
                   key={i}
-                  className={`card appear ${
-                    card.color === "purple"
-                      ? "card-purple"
-                      : card.color === "teal"
-                        ? "card-teal"
-                        : ""
-                  } ${card.sys ? "card-sys" : ""}`}
+                  className={`card appear ${card.color ? `card-${card.color}` : ""} ${
+                    card.sys ? "card-sys" : ""
+                  }`}
                 >
                   <div className="card-head">
                     <span className="card-idx">
@@ -193,6 +228,9 @@ export default function LoopChapter() {
                         : `messages[${msgIndex}]`}
                     </span>
                     <span className="card-tag">{card.tag}</span>
+                    {card.weight && (
+                      <span className="card-weight">{t(card.weight, lang)}</span>
+                    )}
                   </div>
                   <div className={`card-body ${card.mono ? "mono" : ""}`}>
                     {t(card.body, lang)}
@@ -201,26 +239,19 @@ export default function LoopChapter() {
               );
             })}
           </div>
+
+          {state.meter && <MeterBar meter={state.meter} lang={lang} />}
+
           <div className="status">
             <span className="chip">
               {lang === "zh"
                 ? `循环第 ${state.round} 轮`
                 : `Loop round ${state.round}`}
             </span>
-            <span
-              className={`chip ${
-                state.stopReason === "end_turn"
-                  ? "chip-end"
-                  : state.stopReason === "tool_use"
-                    ? "chip-tool"
-                    : ""
-              }`}
-            >
+            <span className={`chip ${chipClass(state.stopReason, state.stopTone)}`}>
               stop_reason: {state.stopReason ?? "—"}
             </span>
-            <span className="chip">
-              ≈ {tokens.toLocaleString()} tokens
-            </span>
+            <span className="chip">≈ {tokens.toLocaleString()} tokens</span>
           </div>
         </section>
       </div>
@@ -229,7 +260,9 @@ export default function LoopChapter() {
         <div className="panel-title">
           <span className="tdot tdot-code" />
           {t(ui.loop.codeTitle, lang)}
-          <span className="len">agent.js · {t(ui.loop.lines, lang)}</span>
+          <span className="len">
+            agent.js · {code.length} {t(ui.loop.linesSuffix, lang)}
+          </span>
         </div>
         <div className="code-window">
           <div className="code-bar">
@@ -274,11 +307,62 @@ export default function LoopChapter() {
           {auto ? t(ui.common.pause, lang) : t(ui.common.autoplay, lang)}
         </button>
         <span className="hint">
-          <kbd>{t(ui.common.kbdSpace, lang)}</kbd> {t(ui.common.kbdNext, lang)}{" "}
-          · <kbd>←</kbd> {t(ui.common.kbdPrev, lang)}
+          <kbd>{t(ui.common.kbdSpace, lang)}</kbd> {t(ui.common.kbdNext, lang)} ·{" "}
+          <kbd>←</kbd> {t(ui.common.kbdPrev, lang)}
         </span>
       </div>
     </main>
+  );
+}
+
+// 状态徽标的样式。场景没有明写语气时，按 stop_reason 的常规含义兜底，
+// 这样顺利那次不用为每一步都标一遍。
+function chipClass(
+  stopReason: string | null,
+  stopTone: "wait" | "done" | "bad" | null,
+): string {
+  const tone =
+    stopTone ??
+    (stopReason === "end_turn"
+      ? "done"
+      : stopReason === "tool_use"
+        ? "wait"
+        : null);
+  if (tone === "done") return "chip-end";
+  if (tone === "bad") return "chip-bad";
+  if (tone === "wait") return "chip-tool";
+  return "";
+}
+
+// 一根量表：用掉多少 / 上限多少。超出时除了变色，也把「已超出」写出来。
+function MeterBar({ meter, lang }: { meter: Meter; lang: Lang }) {
+  const over = meter.used > meter.limit;
+  const pct = Math.max(
+    meter.used > 0 ? 2 : 0,
+    Math.min(100, (meter.used / meter.limit) * 100),
+  );
+  const unit = meter.unit ? ` ${t(meter.unit, lang)}` : "";
+  return (
+    <div className={`meter${over ? " meter-over" : ""}`}>
+      <div className="meter-head">
+        <span>{t(meter.label, lang)}</span>
+        <span className="meter-num">
+          {meter.used.toLocaleString()} / {meter.limit.toLocaleString()}
+          {unit}
+          {over && <b> · {t(ui.loop.meterOver, lang)}</b>}
+        </span>
+      </div>
+      <div
+        className="meter-track"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={meter.limit}
+        aria-valuenow={Math.min(meter.used, meter.limit)}
+        aria-label={t(meter.label, lang)}
+      >
+        <div className="meter-fill" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
   );
 }
 
@@ -295,8 +379,13 @@ function ChatRow({
     case "user":
       return <div className="bubble-user appear">{t(item.text, lang)}</div>;
     case "assistant":
+      return <div className="bubble-assistant appear">{t(item.text, lang)}</div>;
+    case "aside":
       return (
-        <div className="bubble-assistant appear">{t(item.text, lang)}</div>
+        <div className="bubble-aside appear">
+          <span className="bubble-aside-tag">{t(ui.loop.asideLabel, lang)}</span>
+          {t(item.text, lang)}
+        </div>
       );
     case "tool_call":
       return (
@@ -312,8 +401,19 @@ function ChatRow({
           </div>
         </div>
       );
+    case "tool_error":
+      return (
+        <div className="tool-output tool-output-err appear">
+          <span className="tool-out-tag">{t(ui.loop.toolFailed, lang)}</span>
+          {item.text}
+        </div>
+      );
     case "tool_output":
-      return <div className="tool-output appear">{item.text}</div>;
+      return (
+        <div className="tool-output appear">
+          {item.text === "" ? " " : item.text}
+        </div>
+      );
   }
 }
 
@@ -328,8 +428,8 @@ function useCountUp(target: number, ms = 700) {
     if (from === target) return;
     let raf = 0;
     const t0 = performance.now();
-    const tick = (t: number) => {
-      const p = Math.min(1, (t - t0) / ms);
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - t0) / ms);
       const eased = 1 - Math.pow(1 - p, 3);
       const next = Math.round(from + (target - from) * eased);
       shown.current = next;
@@ -344,7 +444,7 @@ function useCountUp(target: number, ms = 700) {
 
 // 极简语法高亮：注释 / 字符串 / 关键字，够用就好
 const TOKEN_RE =
-  /(\/\/.*$)|("(?:[^"\\]|\\.)*")|\b(import|from|const|await|while|if|break|new|true)\b/g;
+  /(\/\/.*$)|("(?:[^"\\]|\\.)*")|\b(import|from|const|let|await|while|for|if|break|return|async|function|new|true)\b/g;
 
 function tokenize(line: string): ReactNode[] {
   const out: ReactNode[] = [];
@@ -357,7 +457,7 @@ function tokenize(line: string): ReactNode[] {
     out.push(
       <span key={k++} className={cls}>
         {m[0]}
-      </span>
+      </span>,
     );
     last = idx + m[0].length;
   }

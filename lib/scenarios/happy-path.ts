@@ -1,42 +1,10 @@
-// 第 2 站「看它怎么跑」的录制数据（双语）：一次 agent 运行被拆成若干步。
-// 每一步描述：触发它的按钮文字（action）、标题（title）、详细讲解（narration）、
-// 初学者常见疑问（faq）、追加到对话面板的内容（chat）、追加到透视面板的卡片（msgs）、
-// 以及这一步对应 agentCode 里哪几行（focus，1 起的闭区间）。
+// 顺利的一次运行：读目录、读文件、回答，三轮收工。
+// 这是默认场景，也是后面四个「出问题」场景的对照组。
 
-import type { L } from "@/lib/i18n";
+import type { Scenario } from "./types";
+import { n } from "./types";
 
-// 中英相同的内容（命令输出、JSON 等）用这个包一下
-const n = (s: string): L => ({ zh: s, en: s });
-
-export type ChatItem =
-  | { kind: "user"; text: L }
-  | { kind: "assistant"; text: L }
-  | { kind: "tool_call"; name: string; arg: string }
-  | { kind: "tool_output"; text: string };
-
-export type MsgCard = {
-  tag: string;
-  body: L;
-  mono?: boolean;
-  color?: "purple" | "teal";
-  sys?: boolean; // system 提示词是单独参数，不占数组下标
-};
-
-export type Step = {
-  action?: L;
-  title: L;
-  narration: L;
-  faq?: { q: L; a: L };
-  chat?: ChatItem[];
-  msgs?: MsgCard[];
-  round?: number;
-  stopReason?: string;
-  tokens?: number;
-  focus: [number, number][];
-};
-
-// 一个最小可用的 agent 完整骨架（注释双语）。第 3 站你会亲手写出它。
-export const agentCode: { zh: string[]; en: string[] } = {
+const code: Scenario["code"] = {
   zh: [
     'import Anthropic from "@anthropic-ai/sdk";',
     'const client = new Anthropic(); // API key 读自环境变量，绝不写进代码',
@@ -107,7 +75,7 @@ export const agentCode: { zh: string[]; en: string[] } = {
   ],
 };
 
-export const steps: Step[] = [
+const steps: Scenario["steps"] = [
   {
     title: {
       zh: '一切从一个空数组开始',
@@ -466,3 +434,15 @@ export const steps: Step[] = [
     ],
   },
 ];
+
+export const happyPath: Scenario = {
+  id: "happy-path",
+  name: { zh: "顺利跑完", en: "A clean run" },
+  tagline: {
+    zh: "三轮结束：读目录、读文件、回答。先看懂这个形状。",
+    en: "Three rounds: list, read, answer. Learn this shape first.",
+  },
+  outcome: "clean",
+  code,
+  steps,
+};

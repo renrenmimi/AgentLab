@@ -603,6 +603,44 @@ body::after {
   word-break: break-all;
 }
 
+/* 工具报错：左侧一道竖线 + 一个文字标签，不只靠颜色区分 */
+.tool-output-err {
+  border-left: 3px solid var(--risk);
+  background: var(--err-bg);
+  color: var(--risk);
+}
+
+.tool-out-tag {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  opacity: 0.85;
+}
+
+/* 旁白：讲解者插进对话里的一句话，不是对话本身 */
+.bubble-aside {
+  align-self: stretch;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text-3);
+  border-left: 2px dashed var(--border-strong);
+  padding: 2px 0 2px 12px;
+}
+
+.bubble-aside-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-right: 8px;
+  opacity: 0.8;
+}
+
 /* ---------- 透视面板 ---------- */
 
 .card {
@@ -635,6 +673,35 @@ body::after {
 .card-teal .card-tag,
 .card-teal .card-body {
   color: var(--teal-text);
+}
+
+.card-amber {
+  border-color: var(--amber);
+  background: var(--amber-bg);
+}
+
+.card-amber .card-tag,
+.card-amber .card-body {
+  color: var(--amber);
+}
+
+.card-red {
+  border-color: var(--risk);
+  background: var(--err-bg);
+}
+
+.card-red .card-tag,
+.card-red .card-body {
+  color: var(--risk);
+}
+
+/* 卡片上显示的字数远小于它真实的体积时，把真实体积标出来 */
+.card-weight {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--risk);
+  white-space: nowrap;
 }
 
 .card-head {
@@ -689,6 +756,13 @@ body::after {
   border-color: transparent;
 }
 
+.chip-bad {
+  color: var(--risk);
+  background: var(--err-bg);
+  border-color: transparent;
+  font-weight: 700;
+}
+
 .chip-end {
   color: var(--green);
   background: var(--green-bg);
@@ -704,6 +778,129 @@ body::after {
   100% {
     box-shadow: 0 0 0 12px rgba(120, 190, 60, 0);
   }
+}
+
+/* ---------- 第 2 站：场景选择器 ---------- */
+
+.scn {
+  margin-bottom: 16px;
+}
+
+.scn-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scn-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.scn-tab:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.scn-tab.on {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* 结果好坏由文字标出，颜色只是加强，不是唯一信号 */
+.scn-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.scn-clean .scn-tag {
+  color: var(--teal-text);
+  background: var(--teal-bg);
+}
+
+.scn-fault .scn-tag {
+  color: var(--amber);
+  background: var(--amber-bg);
+}
+
+.scn-line {
+  margin: 10px 2px 0;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+/* ---------- 状态量表（步数 / 上下文） ---------- */
+
+.meter {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.meter-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+
+.meter-num {
+  font-family: var(--mono);
+}
+
+.meter-over .meter-num {
+  color: var(--risk);
+}
+
+.meter-over .meter-num b {
+  font-weight: 700;
+}
+
+.meter-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-deep), var(--accent));
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.meter-over .meter-fill {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--risk),
+    var(--risk) 5px,
+    color-mix(in srgb, var(--risk) 65%, transparent) 5px,
+    color-mix(in srgb, var(--risk) 65%, transparent) 10px
+  );
 }
 
 /* ---------- 代码对照面板 ---------- */
