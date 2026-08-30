@@ -4,28 +4,37 @@
 
 **▶ [Open the course](https://agent-lab-blond.vercel.app)** — runs in your browser, nothing to install.
 
-An interactive course on tool-using AI agents. It presents the user-facing conversation
-beside the `messages` array sent to the model, steps through the request, tool call, result
-and follow-up loop — and then goes on to the parts that are actually hard: what a run
-costs, what happens when the history stops fitting, how to describe a tool so it gets used
-correctly, why a tool result cannot be trusted, and how to tell whether a change helped.
+An interactive course on tool-using AI agents, in English and Chinese. It starts from a model
+that can only turn text into text and ends at the questions that actually cost people time:
+what a run costs, what happens when the history stops fitting, why a model picks the wrong
+tool, whether a tool result can be trusted, and how you would know that a change helped.
 
-![A visual introduction to the agent loop](docs/home.jpg)
+Fourteen stops in six groups, each group saying in one line why it follows the one before it:
 
-*A visual introduction to the agent loop*
+| Group | What it covers |
+|---|---|
+| **What it is** | An array, a loop, and then you write one yourself |
+| **What the model is like** | It varies between runs, and it invents |
+| **The text you write** | The system prompt and the tool descriptions, and what each can actually guarantee |
+| **What it costs** | Money, the context ceiling, and what to do when neither leaves room |
+| **When it goes wrong** | Text that lies to it, actions that cannot be undone, calls that fail |
+| **How you know** | Ten saved tasks, a pass count, and where to go next |
 
-![The message history growing one step at a time](docs/loop.jpg)
+Every stop is something you operate rather than read: step a run forward and watch the
+`messages` array grow, drag a slider until the cost curve bends, refuse a write and see how
+the agent adapts, answer a question wrongly and be told which idea the mistake came from.
 
-*The message history growing one step at a time*
+![The agent loop, one step at a time](docs/loop.jpg)
 
-## Fourteen stops, in six groups
+*Stop 2 — five recorded runs, one clean and four that go wrong*
 
-Fourteen stops is a path rather than a list, so the sidebar groups them and each group says
-in one line why it follows the one before it. The numbers below come from position in
-`lib/stops.ts`; nothing writes one down.
+![The whole course on one page](docs/all.jpg)
 
-**What it is** · **What the model is like** · **The text you write** · **What it costs** ·
-**When it goes wrong** · **How you know**
+*`/all` — the same prose in reading order, for coming back to*
+
+## The stops
+
+The numbers come from position in `lib/order.ts`; nothing writes one down.
 
 1. **`/` — What an agent is.** From "a model only turns text into text" to "a program that
    loops and calls tools", without a line of code.
@@ -154,6 +163,9 @@ prerenders to static pages.
 | `lib/checks.ts` · `app/group-check.tsx` | The check at the end of each of the six groups |
 | `lib/course.ts` | One shape for every stop's prose; `/all`, search and the checker share it |
 | `lib/search.ts` | The index and the query, built from `lib/course.ts` |
+| `lib/order.ts` | The reading order, as bare hrefs, with no imports |
+| `lib/meta.ts` | Per-stop title and description, written one at a time |
+| `app/og/route.tsx` | One route, fifteen share cards, no dependency |
 | `verify.mjs` | Static checks over all of the above |
 | `app/selftest.tsx` · `app/selftest-suite.ts` | `?selftest=1` — the assertions a static check cannot make |
 
