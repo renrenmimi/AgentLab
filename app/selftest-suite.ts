@@ -231,6 +231,10 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   const positiveTab: string[] = [];
   const colourOnly: string[] = [];
   const lowContrast: string[] = [];
+  // A selector that matches nothing anywhere is a class that was renamed out
+  // from under the sweep. The contrast check would keep passing while quietly
+  // checking less, so the sweep records which surfaces it actually found.
+  const surfacesSeen = new Set<string>();
   const missingStops: string[] = [];
 
   for (const stop of STOPS) {
@@ -273,6 +277,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     for (const sel of TEXT_SELECTORS) {
       const el = $(sel);
       if (!el) continue;
+      surfacesSeen.add(sel);
       const ratio = effectiveContrast(el);
       if (ratio === null) continue;
       const need = required(el);
@@ -348,6 +353,12 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   ok(reduced, "the stylesheet honours prefers-reduced-motion");
 
   // ---- /loop: the picker is a real tablist ------------------------------
+  // go() returns early when the page is already the current stop, so this block
+  // inherits whatever the previous one left behind rather than a fresh mount.
+  // The arrow-key assertions below are relative moves and are meaningless from
+  // the wrong starting tab, so the state is asserted first and then normalised:
+  // a leak fails here, in one line that names it, instead of turning into four
+  // mysterious failures about arrow keys.
   await go("/loop");
   const tablist = $('[role="tablist"]');
   const tabs = $$<HTMLButtonElement>('[role="tab"]');
@@ -364,6 +375,16 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
 
   const title = () => text($(".n-head h2"));
   const selected = () => tabs.findIndex((t) => t.getAttribute("aria-selected") === "true");
+
+  ok(
+    selected() === 0,
+    "precondition: the picker is on the first scenario before the keyboard tests",
+    selected() === 0 ? "as mounted" : `an earlier block left it on tab ${selected()}`,
+  );
+  if (selected() !== 0) {
+    tabs[0].click();
+    await settle(3);
+  }
 
   tabs[0].focus();
   const before = title();
@@ -938,6 +959,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   $$<HTMLButtonElement>('[role="tab"]')[1]?.click();
   await settle(3);
   const meterEl = $(".meter-track[role='progressbar']");
+  ok(!!meterEl, "the run shows a meter", meterEl ? "present" : "no .meter-track on this scenario");
   if (meterEl) {
     const before = meterEl.getAttribute("aria-valuenow");
     for (let i = 0; i < 4; i++) {
@@ -958,6 +980,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
 
   await go("/cost");
   const rangeEl = $<HTMLInputElement>('input[type="range"]');
+  ok(!!rangeEl, "the cost stop still has a slider to report a value", rangeEl ? "present" : "absent");
   if (rangeEl) {
     const read = () => rangeEl.getAttribute("aria-valuenow") ?? rangeEl.value;
     setRange(rangeEl, 7);
@@ -1070,6 +1093,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
       for (const sel of TEXT_SELECTORS) {
         const node = $(sel);
         if (!node) continue;
+        surfacesSeen.add(sel);
         const r = effectiveContrast(node);
         if (r === null) continue;
         const need = required(node);
@@ -1078,6 +1102,141 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     }
   }
   if (startedIn) root.dataset.theme = startedIn;
+  // ---- surfaces that only exist mid-interaction --------------------------
+  // The sweep above visits each stop at rest, so a chat bubble, a wrong-answer
+  // correction, a filled blank and a run transcript were never on screen when it
+  // measured. Seventeen of the sixty selectors it names had never matched
+  // anything, and the check passed anyway because a selector that matches
+  // nothing is skipped rather than reported.
+  //
+  // Each state below is reached once and then measured in both themes in place,
+  // because reaching it is the expensive part and flipping data-theme is not.
+  const measureHere = async (where: string) => {
+    for (const theme of ["dark", "light"]) {
+      root.dataset.theme = theme;
+      await settle(2);
+      settleAnimations();
+      for (const sel of TEXT_SELECTORS) {
+        const node = $(sel);
+        if (!node) continue;
+        surfacesSeen.add(sel);
+        const r = effectiveContrast(node);
+        if (r === null) continue;
+        const need = required(node);
+        if (r < need) lowContrast.push(`${theme}${where}${sel} ${r.toFixed(2)}:1 (needs ${need})`);
+      }
+    }
+    root.dataset.theme = startedIn ?? "dark";
+    await settle(1);
+  };
+
+  const stepRun = async (times: number) => {
+    for (let i = 0; i < times; i++) {
+      $$<HTMLButtonElement>(".controls .btn-primary")[0]?.click();
+      await settle(2);
+    }
+  };
+
+  // A run in progress: chat bubbles, tool output, a pending tool, a meter.
+  await go("/loop");
+  $$<HTMLButtonElement>('[role="tab"]')[1]?.click();
+  await settle(3);
+  await stepRun(3);
+  await measureHere("/loop+3");
+
+  // The scenario that annotates an oversized card.
+  $$<HTMLButtonElement>('[role="tab"]')[3]?.click();
+  await settle(3);
+  await stepRun(4);
+  await measureHere("/loop-oversized");
+
+  // A pending tool call, which only exists between a request and its result.
+  await go("/loop");
+  $$<HTMLButtonElement>('[role="tab"]')[0]?.click();
+  await settle(3);
+  await stepRun(2);
+  await measureHere("/loop-pending");
+
+  // The closing scene of the opening animation carries the formula badge.
+  // Stepping to it is not an option: on the last scene the advance control
+  // becomes a link to the next stop, so one click too many leaves the page.
+  await go("/");
+  const lastScene = $$<HTMLButtonElement>(".progress .pdot").at(-1);
+  lastScene?.click();
+  await settle(4);
+  await measureHere("/-formula");
+
+  // A blank answered wrongly and then correctly: the feedback and the fill.
+  await go("/build");
+  const buildInput = () => $<HTMLInputElement>(".q-input");
+  const buildSubmit = () => $$<HTMLButtonElement>(".q-form .btn-primary")[0];
+  if (buildInput()) {
+    setText(buildInput()!, "definitely wrong");
+    buildSubmit()?.click();
+    await settle(3);
+    await measureHere("/build-wrong");
+
+    for (let i = 0; i < blanks.length; i++) {
+      const field = buildInput();
+      if (!field) break;
+      setText(field, blanks[i].answers[0]);
+      buildSubmit()?.click();
+      // The page pauses on a correct answer before moving on.
+      for (let f = 0; f < 140 && buildInput() === field; f++) await frame();
+      await settle(2);
+    }
+    await measureHere("/build-filled");
+
+    // The run transcript prints a line at a time; a few are enough to measure.
+    $$<HTMLButtonElement>(".q-form .btn-primary")[0]?.click();
+    await settle(3);
+    for (let f = 0; f < 200 && $$(".run-line").length < 3; f++) await frame();
+    await measureHere("/build-running");
+  }
+
+  // A group check with one answer wrong and one right.
+  await go("/measure");
+  const firstQuestion = $(".gc-q");
+  if (firstQuestion) {
+    const choices = Array.from(
+      firstQuestion.querySelectorAll<HTMLButtonElement>(".gc-choice"),
+    );
+    const wrongAt = checks
+      .find((c) => c.on === "/measure")
+      ?.questions[0].options.findIndex((o) => !o.correct);
+    const rightAt = checks
+      .find((c) => c.on === "/measure")
+      ?.questions[0].options.findIndex((o) => o.correct);
+    if (wrongAt !== undefined && wrongAt >= 0) {
+      choices[wrongAt]?.click();
+      await settle(3);
+      await measureHere("/measure-wrong");
+    }
+    if (rightAt !== undefined && rightAt >= 0) {
+      choices[rightAt]?.click();
+      await settle(3);
+      await measureHere("/measure-right");
+    }
+  }
+
+  // The palette, which owns its own hint line.
+  window.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
+  );
+  await settle(3);
+  await measureHere("/palette");
+  document
+    .querySelector(".cmdk-input")
+    ?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  await settle(2);
+
+  const neverFound = TEXT_SELECTORS.filter((sel) => !surfacesSeen.has(sel));
+  ok(
+    neverFound.length === 0,
+    "every text surface the contrast sweep names still exists somewhere",
+    neverFound.join(", ") || `${surfacesSeen.size} of ${TEXT_SELECTORS.length} selectors matched`,
+  );
+
   const unique = [...new Set(lowContrast)];
   ok(
     unique.length === 0,
