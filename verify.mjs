@@ -140,6 +140,9 @@ const modules = {
   delegate: await load("lib/delegate.ts"),
   measure: await load("lib/measure.ts"),
   permission: await load("lib/permission.ts"),
+  chance: await load("lib/chance.ts"),
+  invent: await load("lib/invent.ts"),
+  instructions: await load("lib/instructions.ts"),
 };
 
 // Every exported value, rooted at a readable name for error messages.
@@ -156,7 +159,11 @@ const roots = [
 ];
 
 // 第 4 站往后的每一站结构相同：meta + blocks + bench，外加自己的数据。
-const LESSON_STOPS = ["cost", "context", "tools", "trust", "permission", "delegate", "measure"];
+const LESSON_STOPS = [
+  "chance", "invent", "instructions", "tools",
+  "cost", "context", "delegate",
+  "trust", "permission", "measure",
+];
 for (const name of LESSON_STOPS) {
   const mod = modules[name];
   for (const [key, value] of Object.entries(mod)) {
@@ -647,6 +654,60 @@ check("the numbers each lesson claims are the numbers its own model produces", (
   }
   if (!pm.branches.find((b) => b.id === "always")?.beats.some((x) => x.bad)) {
     fail("permission.always", "the always branch needs the beat that happens without you");
+  }
+
+  // /chance: the whole stop rests on the distribution behaving as described —
+  // deterministic at zero, and never certain above it.
+  const ch = modules.chance;
+  const atZero = ch.distribution(0);
+  if (atZero.filter((p) => p > 0).length !== 1) {
+    fail("chance", "at temperature 0 the page says one path is always taken");
+  }
+  for (const temp of [0.3, 0.7, 1]) {
+    const d = ch.distribution(temp);
+    const sum = d.reduce((a, b) => a + b, 0);
+    if (Math.abs(sum - 1) > 1e-9) fail("chance", `distribution at ${temp} sums to ${sum}`);
+    if (d.some((p) => p <= 0)) fail("chance", `at ${temp} some path is impossible; the page says all are reachable`);
+  }
+  // Warmer has to mean flatter, or the temperature control means nothing.
+  const top = (temp) => Math.max(...ch.distribution(temp));
+  if (!(top(0.3) > top(0.7) && top(0.7) > top(1))) {
+    fail("chance", "raising the temperature does not flatten the distribution");
+  }
+  if (!ch.outcomes.some((o) => o.kind === "wrong") || !ch.outcomes.some((o) => o.kind === "good")) {
+    fail("chance.outcomes", "the tally needs both a good path and a bad one to make its point");
+  }
+  // The sampler has to be reproducible, or the page and this check disagree.
+  if (ch.sample(0.7, 12).id !== ch.sample(0.7, 12).id) {
+    fail("chance.sample", "the same seed gives different answers");
+  }
+
+  // /invent: every question needs a wrong answer without tools and a checkable
+  // one with them, or the comparison the stop is built on does not exist.
+  for (const q of modules.invent.questions) {
+    if (q.without.ok) fail(`invent "${q.id}"`, "the no-tools answer is marked as sound");
+    if (!q.with.ok) fail(`invent "${q.id}"`, "the with-tools answer is not marked as sound");
+    if (!q.with.via) fail(`invent "${q.id}"`, "does not say which tool it looked at");
+  }
+
+  // /instructions: the three conditions have to differ in the way the prose
+  // claims — one sends the mail, one is told not to, one cannot.
+  const ins = modules.instructions;
+  const loose = ins.setups.find((x) => x.id === "loose");
+  const told = ins.setups.find((x) => x.id === "told");
+  const removed = ins.setups.find((x) => x.id === "removed");
+  if (!loose?.beats.some((b) => b.bad)) fail("instructions.loose", "nothing goes wrong in the loose run");
+  if (told?.beats.some((b) => b.bad)) fail("instructions.told", "the told run should not go wrong");
+  if (!loose?.tools.includes("send_email")) fail("instructions.loose", "needs the outbound tool");
+  if (!told?.tools.includes("send_email")) {
+    fail("instructions.told", "the point is that the tool is still there");
+  }
+  if (removed?.tools.includes("send_email")) {
+    fail("instructions.removed", "the point is that the tool is gone");
+  }
+  const bill = ins.systemBill(40);
+  if (!(bill.dollars > 0) || bill.sentTimes !== 40) {
+    fail("instructions.systemBill", `bill is ${JSON.stringify(bill)}`);
   }
 
   // /trust: the page divides measures into wording and structural, and says

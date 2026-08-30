@@ -18,41 +18,40 @@ correctly, why a tool result cannot be trusted, and how to tell whether a change
 
 *The message history growing one step at a time*
 
-## Ten stops
+## Thirteen stops
 
-The first three build the mental model. The rest are about everything that makes
-agents actually hard — the questions a reader still could not answer after finishing the
-first three.
+The first three build the mental model. The rest are about what makes agents actually
+hard — the questions a reader still could not answer after finishing the first three.
 
 1. **`/` — What an agent is.** From "a model only turns text into text" to "a program that
    loops and calls tools", without a line of code.
-2. **`/loop` — Watch it run.** Step through complete runs. The button labels *are* the
-   beats of the loop: send the task → call the model → run the tool → send the result back → …
-   Five recorded runs: one that goes cleanly, and four that go wrong — a loop that will not
-   stop, a model that picks the wrong tool, a history that no longer fits, and a tool that
-   fails. Each failing run ends by replaying itself with the mistake fixed.
-3. **`/build` — Write one yourself.** Fill in eight blanks in a small agent skeleton. Each
-   blank teaches the concept before asking, and every wrong answer gets a specific
-   correction.
-4. **`/cost` — Why it costs what it costs.** The whole array is resent every round, so
-   spending grows with the square of the number of rounds. Drag the slider and watch the
-   curve bend; switch caching on and watch it bend less steeply — but still bend.
-5. **`/context` — When it will not fit.** What a token is, what a context window is, and the
-   three things a system can do when the array is too large: refuse, truncate, or summarise.
-   All three are applied to the same conversation so the reader can see what each one loses.
-6. **`/tools` — How to describe a tool.** A description is a prompt, not documentation.
-   Three tasks, each exposing a different omission: what the tool does not do, where the
-   toolset stops, and how much comes back.
-7. **`/trust` — Tool output is not your friend.** Prompt injection, shown before it is named:
-   a page whose visible text is ordinary and whose fetched text is not. Then the mitigations,
-   each with what it does not stop.
-8. **`/permission` — Who says yes.** The loop stops before a write and the reader makes the
-   call. Allow once, allow always, or refuse — the run continues differently for each, and
-   allowing always shows the third write that then happens without you.
-9. **`/delegate` — Handing work to another agent.** One idea: a subagent buys context and
-   costs you the ability to check its work.
-10. **`/measure` — How you know it got better.** Ten saved tasks and a pass count. A prompt
-    change that fixes three of them and quietly breaks two.
+2. **`/loop` — Watch it run.** Five recorded runs: one clean, and four that go wrong — a
+   loop that will not stop, a model that picks the wrong tool, a history that no longer
+   fits, and a tool that fails. Each failing run ends by replaying itself with the mistake
+   fixed.
+3. **`/build` — Write one yourself.** Eight blanks in a small agent skeleton. Each teaches
+   the concept before asking; every wrong answer gets a specific correction.
+4. **`/chance` — Why answers differ.** Sampling and temperature. Press *run again* and watch
+   the same task take a different path. Then the consequence: an agent is not a function,
+   so "it worked when I tried it" is one sample, not evidence.
+5. **`/invent` — Why it makes things up.** A fluent wrong answer and a fluent right one are
+   the same kind of object inside the model. Three questions, asked with and without tools —
+   including one about a function that does not exist.
+6. **`/instructions` — The text outside the array.** The system prompt: where it sits, that
+   it is re-sent and re-paid every round, and why "I told it to be careful" is an order of
+   magnitude weaker than not giving it the tool. The same task under three conditions.
+7. **`/tools` — Describing a tool.** A description is a prompt, not documentation. Three
+   tasks, three different omissions.
+8. **`/cost` — Why it costs that.** The array is resent every round, so spending grows with
+   the square of the rounds. Drag the slider and watch the curve bend.
+9. **`/context` — When it will not fit.** Refuse, truncate, or summarise, all applied to the
+   same conversation so you can see what each one loses.
+10. **`/delegate` — Handing work to another agent.** A subagent buys context and costs you
+    the ability to check its work.
+11. **`/trust` — Tool output is not your friend.** Prompt injection, shown before it is
+    named, then the mitigations and what each one does not stop.
+12. **`/permission` — Who says yes.** The loop stops before a write and you make the call.
+13. **`/measure` — How you know it got better.** Ten saved tasks and a pass count.
 
 ## Running locally
 
@@ -94,9 +93,9 @@ prerenders to static pages.
 |---|---|
 | `lib/intro.ts` | Stop 1 content |
 | `lib/scenarios/` | Stop 2 — five recorded runs, frame by frame, one file each |
-| `lib/cost.ts` `lib/context.ts` `lib/tools.ts` | Stops 4–6: the model behind each one, plus its prose |
-| `lib/trust.ts` `lib/permission.ts` `lib/delegate.ts` `lib/measure.ts` | Stops 7–10, same shape |
+| `lib/<stop>.ts` | One per stop from 4 onward: the model behind it, plus its prose |
 | `lib/lesson.ts` · `app/lesson.tsx` | The shared shape of a stop from 4 onward |
+| `lib/stops.ts` | The reading order; the number on a stop comes from its position |
 | `lib/build.ts` | Stop 3 — the blanks, answers, and per-mistake corrections |
 | `lib/i18n.tsx` | Bilingual strings and the `useT()` hook |
 | `lib/glossary.tsx` | Term dictionary and the `[[key:label]]` renderer |

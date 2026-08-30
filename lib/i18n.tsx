@@ -72,17 +72,21 @@ export const useLang = () => useContext(LangContext);
 // ---------- 界面通用文案 ----------
 
 export const ui = {
+  // 站点名。键按内容命名而不是按序号，插一站进来不会牵动其它文件。
   nav: {
-    stop1: { zh: "什么是 Agent", en: "What is an agent" },
-    stop2: { zh: "看它怎么跑", en: "Watch it run" },
-    stop3: { zh: "亲手写一个", en: "Write one yourself" },
-    stop4: { zh: "它为什么这么贵", en: "Why it costs that" },
-    stop5: { zh: "装不下的时候", en: "When it will not fit" },
-    stop6: { zh: "怎么描述工具", en: "Describing a tool" },
-    stop7: { zh: "工具结果不可信", en: "Tool output is not your friend" },
-    stop8: { zh: "谁来说可以", en: "Who says yes" },
-    stop9: { zh: "让另一个 agent 去做", en: "Handing work to another agent" },
-    stop10: { zh: "怎么知道变好了", en: "Knowing it got better" },
+    whatIs: { zh: "什么是 Agent", en: "What is an agent" },
+    loop: { zh: "看它怎么跑", en: "Watch it run" },
+    build: { zh: "亲手写一个", en: "Write one yourself" },
+    chance: { zh: "为什么每次不一样", en: "Why answers differ" },
+    invent: { zh: "它为什么会编", en: "Why it makes things up" },
+    instructions: { zh: "数组外面的那段话", en: "The text outside the array" },
+    tools: { zh: "怎么描述工具", en: "Describing a tool" },
+    cost: { zh: "它为什么这么贵", en: "Why it costs that" },
+    context: { zh: "装不下的时候", en: "When it will not fit" },
+    delegate: { zh: "让另一个 agent 去做", en: "Handing work to another agent" },
+    trust: { zh: "工具结果不可信", en: "Tool output is not your friend" },
+    permission: { zh: "谁来说可以", en: "Who says yes" },
+    measure: { zh: "怎么知道变好了", en: "Knowing it got better" },
   },
 
   // ---------- Research OS shell (sidebar / toolbar / command palette) ----------

@@ -4,28 +4,40 @@
 // It lives in lib/ rather than in the sidebar component so that the list is data
 // rather than part of a React tree: verify.mjs imports it directly and checks
 // that every href here has a page behind it.
+//
+// The number shown against a stop comes from its position, so inserting one is
+// a single line and nothing else has to be renumbered.
 
 import { ui, type L } from "@/lib/i18n";
 
 export type SideStop = { href: string; glyph: string; label: L };
 
-export const STOPS: SideStop[] = [
-  { href: "/", glyph: "1", label: ui.nav.stop1 },
-  { href: "/loop", glyph: "2", label: ui.nav.stop2 },
-  { href: "/build", glyph: "3", label: ui.nav.stop3 },
-  // 前三站讲「agent 是什么」。后六站讲「为什么它难」，顺序是有意的：
-  // 先讲数组变长带来的两个后果（钱、上下文上限），再讲工具的两端
-  // （怎么描述它、它返回的东西能不能信），然后是把工作交出去，最后是怎么衡量。
-  { href: "/cost", glyph: "4", label: ui.nav.stop4 },
-  { href: "/context", glyph: "5", label: ui.nav.stop5 },
-  { href: "/tools", glyph: "6", label: ui.nav.stop6 },
-  { href: "/trust", glyph: "7", label: ui.nav.stop7 },
-  // 批准紧跟在「工具结果不可信」后面：审批之所以存在，正是因为
-  // 那段要求执行动作的文字未必出自你。
-  { href: "/permission", glyph: "8", label: ui.nav.stop8 },
-  { href: "/delegate", glyph: "9", label: ui.nav.stop9 },
-  { href: "/measure", glyph: "10", label: ui.nav.stop10 },
+const ORDER: { href: string; label: L }[] = [
+  // 先建立心智模型
+  { href: "/", label: ui.nav.whatIs },
+  { href: "/loop", label: ui.nav.loop },
+  { href: "/build", label: ui.nav.build },
+  // 模型本身是什么脾气
+  { href: "/chance", label: ui.nav.chance },
+  { href: "/invent", label: ui.nav.invent },
+  // 你写的那些文本，怎么改变它的行为
+  { href: "/instructions", label: ui.nav.instructions },
+  { href: "/tools", label: ui.nav.tools },
+  // 数组变长的两个后果，以及一种躲开它的办法
+  { href: "/cost", label: ui.nav.cost },
+  { href: "/context", label: ui.nav.context },
+  { href: "/delegate", label: ui.nav.delegate },
+  // 出问题的时候
+  { href: "/trust", label: ui.nav.trust },
+  { href: "/permission", label: ui.nav.permission },
+  // 怎么知道自己做对了
+  { href: "/measure", label: ui.nav.measure },
 ];
+
+export const STOPS: SideStop[] = ORDER.map((s, i) => ({
+  ...s,
+  glyph: String(i + 1),
+}));
 
 // Which stop is active for a given path ("/loop/x" still counts as /loop).
 export function activeStopIndex(path: string): number {

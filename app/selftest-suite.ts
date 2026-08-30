@@ -591,6 +591,82 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     `${$$(".pm-bad").length} marked`,
   );
 
+  // ---- /chance: sampling actually varies, and zero pins it --------------
+  await go("/chance");
+  const tempRange = $<HTMLInputElement>('input[type="range"]');
+  const runBtn = () => $$<HTMLButtonElement>(".q-form .btn")[0];
+  const tenBtn = () => $$<HTMLButtonElement>(".q-form .btn")[1];
+  const counts = () => $$(".ch-num").map((e) => Number(text(e).split(" ")[0]));
+
+  ok(!!tempRange, "the chance stop has a temperature control");
+  if (tempRange) {
+    // Warm: over many runs more than one path should appear.
+    setRange(tempRange, 3);
+    await settle(2);
+    for (let i = 0; i < 5; i++) {
+      tenBtn()?.click();
+      await settle(2);
+    }
+    const warm = counts();
+    ok(
+      warm.filter((n) => n > 0).length > 1,
+      "at a high temperature the same task takes more than one path",
+      warm.join("/"),
+    );
+    ok(
+      warm.reduce((a, b) => a + b, 0) === 50,
+      "the tally counts every run",
+      String(warm.reduce((a, b) => a + b, 0)),
+    );
+
+    // Cold: one path, every time.
+    setRange(tempRange, 0);
+    await settle(2);
+    for (let i = 0; i < 5; i++) {
+      tenBtn()?.click();
+      await settle(2);
+    }
+    const cold = counts();
+    ok(
+      cold.filter((n) => n > 0).length === 1,
+      "at temperature zero it takes the same path every time",
+      cold.join("/"),
+    );
+    void runBtn;
+  }
+
+  // ---- /invent: tools change the answer and make it checkable ------------
+  await go("/invent");
+  const answers = () => $$(".iv-answer").map(text);
+  const sound = () => $$(".iv-ok").length;
+  const choices = () => $$<HTMLButtonElement>(".lsn-choice");
+  const blind = answers();
+  ok(sound() === 0, "without tools none of the three answers is sound", `${sound()} of 3`);
+  choices()[1]?.click();
+  await settle(3);
+  ok(sound() === 3, "with tools all three are sound", `${sound()} of 3`);
+  ok(
+    answers().every((a, i) => a !== blind[i]),
+    "every answer changed once it had somewhere to look",
+  );
+
+  // ---- /instructions: the tool list, not the sentence --------------------
+  await go("/instructions");
+  const setupBtns = () => $$<HTMLButtonElement>(".lsn-choice");
+  ok(setupBtns().length === 3, "three conditions are offered", `${setupBtns().length}`);
+  setupBtns()[0]?.click();
+  await settle(3);
+  ok($$(".pm-bad").length > 0, "with nothing said, the run does the thing you did not want");
+  ok($$(".in-gone").length === 0, "the outbound tool is present in the first condition");
+  setupBtns()[1]?.click();
+  await settle(3);
+  ok($$(".pm-bad").length === 0, "telling it not to changes the run");
+  ok($$(".in-gone").length === 0, "and the tool is still in the list, which is the point");
+  setupBtns()[2]?.click();
+  await settle(3);
+  ok($$(".in-gone").length === 1, "removing the tool shows it struck out of the list");
+  ok($$(".pm-bad").length === 0, "and the run cannot do it at all");
+
   // ---- both themes ------------------------------------------------------
   const root = document.documentElement;
   const startedIn = root.dataset.theme;
