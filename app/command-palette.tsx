@@ -15,7 +15,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { ui, useLang, t, type L } from "@/lib/i18n";
 import { useShell } from "./theme-provider";
-import { STOPS } from "./sidebar";
+import { STOPS } from "@/lib/stops";
 
 type Dest = { href: string; label: L };
 

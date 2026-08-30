@@ -460,3 +460,19 @@ export const runScript: { zh: string[]; en: string[] } = {
     '🤖 Final answer: this is a Next.js project called AgentLab — a site that visualizes how an agent runs.',
   ],
 };
+
+// 判分前的宽松归一化：全角转半角、去掉空白、单引号统一成双引号、
+// 去掉行尾的分号和逗号，最后转小写。答案比对、以及 verify.mjs 的
+// 一致性检查，用的都是这一个函数。
+const FULL = "（）｛｝［］＂＇；，．！＝＜＞";
+const HALF = "(){}[]\"';,.!=<>";
+
+export function normalize(s: string): string {
+  let out = s.trim();
+  for (let i = 0; i < FULL.length; i++) out = out.split(FULL[i]).join(HALF[i]);
+  out = out.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+  out = out.replace(/\s+/g, "");
+  out = out.replace(/[;,]+$/, "");
+  out = out.replace(/'/g, '"');
+  return out.toLowerCase();
+}
