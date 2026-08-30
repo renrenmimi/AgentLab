@@ -80,8 +80,9 @@ export const ui = {
     stop5: { zh: "装不下的时候", en: "When it will not fit" },
     stop6: { zh: "怎么描述工具", en: "Describing a tool" },
     stop7: { zh: "工具结果不可信", en: "Tool output is not your friend" },
-    stop8: { zh: "让另一个 agent 去做", en: "Handing work to another agent" },
-    stop9: { zh: "怎么知道变好了", en: "Knowing it got better" },
+    stop8: { zh: "谁来说可以", en: "Who says yes" },
+    stop9: { zh: "让另一个 agent 去做", en: "Handing work to another agent" },
+    stop10: { zh: "怎么知道变好了", en: "Knowing it got better" },
   },
 
   // ---------- Research OS shell (sidebar / toolbar / command palette) ----------

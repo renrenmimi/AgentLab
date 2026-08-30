@@ -139,6 +139,7 @@ const modules = {
   trust: await load("lib/trust.ts"),
   delegate: await load("lib/delegate.ts"),
   measure: await load("lib/measure.ts"),
+  permission: await load("lib/permission.ts"),
 };
 
 // Every exported value, rooted at a readable name for error messages.
@@ -155,7 +156,8 @@ const roots = [
 ];
 
 // 第 4 站往后的每一站结构相同：meta + blocks + bench，外加自己的数据。
-for (const name of ["cost", "context", "tools", "trust", "delegate", "measure"]) {
+const LESSON_STOPS = ["cost", "context", "tools", "trust", "permission", "delegate", "measure"];
+for (const name of LESSON_STOPS) {
   const mod = modules[name];
   for (const [key, value] of Object.entries(mod)) {
     if (typeof value === "function") continue;
@@ -540,7 +542,7 @@ check("every build blank has an answer, a hint and a wrong-answer correction", (
 
 // 5b. Each stop from 4 onward has the same three parts ------------------------
 check("every lesson stop has a title, a subtitle, a takeaway and some prose", () => {
-  for (const name of ["cost", "context", "tools", "trust", "delegate", "measure"]) {
+  for (const name of LESSON_STOPS) {
     const mod = modules[name];
     for (const key of ["title", "subtitle", "takeaway"]) {
       if (!mod.meta?.[key]) fail(`${name}.meta`, `missing ${key}`);
@@ -625,6 +627,26 @@ check("the numbers each lesson claims are the numbers its own model produces", (
   for (const c of modules.tools.cases) {
     if (c.vague.good) fail(`tools "${c.id}"`, "the vague side is marked good");
     if (!c.precise.good) fail(`tools "${c.id}"`, "the precise side is not marked good");
+  }
+
+  // /permission: the whole stop turns on the run diverging, so the three
+  // branches have to actually differ and one of them has to overshoot.
+  const pm = modules.permission;
+  if (!pm.prelude.at(-1)?.effect) {
+    fail("permission.prelude", "the run should stop on a beat marked as having a side effect");
+  }
+  const ids = pm.branches.map((b) => b.id).sort().join(",");
+  if (ids !== "always,once,refuse") fail("permission.branches", `branch ids are ${ids}`);
+  for (const b of pm.branches) {
+    if (!b.beats?.length) fail(`permission "${b.id}"`, "no beats, so choosing it changes nothing");
+    if (!b.commits) fail(`permission "${b.id}"`, "does not say what was approved");
+    if (!b.verdict) fail(`permission "${b.id}"`, "does not say what it costs");
+  }
+  if (pm.branches.filter((b) => b.tone === "bad").length !== 1) {
+    fail("permission.branches", "exactly one branch should be the one that overshoots");
+  }
+  if (!pm.branches.find((b) => b.id === "always")?.beats.some((x) => x.bad)) {
+    fail("permission.always", "the always branch needs the beat that happens without you");
   }
 
   // /trust: the page divides measures into wording and structural, and says
