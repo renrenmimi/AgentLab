@@ -36,7 +36,7 @@ export default function RootLayout({
                   <Sidebar />
                   <div className="main-col">
                     <Toolbar />
-                    <main className="workspace">{children}</main>
+                    <div className="workspace">{children}</div>
                   </div>
                 </div>
                 <CommandPalette />

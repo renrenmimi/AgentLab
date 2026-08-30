@@ -109,7 +109,7 @@ export function StopNav({ lang }: { lang: Lang }) {
   const prev = i > 0 ? STOPS[i - 1] : null;
   const next = i < STOPS.length - 1 ? STOPS[i + 1] : null;
   return (
-    <nav className="lsn-nav" aria-label={t(ui.a11y.stops, lang)}>
+    <nav className="lsn-nav" aria-label={t(ui.a11y.stepNav, lang)}>
       {prev ? (
         <Link className="btn" href={prev.href}>
           ← {t(prev.label, lang)}

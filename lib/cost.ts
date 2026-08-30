@@ -262,6 +262,20 @@ export const bench = {
   seriesPlain: { zh: "不用缓存", en: "no caching" },
   seriesCached: { zh: "用缓存", en: "with caching" },
   seriesLinear: { zh: "如果每轮都和第 1 轮一样贵", en: "if every round cost what round 1 cost" },
+  // 图的结论必须也用文字说出来：一张图如果它的结论只存在于像素里，
+  // 那就不是所有人都读得到的内容。这两句同时喂给 aria-label 和页面。
+  chartAlt: {
+    zh: "折线图：横轴是轮数，纵轴是累计花费。",
+    en: "A line chart: rounds along the bottom, cumulative spend up the side.",
+  },
+  chartSays: {
+    zh: "曲线一路偏离那条虚线——虚线是「每轮都和第 1 轮一样贵」的样子。跑到第 40 轮，实际花费是那条直线的 6.2 倍。",
+    en: "The curve pulls away from the dashed line, which is what it would look like if every round cost what round 1 cost. By round 40 the real total is 6.2 times that straight line.",
+  },
+  chartCached: {
+    zh: "打开缓存之后曲线压低了，但依然是弯的：被重复读的那一段仍然按轮数付一次。",
+    en: "With caching on the curve is lower and still bends: the re-read prefix is still billed once per round.",
+  },
   assumptions: {
     zh: "假设：system + 工具说明书 1,200 token，任务 60 token，每轮新增 600 token，每轮生成 200 token；输入 $3／百万，输出 $15／百万；缓存命中按输入价一折，写入按 1.25 倍。",
     en: "Assumptions: 1,200 tokens of system prompt and tool list, a 60-token task, 600 tokens added per round, 200 tokens generated per round; $3 per million input tokens, $15 per million output; a cache hit is charged at one tenth of the input price and a cache write at 1.25×.",

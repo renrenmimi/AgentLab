@@ -90,17 +90,36 @@ report is printed on the page and to the console. CI cannot run it, so the score
   score, no progress percentage: the point is finding out something you thought you knew.
 - **Progress is remembered** in `localStorage` and shown in the sidebar, with a visible way to
   clear it. No account, and nothing is sent anywhere.
-- **The content is checked, not just the types.** `node verify.mjs` imports the content
-  modules and asserts what a content bug looks like: a pair missing one language, a step
-  highlighting a line the snippet does not have, a blank with no correction for a wrong
-  answer, a `[[term]]` with no glossary entry, a stop with no page behind it.
-- **The behaviour is checked too.** `verify.mjs` cannot see a click. Opening any page with
-  `?selftest=1` runs 82 assertions against the live DOM — that the scenario picker is a real
-  tablist, that stepping through a run and back leaves the panels where `stateAt()` says,
-  that the cost slider's numbers satisfy the arithmetic the prose claims, that a wrong
-  answer at stop 3 produces its own correction — plus keyboard reachability, focus rings
-  and computed contrast in both themes. It prints a report, sets `document.title` to the
-  score, and needs no test runner.
+
+## What is checked, and what is not
+
+`node verify.mjs` reads the content modules and fails on the kinds of mistake a proofreader
+misses: a bilingual pair missing one language, a step highlighting a line its snippet does not
+have, a wrong answer with no correction, a `[[term]]` or `[[stop:/href]]` that resolves to
+nothing, a stop number written by hand, a figure quoted in prose that disagrees with the
+function that produces it.
+
+Opening any page with `?selftest=1` runs the assertions a static check cannot make, against the
+live DOM: that the tab list is a real tab list, that stepping through a run and back matches
+`stateAt()`, that the cost slider's numbers still satisfy the arithmetic, that a wrong answer
+in a group check shows that option's own correction and that the right answer cannot be found
+in the markup. It also computes contrast for sixty text surfaces in both themes, walks the
+heading spine and the landmarks of all fourteen stops, and checks that every graphic is either
+named or hidden and that every control's name says what it does.
+
+**What none of that covers, and why:**
+
+- **Screen-reader output.** What is verified is the semantics a screen reader reads — roles,
+  states, names, heading order, landmarks. Whether NVDA, JAWS or VoiceOver then announce
+  something a person can follow is a different question, and answering it needs those programs
+  and someone who uses them daily.
+- **Real touch devices.** The narrow-viewport checks run in a desktop browser at 390 px. Tap
+  target sizes, momentum scrolling, and the on-screen keyboard covering an input are not
+  measured.
+- **Engines other than Chromium.** Everything is checked in headless Chrome. Firefox and
+  WebKit are not exercised at all.
+- **The prose itself.** No checker can tell whether an explanation lands. The group checks are
+  the closest thing here, and they test the reader rather than the text.
 
 ## Structure
 

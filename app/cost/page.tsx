@@ -192,9 +192,13 @@ function CostChart({
         viewBox={`0 0 ${W} ${H}`}
         className="chart-svg"
         role="img"
-        aria-label={`${t(bench.chartTitle, lang)}: ${rounds} ${t(bench.axisRounds, lang)}, ${money(
-          (showCache ? cache : plain)[rounds - 1] ?? 0,
-        )}`}
+        aria-label={`${t(bench.chartTitle, lang)}. ${t(bench.chartAlt, lang)} ${t(
+          bench.chartSays,
+          lang,
+        )}${showCache ? " " + t(bench.chartCached, lang) : ""} ${rounds} ${t(
+          bench.axisRounds,
+          lang,
+        )}: ${money((showCache ? cache : plain)[rounds - 1] ?? 0)}.`}
       >
         {ticks.map((v, i) => (
           <g key={i}>
@@ -227,6 +231,10 @@ function CostChart({
           className="chart-dot"
         />
       </svg>
+      <p className="chart-conclusion">
+        {t(bench.chartSays, lang)}
+        {showCache ? " " + t(bench.chartCached, lang) : ""}
+      </p>
     </figure>
   );
 }
