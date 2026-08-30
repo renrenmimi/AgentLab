@@ -113,6 +113,13 @@ Opening `http://localhost:3000/?selftest=1` by hand does the same thing without 
 the score goes into `document.title` and the report is printed on the page and to the
 console.
 
+Both `verify.mjs` and the in-page suite declare how many assertions they hold, and fail when
+the real number differs. That guard has its own test:
+
+```bash
+npm run counters   # breaks both counters four ways; fails if a break goes unnoticed
+```
+
 ## Notes on design
 
 - **Simulated by default.** Every response comes from recorded data in `lib/scenarios/` —
@@ -125,6 +132,43 @@ console.
   score, no progress percentage: the point is finding out something you thought you knew.
 - **Progress is remembered** in `localStorage` and shown in the sidebar, with a visible way to
   clear it. No account, and nothing is sent anywhere.
+
+## What is verified by what
+
+Three things check this project, and they do not run at the same times. Knowing
+which is which matters more than knowing what each one covers.
+
+| | What it checks | When it runs |
+|---|---|---|
+| `node verify.mjs` | the content: bilingual pairs, line ranges, blanks, glossary markers, stop numbers, figures quoted in prose | **automatically**, in CI, on every push and every pull request |
+| `?selftest=1`, via `npm run selftest` | the live page: roles and states, keyboard paths, contrast, headings, landmarks, the arithmetic each stop displays | **by hand**, from a committed script, before a merge |
+| `npm run counters` | that the two above still contain the number of assertions they claim to | by hand, or whenever either file is edited |
+
+The second row is the gap, and it is worth being plain about it. The in-page
+suite is the half that catches what a static reader cannot see, and it is the
+half that only runs when somebody remembers to run it. The sibling project,
+AgentTape, ran the same arrangement and wrote in its CI configuration that the
+suite "is run by hand before every merge." Eighteen of its assertions then
+failed continuously for an entire round of work. Every CI run was green,
+because CI was not running them.
+
+This project was worse off than that. The script that drove its suite was
+written as scratch and deleted, so for five merged pull requests — which folded
+a stop away, renumbered the rest, moved a landmark and renamed two others — the
+110 assertions did not run at all. Rebuilding that script and committing it is
+what `scripts/drive-selftest.mjs` is; running it again found three contrast
+failures that had shipped, on surfaces no run had ever measured.
+
+So the honest statement is: **the green check on a pull request means the
+content is verified, not that the pages are.** Until the driver runs in CI, the
+in-page suite is verified by a person typing `npm run selftest` and reading the
+number. `npm run counters` exists because that number is the only signal, and a
+signal nobody can trust is not a signal.
+
+Putting the driver into CI is deliberately left for later, and left for both projects at
+once: AgentLab and AgentTape have the same problem and can share one driver, which is why
+this one is committed, has no dependencies, and finds Chrome by looking in the places a
+Linux runner would keep it rather than the places a Mac does.
 
 ## What is checked, and what is not
 
@@ -180,6 +224,7 @@ prerenders to static pages.
 | `app/og/route.tsx` | One route, fifteen share cards, no dependency |
 | `verify.mjs` | Static checks over all of the above |
 | `scripts/drive-selftest.mjs` | Runs `?selftest=1` in a real browser and reports the score |
+| `scripts/check-the-counters.mjs` | Breaks both assertion counters on purpose and fails if a break goes unnoticed |
 | `app/selftest.tsx` · `app/selftest-suite.ts` | `?selftest=1` — the assertions a static check cannot make |
 
 ---
