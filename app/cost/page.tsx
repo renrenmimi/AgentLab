@@ -8,6 +8,7 @@ import {
   bench,
   linearReference,
   meta,
+  money,
   promptTokens,
   runCost,
 } from "@/lib/cost";
@@ -20,9 +21,6 @@ import {
   Takeaway,
   Workbench,
 } from "@/app/lesson";
-
-const money = (n: number) =>
-  n >= 1 ? `$${n.toFixed(2)}` : `$${n.toFixed(3)}`;
 
 export default function CostStop() {
   const { lang } = useLang();

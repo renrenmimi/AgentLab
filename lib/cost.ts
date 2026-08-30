@@ -92,6 +92,9 @@ export function linearReference(a: Assumptions, rounds: number, extra = 0): numb
   return Array.from({ length: rounds }, (_, i) => first * (i + 1));
 }
 
+// 页面和自检用同一个格式化函数，比较渲染出来的字符串才有意义。
+export const money = (n: number) => (n >= 1 ? `$${n.toFixed(2)}` : `$${n.toFixed(3)}`);
+
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {

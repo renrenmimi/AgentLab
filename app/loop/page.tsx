@@ -79,16 +79,19 @@ export default function LoopChapter() {
     return () => window.removeEventListener("keydown", onKey);
   }, [steps.length]);
 
-  // 选择器用左右方向键在场景之间移动（tablist 的标准行为）
+  // 选择器的键盘行为按 tablist 的惯例来：左右移动一格，Home / End 跳到两端。
   const onTabKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const last = scenarios.length - 1;
+    let next: number;
+    if (e.key === "ArrowRight") next = pick === last ? 0 : pick + 1;
+    else if (e.key === "ArrowLeft") next = pick === 0 ? last : pick - 1;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = last;
+    else return;
     e.preventDefault();
     e.stopPropagation();
-    const delta = e.key === "ArrowRight" ? 1 : -1;
-    const next = (pick + delta + scenarios.length) % scenarios.length;
     choose(next);
-    const el = document.getElementById(`scn-tab-${scenarios[next].id}`);
-    el?.focus();
+    document.getElementById(`scn-tab-${scenarios[next].id}`)?.focus();
   };
 
   // 当前步骤要点亮的代码行

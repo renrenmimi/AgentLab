@@ -74,6 +74,13 @@ npm run verify  # static checks over the course content
   modules and asserts what a content bug looks like: a pair missing one language, a step
   highlighting a line the snippet does not have, a blank with no correction for a wrong
   answer, a `[[term]]` with no glossary entry, a stop with no page behind it.
+- **The behaviour is checked too.** `verify.mjs` cannot see a click. Opening any page with
+  `?selftest=1` runs assertions against the live DOM — that the scenario picker is a real
+  tablist, that stepping through a run and back leaves the panels where `stateAt()` says,
+  that the cost slider's numbers satisfy the arithmetic the prose claims, that a wrong
+  answer at stop 3 produces its own correction — plus keyboard reachability, focus rings
+  and computed contrast in both themes. It prints a report, sets `document.title` to the
+  score, and needs no test runner.
 
 ## Structure
 
@@ -92,6 +99,7 @@ prerenders to static pages.
 | `lib/glossary.tsx` | Term dictionary and the `[[key:label]]` renderer |
 | `lib/stops.ts` | The stop list shared by sidebar, breadcrumb, and ⌘K palette |
 | `verify.mjs` | Static checks over all of the above |
+| `app/selftest.tsx` · `app/selftest-suite.ts` | `?selftest=1` — the assertions a static check cannot make |
 
 ## After the loop
 
