@@ -440,7 +440,33 @@ function required(el: Element, pseudo?: string): number {
 // can compare it against the assertions that actually executed, and read out of
 // this file by verify.mjs so CI notices a change even though CI cannot run the
 // suite itself. Changing an assertion means changing this number.
-const EXPECTED_ASSERTIONS = 115;
+const EXPECTED_ASSERTIONS = 118;
+
+// The share of text-bearing nodes a run has to actually measure.
+//
+// Enumeration failed by measuring air: sixty selectors, forty-three of which
+// matched something. Traversal fails the other way, by stepping over an element
+// that is there — text in a collapsed section, a node behind display:none at the
+// moment of the walk, a surface that only paints after a transition nobody
+// waited for. Neither failure turns anything red on its own, so coverage is a
+// number the suite asserts rather than a property it hopes for.
+const COVERAGE_FLOOR = 0.88;
+
+/**
+ * The smallest number of measurements a whole run may make, by layout.
+ *
+ * The ratio above cannot catch a traversal that returns fewer nodes than it
+ * should, because such a traversal shrinks the numerator and the denominator
+ * together and the ratio stays where it was. Only an absolute number notices.
+ * These are set about five per cent under observed runs: wide enough that adding
+ * a paragraph of prose does not fail the suite, narrow enough to catch a walk
+ * that has stopped descending into part of the page.
+ */
+function measurementFloor(width: number): number {
+  if (width >= 1200) return 10200;
+  if (width >= 700) return 10100;
+  return 10000;
+}
 
 // ---------------------------------------------------------------- suite
 
@@ -1394,11 +1420,17 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   // The closing scene of the opening animation carries the formula badge.
   // Stepping to it is not an option: on the last scene the advance control
   // becomes a link to the next stop, so one click too many leaves the page.
+  // Each scene of the opening animation is its own screen of prose, and only the
+  // active one is painted: the rest sit at opacity 0, which the traversal counts
+  // as skipped rather than measured. Visiting them is the difference between
+  // measuring one sixth of that stop and measuring all of it.
   await go("/");
-  const lastScene = $$<HTMLButtonElement>(".progress .pdot").at(-1);
-  lastScene?.click();
-  await settle(4);
-  await measureHere("/-formula");
+  const scenes = $$<HTMLButtonElement>(".progress .pdot");
+  for (let i = 0; i < scenes.length; i++) {
+    scenes[i].click();
+    await settle(4);
+    await measureHere(`/-scene${i + 1}`);
+  }
 
   // A blank answered wrongly and then correctly: the feedback and the fill.
   await go("/build");
@@ -1468,11 +1500,46 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   // property of the pages rather than of a list somebody maintained, so it is
   // reported here and asserted against a floor rather than left to be inferred
   // from a score that could be perfect and wrong at the same time.
-  const skipped = [...skipTally.values()].reduce((a, b) => a + b, 0);
+  const skippedCount = [...skipTally.values()].reduce((a, b) => a + b, 0);
+  const present = measuredCount + skippedCount;
+  const ratio = present === 0 ? 0 : measuredCount / present;
+  const breakdown =
+    [...skipTally.entries()].sort((a, b) => b[1] - a[1]).map(([r, n]) => `${r} ${n}`).join(", ") ||
+    "nothing skipped";
+
   ok(
-    measuredCount > 0,
-    "the traversal measured text surfaces rather than a list of selectors",
-    `${measuredCount} measured, ${skipped} skipped`,
+    ratio >= COVERAGE_FLOOR,
+    `the traversal measured at least ${Math.round(COVERAGE_FLOOR * 100)} per cent of the text on the page`,
+    `${measuredCount} of ${present} (${(ratio * 100).toFixed(1)}%) — skipped: ${breakdown}`,
+  );
+
+  // A ratio cannot see a traversal that stopped descending: fewer nodes found is
+  // fewer nodes skipped as well, and the ratio does not move. This can.
+  const floor = measurementFloor(width);
+  ok(
+    measuredCount >= floor,
+    `the traversal made at least ${floor} measurements at ${width}px`,
+    `${measuredCount} measurements across ${measuredIn.size} passes`,
+  );
+
+  // Every reason a surface can go unmeasured is written down in SKIP_REASONS.
+  // TypeScript keeps the set closed at compile time; this keeps it closed at run
+  // time, so a reason introduced by some other route still has to be declared.
+  const undeclared = [...skipTally.keys()].filter((r) => !SKIP_REASONS.includes(r as SkipReason));
+  ok(
+    undeclared.length === 0,
+    "every surface skipped was skipped for a declared reason",
+    undeclared.join(", ") || `${skipTally.size} of ${SKIP_REASONS.length} reasons used`,
+  );
+
+  // A stop that contributes nothing is the seventeen dead selectors again, in a
+  // different hat: the run would still pass, and that stop would be unmeasured.
+  const expectedPasses = STOPS.flatMap((s) => ["dark", "light"].map((t) => `${t}${s.href}`));
+  const silent = expectedPasses.filter((key) => !measuredIn.has(key));
+  ok(
+    silent.length === 0,
+    "every stop was measured in both themes",
+    silent.join(", ") || `${expectedPasses.length} stop-and-theme pairs`,
   );
 
   const unique = [...new Set(lowContrast)];
