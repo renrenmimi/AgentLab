@@ -3470,3 +3470,140 @@ html[data-sidebar="collapsed"] .sidebar {
   font-weight: 650;
   color: var(--text);
 }
+
+/* ---------- /permission：停在批准前的那次运行 ---------- */
+
+.pm-run {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  counter-reset: beat;
+}
+
+.pm-beat {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+}
+
+.pm-who {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-3);
+  min-width: 62px;
+  flex-shrink: 0;
+}
+
+.pm-body {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-2);
+  line-height: 1.65;
+}
+
+.pm-body b {
+  display: block;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.pm-aside {
+  background: transparent;
+  border-style: dashed;
+}
+
+/* 有副作用的一拍：左边一道竖线 + 一个写出来的标签 */
+.pm-effect {
+  display: inline-block;
+  margin-left: 8px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--amber);
+  background: var(--amber-bg);
+  border-radius: 999px;
+  padding: 1px 7px;
+  vertical-align: middle;
+}
+
+.pm-waiting {
+  border-color: var(--amber);
+  background: var(--amber-bg);
+}
+
+.pm-pending {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--amber);
+}
+
+.pm-bad {
+  border-color: var(--risk);
+  background: var(--err-bg);
+}
+
+.pm-bad .pm-effect {
+  color: var(--risk);
+  background: transparent;
+}
+
+.pm-ask {
+  margin: 4px 0 0;
+  border: 1px solid var(--accent-glow);
+  background: var(--accent-bg);
+  border-radius: 14px;
+  padding: 12px 15px 14px;
+}
+
+.pm-ask legend {
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--accent-text);
+  padding: 0 6px;
+}
+
+.pm-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pm-btn {
+  text-align: left;
+  padding: 9px 15px;
+  background: var(--panel);
+}
+
+.pm-btn-name {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.pm-btn-hint {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.pm-after {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.pm-after .lsn-col {
+  width: 100%;
+}

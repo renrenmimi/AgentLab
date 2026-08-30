@@ -20,8 +20,11 @@ export const STOPS: SideStop[] = [
   { href: "/context", glyph: "5", label: ui.nav.stop5 },
   { href: "/tools", glyph: "6", label: ui.nav.stop6 },
   { href: "/trust", glyph: "7", label: ui.nav.stop7 },
-  { href: "/delegate", glyph: "8", label: ui.nav.stop8 },
-  { href: "/measure", glyph: "9", label: ui.nav.stop9 },
+  // 批准紧跟在「工具结果不可信」后面：审批之所以存在，正是因为
+  // 那段要求执行动作的文字未必出自你。
+  { href: "/permission", glyph: "8", label: ui.nav.stop8 },
+  { href: "/delegate", glyph: "9", label: ui.nav.stop9 },
+  { href: "/measure", glyph: "10", label: ui.nav.stop10 },
 ];
 
 // Which stop is active for a given path ("/loop/x" still counts as /loop).

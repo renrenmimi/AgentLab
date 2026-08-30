@@ -18,9 +18,9 @@ correctly, why a tool result cannot be trusted, and how to tell whether a change
 
 *The message history growing one step at a time*
 
-## Nine stops
+## Ten stops
 
-The first three build the mental model. The next six are about everything that makes
+The first three build the mental model. The rest are about everything that makes
 agents actually hard — the questions a reader still could not answer after finishing the
 first three.
 
@@ -46,10 +46,13 @@ first three.
 7. **`/trust` — Tool output is not your friend.** Prompt injection, shown before it is named:
    a page whose visible text is ordinary and whose fetched text is not. Then the mitigations,
    each with what it does not stop.
-8. **`/delegate` — Handing work to another agent.** One idea: a subagent buys context and
+8. **`/permission` — Who says yes.** The loop stops before a write and the reader makes the
+   call. Allow once, allow always, or refuse — the run continues differently for each, and
+   allowing always shows the third write that then happens without you.
+9. **`/delegate` — Handing work to another agent.** One idea: a subagent buys context and
    costs you the ability to check its work.
-9. **`/measure` — How you know it got better.** Ten saved tasks and a pass count. A prompt
-   change that fixes three of them and quietly breaks two.
+10. **`/measure` — How you know it got better.** Ten saved tasks and a pass count. A prompt
+    change that fixes three of them and quietly breaks two.
 
 ## Running locally
 
@@ -92,7 +95,7 @@ prerenders to static pages.
 | `lib/intro.ts` | Stop 1 content |
 | `lib/scenarios/` | Stop 2 — five recorded runs, frame by frame, one file each |
 | `lib/cost.ts` `lib/context.ts` `lib/tools.ts` | Stops 4–6: the model behind each one, plus its prose |
-| `lib/trust.ts` `lib/delegate.ts` `lib/measure.ts` | Stops 7–9, same shape |
+| `lib/trust.ts` `lib/permission.ts` `lib/delegate.ts` `lib/measure.ts` | Stops 7–10, same shape |
 | `lib/lesson.ts` · `app/lesson.tsx` | The shared shape of a stop from 4 onward |
 | `lib/build.ts` | Stop 3 — the blanks, answers, and per-mistake corrections |
 | `lib/i18n.tsx` | Bilingual strings and the `useT()` hook |

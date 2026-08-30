@@ -563,6 +563,34 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   ok(question() !== q1, "showing the answer advances", question().slice(0, 40));
   void revealBtn;
 
+  // ---- /permission: the decision changes the run ------------------------
+  await go("/permission");
+  const beats = () => $$(".pm-beat").length;
+  const askButtons = () => $$<HTMLButtonElement>(".pm-buttons .btn");
+  const base = beats();
+  ok(askButtons().length === 3, "three answers are offered", `${askButtons().length}`);
+  ok($$(".pm-waiting").length === 1, "the loop is visibly stopped on one beat");
+
+  const seen: number[] = [];
+  for (let i = 0; i < 3; i++) {
+    askButtons()[i]?.click();
+    await settle(3);
+    seen.push(beats());
+    ok(beats() > base, `choosing answer ${i + 1} continues the run`, `${base} → ${beats()}`);
+    const again = $$<HTMLButtonElement>(".pm-after .btn").at(-1);
+    again?.click();
+    await settle(3);
+  }
+  ok(new Set(seen).size > 1, "the three answers do not produce the same run", seen.join(", "));
+
+  askButtons()[1]?.click();
+  await settle(3);
+  ok(
+    $$(".pm-bad").length > 0,
+    "allowing always shows the step that happens without you",
+    `${$$(".pm-bad").length} marked`,
+  );
+
   // ---- both themes ------------------------------------------------------
   const root = document.documentElement;
   const startedIn = root.dataset.theme;
