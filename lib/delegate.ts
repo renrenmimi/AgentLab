@@ -1,4 +1,4 @@
-// 第 8 站「让另一个 agent 去做」：一个想法，讲清楚就够。
+//「让另一个 agent 去做」：一个想法，讲清楚就够。
 // 父 agent 把一段工作整个交出去，换回一段摘要——省下的是上下文，付出的是可核对性。
 
 import type { L } from "@/lib/i18n";
@@ -67,7 +67,7 @@ export const summary = {
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {
-  title: { zh: "第 8 站 · 让另一个 agent 去做", en: "Stop 8 · Handing work to another agent" },
+  title: { zh: "让另一个 agent 去做", en: "Handing work to another agent" },
   subtitle: {
     zh: "把一段工作整个交出去，父 agent 的上下文只增加一条消息。省下的是上下文，付出的是可核对性。",
     en: "Hand a stretch of work to a second agent and the parent's context grows by one message. What you save is context; what you pay is the ability to check.",
@@ -92,12 +92,12 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "第 4 站和第 5 站的两条限制凑在一起，会逼出这个做法：" +
+          "[[stop:/cost]]和[[stop:/context]]的两条限制凑在一起，会逼出这个做法：" +
           "有些活必须读很多东西，但读完之后真正有用的结论只有几句话。" +
           "「把 lib/ 下面 30 个文件都看一遍，找出碰鉴权的那些」就是典型——" +
           "三十个文件进[[array:数组]]，之后每一轮都要重发一次，而最终你要的只是一份四五个文件的清单。",
         en:
-          "The limits from stops 4 and 5 push you here together: some work requires reading a great deal, and " +
+          "The limits from [[stop:/cost]] and [[stop:/context]] push you here together: some work requires reading a great deal, and " +
           "the useful conclusion is a few sentences long. \"Read the 30 files under lib/ and find the ones " +
           "that touch authentication\" is the shape — thirty files enter the [[array:array]] and are resent " +
           "every round afterwards, and what you actually wanted was a list of four or five names.",
@@ -142,11 +142,11 @@ export const blocks: Block[] = [
       },
       {
         zh:
-          "注意这和第 2 站「吞掉错误」是同一个形状，只是放大了一层：" +
+          "注意这和[[stop:/loop]]「吞掉错误」是同一个形状，只是放大了一层：" +
           "那次是一个工具没有把失败说出来，这次是一整个 agent 没有把截断说出来。" +
           "每加一层边界，就多一个地方可以悄悄丢掉信息，而外面那一层永远看不见里面发生了什么。",
         en:
-          "Note that this is the shape from stop 2 again, one level up: there a tool failed to report a " +
+          "Note that this is the shape from [[stop:/loop]] again, one level up: there a tool failed to report a " +
           "failure, and here an entire agent failed to report a truncation. Every boundary you add is one more " +
           "place where information can quietly disappear, and the outer layer never sees inside the inner one.",
       },

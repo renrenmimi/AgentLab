@@ -1,4 +1,4 @@
-// 第 3 站「亲手写一个」的数据（双语）：
+//「亲手写一个」的数据（双语）：
 // codeTemplate 里的 {{n}} 是要学习者亲手填的空；
 // blanks[n] 描述每个空的问题、正确答案、以及**答错时的针对性纠错**。
 // 答案比对前会做宽松归一化（去空格、全角转半角、单引号转双引号、转小写等），
@@ -313,8 +313,8 @@ export const blanks: Blank[] = [
     answers: ['"tool_use"', 'tool_use'],
     display: '"tool_use"',
     hint: {
-      zh: '第 2 站透视面板里，琥珀色徽标上写的就是它：tool_use（要用工具）。',
-      en: 'It is the value on the amber badge at stop 2: tool_use.',
+      zh: '[[stop:/loop]]透视面板里，琥珀色徽标上写的就是它：tool_use（要用工具）。',
+      en: 'It is the value on the amber badge at [[stop:/loop]]: tool_use.',
     },
     explain: {
       zh: '对。这行的意思是：只要回复里不是在要工具，就说明做完了，跳出循环。',
@@ -383,8 +383,8 @@ export const blanks: Blank[] = [
   },
   {
     lesson: {
-      zh: '这一空不教新知识——它考的是第 2 站讲过的、最容易踩的那个坑。想想那条唯一的判断标准。',
-      en: 'No new concept here. This blank tests the point people most often get wrong at stop 2. Think of the single rule.',
+      zh: '这一空不教新知识——它考的是[[stop:/loop]]讲过的、最容易踩的那个坑。想想那条唯一的判断标准。',
+      en: 'No new concept here. This blank tests the point people most often get wrong at [[stop:/loop]]. Think of the single rule.',
     },
     q: {
       zh: '最后一空，也是最容易踩的坑：工具结果要发回给模型看，role 填什么？',

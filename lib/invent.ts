@@ -1,4 +1,4 @@
-// 第 5 站「它为什么会编」：幻觉，以及工具为什么正好是它的解药。
+//「它为什么会编」：幻觉，以及工具为什么正好是它的解药。
 
 import type { L } from "@/lib/i18n";
 import type { Block, LessonMeta } from "@/lib/lesson";
@@ -124,7 +124,7 @@ export const questions: Question[] = [
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {
-  title: { zh: "第 5 站 · 它为什么会编", en: "Stop 5 · Why it makes things up" },
+  title: { zh: "它为什么会编", en: "Why it makes things up" },
   subtitle: {
     zh: "一句流利的错话和一句流利的对话，在模型内部是同一种东西。这正是工具存在的理由。",
     en: "A fluent wrong answer and a fluent right one are the same kind of object inside the model. Which is exactly what tools are for.",
@@ -173,12 +173,12 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "回到第 1 站那句话：模型的全部工作是「给一段文字，接着生成一段文字」。" +
+          "回到[[stop:/]]那句话：模型的全部工作是「给一段文字，接着生成一段文字」。" +
           "它生成下一个 [[token:token]] 的依据，是这个 token 在这段上下文之后有多合适，" +
           "而不是这句话对不对。**「合适」和「正确」在训练里高度相关，但不是同一件事**——" +
           "在它没见过的东西上，两者就分开了。",
         en:
-          "Back to the sentence from stop 1: the model's entire job is to take text and produce more text. " +
+          "Back to the sentence from [[stop:/]]: the model's entire job is to take text and produce more text. " +
           "What decides the next [[token:token]] is how well it fits after this context, not whether the " +
           "resulting sentence is true. **Fitting well and being true are strongly correlated in training and " +
           "are not the same thing** — and on anything it has not seen, they come apart.",
@@ -223,12 +223,12 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "第 1 站说工具是为了让模型「有手」——能读文件、能跑命令。" +
+          "[[stop:/]]说工具是为了让模型「有手」——能读文件、能跑命令。" +
           "现在可以补上另一半，而且是更根本的一半：**工具是为了让它有个地方可查。**" +
           "一个被问几点的模型只能猜；一个有钟的模型不需要猜。" +
           "差别不在于它变聪明了，而在于答案从「它对文字的印象」变成了「[[array:数组]]里的一条 tool_result」。",
         en:
-          "Stop 1 said tools exist so the model has hands: to read a file, to run a command. Here is the other " +
+          "[[stop:/]] said tools exist so the model has hands: to read a file, to run a command. Here is the other " +
           "half, and the more fundamental one: **tools exist so it has somewhere to look.** A model asked what " +
           "time it is has to guess. A model with a clock does not. The difference is not that it became " +
           "smarter; it is that the answer moved from an impression about text to a tool_result in the " +
@@ -269,13 +269,13 @@ export const blocks: Block[] = [
           "所以真正管用的不是「要求它引用」，是**要求引用可以被核对**，并且真的去核对。" +
           "「lib/client.ts 第 4 行」这种引用有价值，因为打开文件看一眼就能证伪；" +
           "「根据项目文档」这种引用没有价值，因为它没有指向任何可以打开的东西。" +
-          "第 7 站那条「把返回量的上限写进工具说明」在这里又用上了：" +
+          "[[stop:/tools]]那条「把返回量的上限写进工具说明」在这里又用上了：" +
           "一个返回文件和行号的工具，让核对变成一件几秒钟的事。",
         en:
           "So the technique that pays is not requiring a citation but **requiring a citation you can check**, " +
           "and then checking it. A reference to lib/client.ts line 4 is worth something because opening the " +
           "file falsifies it in seconds. A reference to the project documentation is worth nothing, because it " +
-          "points at nothing you can open. The rule from stop 7 returns here: a tool that returns a filename " +
+          "points at nothing you can open. The rule from [[stop:/tools]] returns here: a tool that returns a filename " +
           "and a line number makes verification a few seconds' work.",
       },
     ],
@@ -289,13 +289,13 @@ export const blocks: Block[] = [
           "会少很多，不会没有。有三个漏口值得记住。" +
           "检索没找到相关内容时，模型还是会答——除非你的工具明确告诉它「零条」（前面那一条）。" +
           "检索回来的内容本身可能是错的或者过期的，而模型没有立场质疑它。" +
-          "以及，检索回来的东西是外部内容，可能在对模型说话——那是第 11 站。" +
+          "以及，检索回来的东西是外部内容，可能在对模型说话——那是[[stop:/trust]]。" +
           "检索把「凭印象编」换成了「依赖你给的材料」，材料的质量就成了新的上限。",
         en:
           "Much less, not none, and there are three gaps worth remembering. When retrieval finds nothing " +
           "relevant the model still answers, unless your tool says plainly that nothing came back. What was " +
           "retrieved can itself be wrong or out of date, and the model is in no position to doubt it. And " +
-          "retrieved material is outside content, which may be talking to the model — that is stop 11. " +
+          "retrieved material is outside content, which may be talking to the model — that is [[stop:/trust]]. " +
           "Retrieval replaces inventing from impressions with depending on what you supplied, which makes the " +
           "quality of what you supplied the new ceiling.",
       },

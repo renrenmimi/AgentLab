@@ -1,4 +1,4 @@
-// 第 1 站「什么是 Agent」的六幕动画：双语文案数据。
+//「什么是 Agent」的六幕动画：双语文案数据。
 // 每幕的画面（动画 JSX）在 app/page.tsx 里按下标对应。
 
 import type { L } from "@/lib/i18n";

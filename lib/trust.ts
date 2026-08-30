@@ -1,4 +1,4 @@
-// 第 7 站「工具结果不可信」：提示注入（prompt injection）。
+//「工具结果不可信」：提示注入（prompt injection）。
 // 先演示，再命名，最后讲缓解办法和它们各自挡不住什么。
 // 这一页里的「攻击」是最经典、也是被公开讨论最多的一种形态，
 // 目的是让读者认出它并防住它；页面里所有域名都是 example.com。
@@ -186,7 +186,7 @@ export const mitigations: Mitigation[] = [
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {
-  title: { zh: "第 7 站 · 工具结果不可信", en: "Stop 7 · Tool output is not your friend" },
+  title: { zh: "工具结果不可信", en: "Tool output is not your friend" },
   subtitle: {
     zh: "模型分不出「你的指令」和「工具结果里夹带的指令」，因为在数组里它们是同一种东西：文字。",
     en: "A model cannot tell your instructions from instructions that arrived inside a tool result, because in the array they are the same thing: text.",
@@ -211,11 +211,11 @@ export const blocks: Block[] = [
         zh:
           "任务很普通：把这家供应商的价格页总结一下。agent 用 fetch_url 取回页面，" +
           "把内容作为 tool_result 追加进[[array:数组]]，然后总结。到这里为止，" +
-          "和第 2 站那次读 package.json 没有任何区别。",
+          "和[[stop:/loop]]那次读 package.json 没有任何区别。",
         en:
           "The task is ordinary: summarise this vendor's pricing page. The agent calls fetch_url, appends the " +
           "page as a tool_result to the [[array:array]], and summarises. So far this is no different from " +
-          "reading package.json at stop 2.",
+          "reading package.json at [[stop:/loop]].",
       },
       {
         zh:
@@ -239,13 +239,13 @@ export const blocks: Block[] = [
         zh:
           "这件事叫提示注入（prompt injection）。它之所以难，不是因为模型不够聪明，" +
           "而是因为数组里根本没有一个字段用来区分「这是我的指令」和「这是外面来的数据」。" +
-          "回想第 2 站那条规则：能进数组的角色只有 user 和 assistant，" +
+          "回想[[stop:/loop]]那条规则：能进数组的角色只有 user 和 assistant，" +
           "而工具结果走的正是 user——和你亲手打的字用的是同一个 role。" +
           "从模型的角度看，你的任务和那段藏起来的文字，是同一个人在同一个对话里说的两句话。",
         en:
           "This is called prompt injection. What makes it hard is not that the model is not clever enough; it " +
           "is that the array has no field distinguishing \"this is my instruction\" from \"this is data from " +
-          "outside\". Recall the rule from stop 2: only user and assistant appear in the array, and tool " +
+          "outside\". Recall the rule from [[stop:/loop]]: only user and assistant appear in the array, and tool " +
           "results travel as user — the same role as the words you type yourself. From the model's position, " +
           "your task and that hidden passage are two sentences from the same speaker in the same conversation.",
       },

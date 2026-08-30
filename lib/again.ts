@@ -1,4 +1,4 @@
-// 第 14 站「工具失败之后」：重试、退避、幂等。
+//「工具失败之后」：重试、退避、幂等。
 // 三种失败里第三种最危险：你不知道它到底做没做。
 
 import type { L } from "@/lib/i18n";
@@ -95,8 +95,8 @@ export const tools: Tool[] = [
     what: { zh: "读一个文件", en: "read a file" },
     idempotent: true,
     twice: {
-      zh: "同上。读取天然可以重复——这也是第 12 站说读和写不一样的另一个理由。",
-      en: "The same. Reads repeat safely, which is another reason stop 12 treats them differently from writes.",
+      zh: "同上。读取天然可以重复——这也是[[stop:/permission]]说读和写不一样的另一个理由。",
+      en: "The same. Reads repeat safely, which is another reason [[stop:/permission]] treats them differently from writes.",
     },
   },
   {
@@ -151,7 +151,7 @@ export function totalWaitMs(attempts: number): number {
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {
-  title: { zh: "第 14 站 · 工具失败之后", en: "Stop 14 · When a tool fails" },
+  title: { zh: "工具失败之后", en: "When a tool fails" },
   subtitle: {
     zh: "一次调用有三种失败方式，其中一种你不知道它到底做没做——而重试会把那件事再做一遍。",
     en: "A call can fail in three ways, and in one of them you do not know whether the work happened — which is the one a retry does twice.",
@@ -173,11 +173,11 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "第 2 站有一次运行是工具执行失败，那一站关心的是「把什么写进[[array:数组]]」。" +
+          "[[stop:/loop]]有一次运行是工具执行失败，那一站关心的是「把什么写进[[array:数组]]」。" +
           "这一站关心的是另一半：**你的代码接下来该不该再试一次。**" +
           "答案取决于它是怎么失败的，而失败有三种，不是一种。",
         en:
-          "One of the runs at stop 2 was a tool failing, and that stop asked what to put in the " +
+          "One of the runs at [[stop:/loop]] was a tool failing, and that stop asked what to put in the " +
           "[[array:array]]. This one asks the other half: **should your code try again?** The answer depends " +
           "on how it failed, and there are three ways, not one.",
       },
@@ -229,13 +229,13 @@ export const blocks: Block[] = [
       {
         zh:
           "重试本身有两条几乎不用讨论的规矩。" +
-          "第一条：**次数要有上限。**没有上限的重试和第 2 站那个停不下来的循环是同一种东西，" +
+          "第一条：**次数要有上限。**没有上限的重试和[[stop:/loop]]那个停不下来的循环是同一种东西，" +
           "只是它连模型的钱都不花，直接把对面打垮。" +
           "第二条：**每次之间要等，而且越等越久**（指数退避）。" +
           "上面那张表就是 500 毫秒起步、每次翻倍的样子。",
         en:
           "Two rules about retries barely need arguing. First, **cap the number of attempts.** Uncapped " +
-          "retries are the same object as the loop that would not stop at stop 2, except that this one does " +
+          "retries are the same object as the loop that would not stop at [[stop:/loop]], except that this one does " +
           "not even spend model tokens — it just flattens whatever it is calling. Second, **wait between " +
           "them, and wait longer each time** (exponential backoff). The table above is 500 ms doubling.",
       },
@@ -294,15 +294,15 @@ export const blocks: Block[] = [
         zh:
           "把这条放回 agent 的语境里，它就变成一条工具设计的规矩：" +
           "**给 agent 的工具，要么重复调用安全，要么带键。**" +
-          "理由在第 4 站已经讲过——你没法保证同一个 agent 跑两次会做同样的事，" +
+          "理由在[[stop:/chance]]已经讲过——你没法保证同一个 agent 跑两次会做同样的事，" +
           "也没法保证它不会因为一次超时就把刚才那步再来一遍。" +
-          "与其在提示词里叮嘱它「不要重复扣款」（第 6 站说过那有多弱），不如让重复扣款做不到。",
+          "与其在提示词里叮嘱它「不要重复扣款」（[[stop:/instructions]]说过那有多弱），不如让重复扣款做不到。",
         en:
           "Put that back into the agent setting and it becomes a rule about tool design: **the tools you give " +
-          "an agent are either safe to call twice or they carry a key.** The reason is the one from stop 4: " +
+          "an agent are either safe to call twice or they carry a key.** The reason is the one from [[stop:/chance]]: " +
           "you cannot guarantee that the same agent run twice does the same thing, and you cannot guarantee " +
           "it will not repeat a step after a timeout. Rather than telling it in the prompt not to " +
-          "double-charge — stop 6 covered how weak that is — make double-charging impossible.",
+          "double-charge — [[stop:/instructions]] covered how weak that is — make double-charging impossible.",
       },
     ],
     faq: {
@@ -312,14 +312,14 @@ export const blocks: Block[] = [
       },
       a: {
         zh:
-          "可以让它参与，但不能只靠它。模型能看到的只有你写进 tool_result 的那段文字（第 2 站），" +
+          "可以让它参与，但不能只靠它。模型能看到的只有你写进 tool_result 的那段文字（[[stop:/loop]]），" +
           "所以「这次到底做没做」这个信息，得先由你的代码放进去，它才可能判断对。" +
-          "而且就算它判断对了，它也只是倾向正确——第 4 站那条依然成立。" +
+          "而且就算它判断对了，它也只是倾向正确——[[stop:/chance]]那条依然成立。" +
           "稳妥的分工是：安全性由工具的结构保证，模型只负责在安全的选项里挑一个。",
         en:
           "It can take part, and it cannot be the only thing deciding. The model sees only what you wrote " +
-          "into the tool_result (stop 2), so whether the work happened has to be put there by your code " +
-          "before it can judge correctly. And even when it judges correctly it is only likely to — stop 4 " +
+          "into the tool_result ([[stop:/loop]]), so whether the work happened has to be put there by your code " +
+          "before it can judge correctly. And even when it judges correctly it is only likely to — [[stop:/chance]] " +
           "still applies. The workable split is that safety comes from the structure of the tool, and the " +
           "model chooses among options that are already safe.",
       },

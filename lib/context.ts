@@ -1,4 +1,4 @@
-// 第 5 站「装不下的时候」：一段固定的对话 + 三种处理办法。
+//「装不下的时候」：一段固定的对话 + 三种处理办法。
 // 三种办法都是纯函数，页面和 verify.mjs 用同一份。
 
 import type { L } from "@/lib/i18n";
@@ -183,7 +183,7 @@ export function apply(strategy: Strategy, msgs: Msg[], limit: number): Outcome {
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {
-  title: { zh: "第 5 站 · 装不下的时候", en: "Stop 5 · When it will not fit" },
+  title: { zh: "装不下的时候", en: "When it will not fit" },
   subtitle: {
     zh: "上下文窗口是一个硬上限。到顶之后只有三条路，三条都要丢东西。",
     en: "The context window is a hard ceiling. There are three ways past it, and all three lose something.",
@@ -220,11 +220,11 @@ export const blocks: Block[] = [
         zh:
           "为什么要在意这个：因为模型一次能读进去的 token 数是有上限的，这个上限叫上下文窗口。" +
           "它不是「读起来会有点慢」，而是一道墙——超过一个 token 请求都不会被受理。" +
-          "第 2 站那次 40 MB 日志的失败，就是撞在这道墙上。",
+          "[[stop:/loop]]那次 40 MB 日志的失败，就是撞在这道墙上。",
         en:
           "Why it matters: there is a ceiling on how many tokens a model can read in one request, and that " +
           "ceiling is the context window. It is not a soft limit that makes things slow. It is a wall — one " +
-          "token over and the request is not accepted at all. The 40 MB log that failed at stop 2 hit this " +
+          "token over and the request is not accepted at all. The 40 MB log that failed at [[stop:/loop]] hit this " +
           "wall.",
       },
     ],
@@ -237,11 +237,11 @@ export const blocks: Block[] = [
         zh:
           "日常聊天几乎不会。跑工具的 agent 很容易：一个目录列表、几个文件、一份测试输出、一段栈追踪，" +
           "十几轮就能到几万 token；再加上有人把一份 PDF 或者整个 schema 贴进第一条消息，几轮就见底。" +
-          "而且要记住第 4 站那条：窗口没满不代表便宜——你在窗口里塞的每一样东西，之后每一轮都在为它付钱。",
+          "而且要记住[[stop:/cost]]那条：窗口没满不代表便宜——你在窗口里塞的每一样东西，之后每一轮都在为它付钱。",
         en:
           "In ordinary chat, almost never. In a tool-using agent, easily: a directory listing, a few files, a " +
           "test run, a stack trace, and a dozen rounds puts you in the tens of thousands. Add someone pasting " +
-          "a PDF or a whole schema into the first message and it goes fast. And remember stop 4: staying under " +
+          "a PDF or a whole schema into the first message and it goes fast. And remember [[stop:/cost]]: staying under " +
           "the ceiling is not the same as being cheap. Everything you keep in the window is paid for again " +
           "every round.",
       },

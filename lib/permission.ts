@@ -1,4 +1,4 @@
-// 第 8 站「谁来说可以」：把循环停在一次工具请求前面，由读者做决定，
+//「谁来说可以」：把循环停在一次工具请求前面，由读者做决定，
 // 然后让运行按这个决定真的分岔。三条分支的差别是这一站的全部内容。
 
 import type { L } from "@/lib/i18n";
@@ -233,12 +233,12 @@ export const branches: Branch[] = [
       zh:
         "关键在于拒绝的措辞。只写「拒绝执行」，模型只知道路被堵了；" +
         "补一句「你可以把改动作为文本给出」，它就知道往哪走。" +
-        "这和第 2 站那条是同一条：模型能想到什么，取决于你写进数组的是什么。" +
+        "这和[[stop:/loop]]那条是同一条：模型能想到什么，取决于你写进数组的是什么。" +
         "一个设计良好的拒绝，会同时说清楚「不行」和「那可以怎么办」。",
       en:
         "What matters is the wording of the refusal. Denied on its own tells the model only that a road is " +
         "closed. Adding you may output the change as text tells it where to go instead. This is the rule from " +
-        "stop 2 again: what the model can think of next depends on what you wrote into the array. A refusal " +
+        "[[stop:/loop]] again: what the model can think of next depends on what you wrote into the array. A refusal " +
         "worth writing says both no and here is what you can do.",
     },
     tone: "ok",
@@ -248,7 +248,7 @@ export const branches: Branch[] = [
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {
-  title: { zh: "第 8 站 · 谁来说可以", en: "Stop 8 · Who says yes" },
+  title: { zh: "谁来说可以", en: "Who says yes" },
   subtitle: {
     zh: "循环想执行一条命令，总得有人决定它可不可以。这一站由你来做那个决定。",
     en: "The loop wants to run a command. Someone has to decide whether it may. On this stop, that someone is you.",
@@ -280,14 +280,14 @@ export const blocks: Block[] = [
       {
         zh:
           "这两个说法经常被混为一谈，但它们不一样。读一个文件可能非常危险——" +
-          "读的是 .env，内容就进了[[array:数组]]，此后每一轮都会随请求发出去（第 4 站）。" +
+          "读的是 .env，内容就进了[[array:数组]]，此后每一轮都会随请求发出去（[[stop:/cost]]）。" +
           "写一个文件可能毫无风险——往临时目录写一行日志。" +
           "但「有没有副作用」这个问题，你的代码能自动回答；「危不危险」不能。" +
           "边界画在能自动判断的那一侧，是工程上唯一可行的做法。",
         en:
           "The two get conflated, and they are not the same. Reading a file can be extremely dangerous: read " +
           ".env and its contents enter the [[array:array]], where they are resent with every later round " +
-          "(stop 4). Writing a file can carry no risk at all: a line appended to a log in a temporary " +
+          "([[stop:/cost]]). Writing a file can carry no risk at all: a line appended to a log in a temporary " +
           "directory. But whether an action has a side effect is a question your code can answer " +
           "automatically, and whether it is dangerous is not. Drawing the boundary at the answerable question " +
           "is the only version of this that can actually be built.",
@@ -360,11 +360,11 @@ export const blocks: Block[] = [
         zh:
           "很多人以为拒绝会让 agent 崩掉或者卡住。不会。" +
           "拒绝在数组里就是一条普通的 tool_result——和一次命令失败、一个文件不存在完全同构。" +
-          "第 2 站那条规则在这里再次适用：模型接下来能想到什么，取决于这条消息里写了什么。",
+          "[[stop:/loop]]那条规则在这里再次适用：模型接下来能想到什么，取决于这条消息里写了什么。",
         en:
           "People expect a refusal to make the agent crash or stall. It does not. In the array a refusal is an " +
           "ordinary tool_result, structurally identical to a failed command or a missing file. The rule from " +
-          "stop 2 applies again: what the model can think of next depends on what that message says.",
+          "[[stop:/loop]] applies again: what the model can think of next depends on what that message says.",
       },
       {
         zh:
@@ -383,19 +383,19 @@ export const blocks: Block[] = [
     ],
     faq: {
       q: {
-        zh: "这和第 7 站有什么关系？",
-        en: "How does this connect to stop 7?",
+        zh: "这和[[stop:/trust]]有什么关系？",
+        en: "How does this connect to [[stop:/trust]]?",
       },
       a: {
         zh:
           "关系很直接：审批之所以存在，是因为提出这个动作的那段文字，未必出自你。" +
-          "第 7 站里那个网页可以让 agent 去请求一个动作，而 agent 分不出那句话是你说的还是页面说的。" +
+          "[[stop:/trust]]里那个网页可以让 agent 去请求一个动作，而 agent 分不出那句话是你说的还是页面说的。" +
           "审批是那一层分不清的最后一道补救——它不判断请求是谁提的，它只保证有副作用的动作要有人点头。" +
           "反过来说，这也解释了为什么「以后都允许」的范围要小：" +
           "你放宽的每一寸，都是注入能直接用上的那一寸。",
         en:
           "Directly: approval exists because the text asking for the action may not have come from you. The " +
-          "page at stop 7 can make an agent request an action, and the agent cannot tell which sentence was " +
+          "page at [[stop:/trust]] can make an agent request an action, and the agent cannot tell which sentence was " +
           "yours. Approval is the remedy for exactly that confusion — it does not judge who asked, it only " +
           "insists that something with a side effect gets a nod. Which is also the argument for keeping the " +
           "scope of an always small: every inch you widen is an inch an injection can use.",

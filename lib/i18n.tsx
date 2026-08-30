@@ -88,6 +88,7 @@ export const ui = {
     permission: { zh: "谁来说可以", en: "Who says yes" },
     again: { zh: "工具失败之后", en: "When a tool fails" },
     measure: { zh: "怎么知道变好了", en: "Knowing it got better" },
+    next: { zh: "这门课没讲的", en: "What this course left out" },
   },
 
   // ---------- Research OS shell (sidebar / toolbar / command palette) ----------
@@ -99,8 +100,14 @@ export const ui = {
     },
   },
   side: {
-    status: { zh: "STATUS", en: "STATUS" },
-    progress: { zh: "九站，一个循环", en: "Nine stops, one loop" },
+    status: { zh: "进度", en: "PROGRESS" },
+    visited: { zh: "已读", en: "read" },
+    reset: { zh: "清除进度", en: "Clear progress" },
+    resetHint: {
+      zh: "只存在这台设备的浏览器里，没有账号，也没有发到任何地方。",
+      en: "Kept in this browser only. No account, and nothing is sent anywhere.",
+    },
+    done: { zh: "已读", en: "read" },
   },
   toolbar: {
     hideNav: { zh: "隐藏导航栏", en: "Hide navigation" },
@@ -142,7 +149,7 @@ export const ui = {
   },
 
   intro: {
-    title: { zh: "第 1 站 · 什么是 Agent？", en: "Stop 1 · What is an agent?" },
+    title: { zh: "什么是 Agent？", en: "What is an agent?" },
     subtitle: {
       zh: "六幕小动画。只要你写过一次 print(\"hello world\")，就能看懂",
       en: "Six short scenes. If you have written print(\"hello world\") once, you have enough background to follow them.",
@@ -154,8 +161,8 @@ export const ui = {
 
   loop: {
     title: {
-      zh: "第 2 站 · 看它怎么跑（慢动作）",
-      en: "Stop 2 · Watch it run, in slow motion",
+      zh: "看它怎么跑（慢动作）",
+      en: "Watch it run, in slow motion",
     },
     subtitle: {
       zh: "每按一次按钮，就推进真实流程中的一步——按钮上写的就是这一步做什么",
@@ -183,8 +190,8 @@ export const ui = {
       en: "The code — that step was these lines",
     },
     codeNote: {
-      zh: "点亮的是这一步正在执行的行。五次运行用的是同一个循环，区别都在循环外面。第 3 站你会亲手把它写出来。",
-      en: "The highlighted lines are the ones running in this step. All five runs use the same loop; the differences are all outside it. At stop 3 you write it yourself.",
+      zh: "点亮的是这一步正在执行的行。五次运行用的是同一个循环，区别都在循环外面。下一站你会亲手把它写出来。",
+      en: "The highlighted lines are the ones running in this step. All five runs use the same loop; the differences are all outside it. At the next stop you write it yourself.",
     },
     linesSuffix: { zh: "行", en: "lines" },
     toBuild: { zh: "下一站：亲手写一个 →", en: "Next stop: write one yourself →" },
@@ -215,7 +222,7 @@ export const ui = {
   },
 
   build: {
-    title: { zh: "第 3 站 · 亲手写一个", en: "Stop 3 · Write one yourself" },
+    title: { zh: "亲手写一个", en: "Write one yourself" },
     subtitle: {
       zh: "骨架已经搭好，8 个关键的空由你来填。每个空需要的新知识会先教给你，答错时会给出针对性的说明",
       en: "The skeleton is ready. You fill in the 8 key blanks. Each blank teaches the concept it needs before it asks, and a wrong answer gets a specific explanation.",
@@ -242,7 +249,7 @@ export const ui = {
     },
     again: { zh: "↻ 再写一遍", en: "↻ Write it again" },
     backLoop: { zh: "回看慢动作", en: "Watch the slow motion again" },
-    backIntro: { zh: "回到第 1 站", en: "Back to stop 1" },
+    backIntro: { zh: "回到开头", en: "Back to the start" },
     halfway: {
       zh:
         "会写它，和能把它写好，是两件事。后面六站讲的都是第二件：" +

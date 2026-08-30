@@ -1,4 +1,4 @@
-// 第 6 站「数组外面的那段话」：system 提示词。
+//「数组外面的那段话」：system 提示词。
 // 三种条件跑同一个任务，最后一条说明「说一句」和「不给工具」不是一个量级。
 
 import type { L } from "@/lib/i18n";
@@ -102,13 +102,13 @@ export const setups: Setup[] = [
       zh:
         "这一句话确实改变了行为，绝大多数情况下管用，值得写。" +
         "但它管的是倾向，不是可能性：工具还在列表里。" +
-        "只要有一轮的采样落在另一边（第 4 站），或者有一段外部内容说服了它（第 11 站），" +
+        "只要有一轮的采样落在另一边（[[stop:/chance]]），或者有一段外部内容说服了它（[[stop:/trust]]），" +
         "这条规则就被绕过去了，而且没有任何东西会在那一刻拦住它。",
       en:
         "That sentence does change the behaviour, it works nearly always, and it is worth writing. But what " +
         "it governs is a tendency and not a possibility: the tool is still in the list. One round where the " +
-        "sampling lands elsewhere (stop 4), or one piece of outside content that argues well enough " +
-        "(stop 11), and the rule is simply gone past, with nothing in place to stop it at that moment.",
+        "sampling lands elsewhere ([[stop:/chance]]), or one piece of outside content that argues well enough " +
+        "([[stop:/trust]]), and the rule is simply gone past, with nothing in place to stop it at that moment.",
     },
     tone: "warn",
   },
@@ -157,7 +157,7 @@ export const setups: Setup[] = [
 ];
 
 // 一段 system 提示词在一次 40 轮的运行里被重发多少次、要多少钱。
-// 数字取自第 8 站那个成本模型，不是另写的一份。
+// 数字取自[[stop:/cost]]那个成本模型，不是另写的一份。
 export const SYSTEM_TOKENS = 900;
 
 export function systemBill(rounds = 40) {
@@ -178,7 +178,7 @@ export function systemBill(rounds = 40) {
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {
-  title: { zh: "第 6 站 · 数组外面的那段话", en: "Stop 6 · The text outside the array" },
+  title: { zh: "数组外面的那段话", en: "The text outside the array" },
   subtitle: {
     zh: "system 提示词不在 messages 里，但每一轮都跟着发出去。它能改变行为，也只能改变行为。",
     en: "The system prompt is not in messages, and it goes out on every single round. It can change behaviour, and changing behaviour is all it can do.",
@@ -201,14 +201,14 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "第 2 站的代码面板里有这么一行：system: \"你是一个本地文件助手……\"。" +
+          "[[stop:/loop]]的代码面板里有这么一行：system: \"你是一个本地文件助手……\"。" +
           "它和 messages 是并列的两个参数，不是[[array:数组]]里的一个元素。" +
-          "这个位置差别是有意的：数组会随着对话变长、会被截断、会被摘要（第 9 站），" +
+          "这个位置差别是有意的：数组会随着对话变长、会被截断、会被摘要（[[stop:/context]]），" +
           "而 system 提示词是你每一轮都原样重新提供的那一段，它不会因为对话变长而被挤掉。",
         en:
-          "The code panel at stop 2 has this line: system: \"You are a local file assistant…\". It is a " +
+          "The code panel at [[stop:/loop]] has this line: system: \"You are a local file assistant…\". It is a " +
           "parameter alongside messages, not an element of the [[array:array]]. The distinction is " +
-          "deliberate: the array grows with the conversation, gets truncated, gets summarised (stop 9), while " +
+          "deliberate: the array grows with the conversation, gets truncated, gets summarised ([[stop:/context]]), while " +
           "the system prompt is the passage you supply again, unchanged, on every round. It cannot be squeezed " +
           "out by a long conversation.",
       },
@@ -229,26 +229,26 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "把第 8 站那条规律套到 system 提示词上：一段 900 个 [[token:token]] 的提示词，" +
+          "把[[stop:/cost]]那条规律套到 system 提示词上：一段 900 个 [[token:token]] 的提示词，" +
           "在一次 40 轮的运行里会被发出去 40 次。" +
-          "它写了一次，你买了四十次——上面的数字就是按第 8 站那个成本模型算出来的。",
+          "它写了一次，你买了四十次——上面的数字就是按[[stop:/cost]]那个成本模型算出来的。",
         en:
-          "Apply the rule from stop 8 to the system prompt: a 900-[[token:token]] passage in a forty-round " +
+          "Apply the rule from [[stop:/cost]] to the system prompt: a 900-[[token:token]] passage in a forty-round " +
           "run goes out forty times. You wrote it once and bought it forty times — the figure above is " +
-          "computed with the same cost model stop 8 uses.",
+          "computed with the same cost model [[stop:/cost]] uses.",
       },
       {
         zh:
           "这不是叫你把提示词写短。一段写得好的 900 token 提示词，能省下的轮数远比它自己贵。" +
           "值得记住的是另一件事：**system 提示词的每一句都在按轮数计费**，" +
           "所以那些「以防万一先写上」的段落，代价不是一次，是每一次。" +
-          "顺带一条：它要放在最前面且保持一字不变，才吃得到缓存（第 8 站）——" +
+          "顺带一条：它要放在最前面且保持一字不变，才吃得到缓存（[[stop:/cost]]）——" +
           "在里面塞一个当前时间戳，整段缓存就作废了。",
         en:
           "This is not an argument for short prompts. Nine hundred well-spent tokens save more rounds than " +
           "they cost. What is worth remembering is the other thing: **every sentence in a system prompt is " +
           "billed per round**, so a paragraph added just in case costs you not once but every time. And a " +
-          "related point: it earns the cache discount from stop 8 only by staying first and staying " +
+          "related point: it earns the cache discount from [[stop:/cost]] only by staying first and staying " +
           "byte-identical — drop a current timestamp into it and the whole prefix stops matching.",
       },
     ],
@@ -260,13 +260,13 @@ export const blocks: Block[] = [
       a: {
         zh:
           "有用，但收益递减得很快，而且失效的方式不明显。一条规则要生效，它得在每一轮里都赢过" +
-          "当时上下文里所有相反的压力——包括任务本身的措辞、工具结果里的内容、以及采样的随机性（第 4 站）。" +
+          "当时上下文里所有相反的压力——包括任务本身的措辞、工具结果里的内容、以及采样的随机性（[[stop:/chance]]）。" +
           "写十条最重要的规则，通常比写四十条有用；" +
           "而其中真正要紧的那一两条，最好干脆别用规则来实现（下一节）。",
         en:
           "They work, with returns that fall off quickly and failures that are hard to see. For a rule to " +
           "take effect it has to win, on every round, against every opposing pressure in the context at that " +
-          "moment — the wording of the task, the contents of a tool result, and the sampling from stop 4. Ten " +
+          "moment — the wording of the task, the contents of a tool result, and the sampling from [[stop:/chance]]. Ten " +
           "rules that matter usually outperform forty. And the one or two that matter most are better not " +
           "implemented as rules at all, which is the next section.",
       },
@@ -291,25 +291,25 @@ export const blocks: Block[] = [
         zh:
           "第二种和第三种的结果一样，性质完全不同。" +
           "第二种是**一段和别的文字并列的文字**：它要在每一轮里重新战胜任务措辞、工具结果、" +
-          "以及采样的随机（第 4 站）。绝大多数时候它赢，但「绝大多数」不是「总是」。" +
+          "以及采样的随机（[[stop:/chance]]）。绝大多数时候它赢，但「绝大多数」不是「总是」。" +
           "第三种不参与任何较量——一个不在列表里的工具，模型请求不了，" +
           "这跟它当时怎么想、读到了什么，一点关系都没有。",
         en:
           "The second and third produce the same outcome and are not the same kind of thing. The second is " +
           "**a passage of text sitting alongside other passages of text**: it has to win again on every round " +
-          "against the task's wording, the tool results, and the sampling from stop 4. It wins nearly always, " +
+          "against the task's wording, the tool results, and the sampling from [[stop:/chance]]. It wins nearly always, " +
           "and nearly always is not always. The third enters no contest at all — a tool that is not in the " +
           "list cannot be requested, regardless of what the model was thinking or what it had just read.",
       },
       {
         zh:
-          "第 11 站会把这件事推到极端：如果一段外部内容可以对模型说话，" +
+          "[[stop:/trust]]会把这件事推到极端：如果一段外部内容可以对模型说话，" +
           "那么「我在 system 里叮嘱过它」就是在和攻击者比谁的文字更有说服力——" +
           "这场比试你不一定输，但你也不一定赢，而且你事先不知道结果。" +
           "所以做决定的顺序应该是：先问「这件事能不能干脆做不到」，" +
           "做不到就不需要叮嘱；只有在必须能做的时候，才退回到用提示词去调整倾向。",
         en:
-          "Stop 11 takes this to its limit: if a piece of outside content can address the model, then I told " +
+          "[[stop:/trust]] takes this to its limit: if a piece of outside content can address the model, then I told " +
           "it in the system prompt becomes a contest with an attacker over whose text is more persuasive. You " +
           "will not necessarily lose that contest, and you will not necessarily win it, and you do not know " +
           "in advance. So the order of the questions should be: first ask whether the thing can simply be " +

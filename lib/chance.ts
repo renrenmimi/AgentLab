@@ -1,4 +1,4 @@
-// 第 4 站「为什么每次不一样」：采样与温度。
+//「为什么每次不一样」：采样与温度。
 // 取样函数是纯函数，页面、verify.mjs 和自检用的是同一份。
 
 import type { L } from "@/lib/i18n";
@@ -42,8 +42,8 @@ export const outcomes: Outcome[] = [
     id: "grep-src",
     move: { zh: 'run_command("grep -rn TODO src/")', en: 'run_command("grep -rn TODO src/")' },
     result: {
-      zh: "猜了一个不存在的目录。接下来会发生什么，取决于工具怎么报错——第 2 站那次就是从这里开始的。",
-      en: "Guesses a directory that does not exist. What happens next depends on how the tool reports it — this is where the run at stop 2 began.",
+      zh: "猜了一个不存在的目录。接下来会发生什么，取决于工具怎么报错——[[stop:/loop]]那次就是从这里开始的。",
+      en: "Guesses a directory that does not exist. What happens next depends on how the tool reports it — this is where the run at [[stop:/loop]] began.",
     },
     weight: 12,
     kind: "wrong",
@@ -97,7 +97,7 @@ export function sample(temp: number, seed: number): Outcome {
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {
-  title: { zh: "第 4 站 · 为什么每次不一样", en: "Stop 4 · Why the same question gives different answers" },
+  title: { zh: "为什么每次不一样", en: "Why the same question gives different answers" },
   subtitle: {
     zh: "同一个任务、同一个数组，跑两次可能走两条路。这一站解释为什么，以及它意味着什么。",
     en: "The same task and the same array can take two different paths. This stop explains why, and what follows from it.",
@@ -220,12 +220,12 @@ export const blocks: Block[] = [
       {
         zh:
           "这句话直接决定了后面几站的做法。为什么改完提示词要跑一整套任务而不是只看你刚才那个例子" +
-          "（第 13 站），因为一次通过说明不了什么。为什么同一个任务要跑三次记「三次里过了几次」，" +
+          "（[[stop:/measure]]），因为一次通过说明不了什么。为什么同一个任务要跑三次记「三次里过了几次」，" +
           "因为通过率才是可比的量，单次结果不是。为什么线上会出现你从没见过的行为，" +
           "因为你见过的是分布里概率最高的那几条路，而用户在替你采样剩下的那些。",
         en:
           "That sentence decides how the later stops work. Why a prompt change is checked against a whole set " +
-          "of tasks rather than the one that annoyed you (stop 13): because one pass says very little. Why the " +
+          "of tasks rather than the one that annoyed you ([[stop:/measure]]): because one pass says very little. Why the " +
           "same task is run three times and recorded as how many of three passed: because a pass rate is a " +
           "comparable quantity and a single result is not. Why production shows behaviour you never saw: " +
           "because what you saw were the likeliest paths, and your users are sampling the rest on your behalf.",
@@ -241,14 +241,14 @@ export const blocks: Block[] = [
           "把注意力从「这一次为什么错」挪到「这一类多久错一次」。具体做法有三条：" +
           "跑多次并记录分布，而不是复现单次；把每一轮的完整数组存下来，" +
           "这样至少那一次的路径是可以逐步重看的；以及把不确定性挡在边界外——" +
-          "有副作用的动作要审批（第 12 站），工具要能安全重复调用（后面会讲）。" +
+          "有副作用的动作要审批（[[stop:/permission]]），工具要能安全重复调用（后面会讲）。" +
           "你消不掉随机性，但你可以让它出错时的代价变小。",
         en:
           "Move your attention from why this run was wrong to how often this kind of run is wrong. In " +
           "practice: run it several times and record the distribution rather than trying to reproduce one " +
           "case; save the full array from each round, so that at least that path can be walked again " +
           "afterwards; and keep the uncertainty away from the edges — approval for anything with a side " +
-          "effect (stop 12), and tools that are safe to call twice. You cannot remove the randomness. You can " +
+          "effect ([[stop:/permission]]), and tools that are safe to call twice. You cannot remove the randomness. You can " +
           "make being wrong cheap.",
       },
     },

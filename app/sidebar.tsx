@@ -8,7 +8,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ui, useLang, t } from "@/lib/i18n";
-import { STOPS, activeStopIndex } from "@/lib/stops";
+import { GROUPS, STOPS } from "@/lib/stops";
+import { useProgress } from "./progress";
 import { useShell } from "./theme-provider";
 import { BrandMark } from "./logo";
 
@@ -17,8 +18,8 @@ export default function Sidebar() {
   const { lang } = useLang();
   const { sidebarOpen, setSidebarOpen } = useShell();
 
-  const activeIndex = activeStopIndex(path);
-  const progress = Math.round(((activeIndex + 1) / STOPS.length) * 100);
+  const { visited, reset } = useProgress();
+  const progress = Math.round((visited.size / STOPS.length) * 100);
 
   const close = () => setSidebarOpen(false);
 
@@ -39,28 +40,44 @@ export default function Sidebar() {
         </Link>
 
         <nav className="side-nav" aria-label={t(ui.a11y.stops, lang)}>
-          {STOPS.map((s, i) => {
-            const active = i === activeIndex;
-            return (
-              <Link
-                key={s.href}
-                href={s.href}
-                className={`side-link${active ? " active" : ""}`}
-                aria-current={active ? "page" : undefined}
-                onClick={close}
-              >
-                <span className="side-glyph" aria-hidden>
-                  {s.glyph}
-                </span>
-                <span className="side-label">{t(s.label, lang)}</span>
-              </Link>
-            );
-          })}
+          {GROUPS.map((group, gi) => (
+            <div key={gi} className="side-group">
+              <h2 className="side-group-name" title={t(group.why, lang)}>
+                {t(group.name, lang)}
+              </h2>
+              <p className="side-group-why">{t(group.why, lang)}</p>
+              {STOPS.filter((s) => s.group === gi).map((s) => {
+                const active = s.href === path;
+                const read = visited.has(s.href) && !active;
+                return (
+                  <Link
+                    key={s.href}
+                    href={s.href}
+                    className={`side-link${active ? " active" : ""}${read ? " read" : ""}`}
+                    aria-current={active ? "page" : undefined}
+                    onClick={close}
+                  >
+                    <span className="side-glyph" aria-hidden>
+                      {s.glyph}
+                    </span>
+                    <span className="side-label">{t(s.label, lang)}</span>
+                    {read && (
+                      <span className="side-read" title={t(ui.side.done, lang)}>
+                        ✓<span className="sr-only"> {t(ui.side.done, lang)}</span>
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="side-status">
           <div className="eyebrow">{t(ui.side.status, lang)}</div>
-          <div className="side-status-label">{t(ui.side.progress, lang)}</div>
+          <div className="side-status-label">
+            {visited.size} / {STOPS.length} {t(ui.side.visited, lang)}
+          </div>
           <div
             className="progress"
             role="progressbar"
@@ -70,6 +87,15 @@ export default function Sidebar() {
           >
             <div className="progress-fill" style={{ width: `${progress}%` }} />
           </div>
+          <button
+            type="button"
+            className="side-reset"
+            onClick={reset}
+            disabled={visited.size === 0}
+            title={t(ui.side.resetHint, lang)}
+          >
+            {t(ui.side.reset, lang)}
+          </button>
         </div>
       </aside>
 

@@ -1,5 +1,5 @@
-// 第 6 站「怎么描述工具」：同一组工具，两套说明，三个任务。
-// 三个任务各自暴露一种不同的说明缺陷，而不是重复第 2 站「选错工具」那一课。
+//「怎么描述工具」：同一组工具，两套说明，三个任务。
+// 三个任务各自暴露一种不同的说明缺陷，而不是重复「看它怎么跑」里选错工具那一课。
 
 import type { L } from "@/lib/i18n";
 import type { Block, LessonMeta } from "@/lib/lesson";
@@ -126,12 +126,12 @@ export const cases: Case[] = [
         zh:
           "文件一个字都没变。这组工具里根本没有写文件的能力，但没有任何一句话说过这件事，" +
           "模型于是按最自然的方式收尾：任务完成了。" +
-          "注意这次的失败形态和第 2 站「吞掉错误」那次是同一种——" +
+          "注意这次的失败形态和[[stop:/loop]]「吞掉错误」那次是同一种——" +
           "程序没报错，用户拿到的是一句和事实相反的话。",
         en:
           "Not one character of the file changed. This toolset has no way to write a file, and nothing " +
           "anywhere said so, so the model closed the task the most natural way: by reporting it done. Note " +
-          "that this is the same failure shape as the swallowed error at stop 2 — nothing raised an error, and " +
+          "that this is the same failure shape as the swallowed error at [[stop:/loop]] — nothing raised an error, and " +
           "the user was handed a statement that is not true.",
       },
       good: false,
@@ -241,7 +241,7 @@ export const cases: Case[] = [
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {
-  title: { zh: "第 6 站 · 怎么描述工具", en: "Stop 6 · How to describe a tool" },
+  title: { zh: "怎么描述工具", en: "How to describe a tool" },
   subtitle: {
     zh: "工具的 description 是提示词的一部分，不是给同事看的文档。这一站看三种写漏了的写法各自会造成什么。",
     en: "A tool's description is part of the prompt, not documentation for a colleague. Three things people leave out, and what each one costs.",
@@ -295,11 +295,11 @@ export const blocks: Block[] = [
       },
       a: {
         zh:
-          "它跟别的提示词一样占 [[token:token]]，而且每一轮都随请求重发（见第 4 站），所以不是越长越好。" +
+          "它跟别的提示词一样占 [[token:token]]，而且每一轮都随请求重发（见[[stop:/cost]]），所以不是越长越好。" +
           "一个够用的标准：写到「一个没见过这个项目的人，光看这段描述就能正确地决定要不要用它」为止。" +
           "通常两三句话就够：一句说什么时候用，一句说边界，一句说返回什么和多少。",
         en:
-          "It costs [[token:token]]s like any other prompt, and it is resent on every round (stop 4), so " +
+          "It costs [[token:token]]s like any other prompt, and it is resent on every round ([[stop:/cost]]), so " +
           "longer is not better. A workable bar: write until someone who has never seen the project could " +
           "decide correctly, from that passage alone, whether to use it. Two or three sentences usually do " +
           "it — one for when to use it, one for the boundary, one for what comes back and how much.",

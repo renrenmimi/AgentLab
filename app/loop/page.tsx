@@ -5,6 +5,7 @@ import Link from "next/link";
 import { scenarios, stateAt, type ChatItem, type Meter } from "@/lib/scenarios";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { RichText } from "@/lib/glossary";
+import { useStopHeading } from "@/app/lesson";
 
 export default function LoopChapter() {
   const [pick, setPick] = useState(0);
@@ -104,7 +105,7 @@ export default function LoopChapter() {
     <main className="page">
       <header className="header">
         <div>
-          <h1 className="page-title">{t(ui.loop.title, lang)}</h1>
+          <h1 className="page-title">{useStopHeading(ui.loop.title, lang)}</h1>
           <p className="subtitle">{t(ui.loop.subtitle, lang)}</p>
         </div>
         <div className="progress" aria-label={t(ui.a11y.progress, lang)}>
