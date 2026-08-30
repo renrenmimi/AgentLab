@@ -1,6 +1,8 @@
 // The assertions themselves. See app/selftest.tsx for why this exists.
 
-import { GROUPS, STOPS } from "@/lib/stops";
+import { GROUPS, STOPS, VIEWS } from "@/lib/stops";
+import { COURSE } from "@/lib/course";
+import { search } from "@/lib/search";
 import { scenarios, stateAt } from "@/lib/scenarios";
 import { ASSUMPTIONS, MAX_ROUNDS, money, runCost } from "@/lib/cost";
 import { blanks, normalize } from "@/lib/build";
@@ -986,6 +988,75 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   );
   const conclusion = $(".chart-conclusion");
   ok(!!text(conclusion), "the conclusion the chart shows is also written out", text(conclusion).slice(0, 80));
+
+  // ---- the one-page view ------------------------------------------------
+  // Someone who has read the course once comes back for one paragraph. The
+  // claims worth testing are that every stop is there, that every heading can
+  // be linked to, and that a link actually lands on the paragraph.
+  await go("/all");
+  const allStops = $$(".all-stop").length;
+  ok(allStops === COURSE.length, "the one-page view carries every stop", `${allStops} of ${COURSE.length}`);
+
+  const expectedSections = COURSE.reduce((n, s) => n + s.sections.length, 0);
+  const renderedSections = $$(".all-section").length;
+  ok(
+    renderedSections >= expectedSections,
+    "every section of every stop is on the page",
+    `${renderedSections} rendered, ${expectedSections} from the course`,
+  );
+
+  const anchors = $$(".all-heading[id]").map((h) => h.id);
+  ok(anchors.length > 0 && new Set(anchors).size === anchors.length, "every heading has a unique anchor", `${anchors.length} anchors`);
+
+  // Follow one and check the browser can find it.
+  const target = anchors[Math.floor(anchors.length / 2)];
+  location.hash = `#${target}`;
+  await settle(3);
+  const landed = document.getElementById(target);
+  ok(!!landed, "an anchor resolves to a heading on the page", target);
+  history.replaceState(null, "", location.pathname);
+
+  ok(
+    $$(".all-static").length > 0,
+    "sections that replaced an interaction say so",
+    `${$$(".all-static").length} marked`,
+  );
+
+  // ---- search -----------------------------------------------------------
+  // No dependency and no network: the index is the course view, flattened.
+  const hits = search("idempotent", lang());
+  const zhHits = search("幂等", "zh");
+  ok(hits.length > 0, "searching the prose finds a term the course teaches", `${hits.length} hits for "idempotent"`);
+  ok(zhHits.length > 0, "and finds it in Chinese too", `${zhHits.length} hits for 幂等`);
+  ok(
+    hits.every((h) => STOPS.some((s) => s.href === h.href)),
+    "every hit points at a real stop",
+  );
+  ok(
+    hits.every((h) => h.snippet.includes("[[") === false && h.snippet.includes("**") === false),
+    "search snippets carry no markup the reader never sees",
+  );
+  ok(search("z", lang()).length === 0, "a single character does not search the prose");
+
+  // And through the palette, which is where a reader would actually look.
+  await go("/loop");
+  window.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
+  );
+  await settle(3);
+  const palette = $<HTMLInputElement>(".cmdk-input");
+  ok(!!palette, "the command palette opens");
+  if (palette) {
+    setText(palette, "idempotent");
+    await settle(4);
+    const rows = $$(".cmdk-item");
+    const snippets = $$(".cmdk-snippet").length;
+    ok(rows.length > 0 && snippets > 0, "the palette shows prose results", `${rows.length} rows, ${snippets} snippets`);
+    ok($$(".cmdk-snippet mark").length > 0, "the matched words are marked in the snippet");
+    palette.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await settle(2);
+  }
+  void VIEWS;
 
   // ---- both themes ------------------------------------------------------
   const root = document.documentElement;

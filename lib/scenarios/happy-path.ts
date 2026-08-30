@@ -84,12 +84,12 @@ const steps: Scenario["steps"] = [
     narration: {
       zh:
         '右边这块面板是“X 光片”：它显示的是将要发给 [[api:Claude API]] 的真实数据，而不是给人看的界面。' +
-        '现在[[array:数组]]还是空的——agent 还什么都没发生。最上面那条 system 提示词是给模型的“岗位说明书”' +
+        '现在[[array:数组]]还是空的——agent 还什么都没发生。最上面那条 [[systemprompt:system 提示词]]是给模型的“岗位说明书”' +
         '（你是谁、能用什么工具、要守什么规矩），它在代码里是一个单独的参数，每一轮都会随请求一起发出。' +
         '记住这个画面：接下来发生的一切，本质上都只是往这个数组里追加元素。',
       en:
         'The panel on the right is an X-ray: it shows the real data that will be sent to the [[api:Claude API]], not an ' +
-        'interface built for people. Right now the [[array:array]] is empty — nothing has happened yet. The system prompt ' +
+        'interface built for people. Right now the [[array:array]] is empty — nothing has happened yet. The [[systemprompt:system prompt]] ' +
         'at the top is the job description for the model (who it is, which tools it may use, which rules to follow). ' +
         'In code it is a separate parameter, sent along with every request. Remember this picture: everything that ' +
         'follows is just appending elements to this array.',
@@ -178,12 +178,12 @@ const steps: Scenario["steps"] = [
       zh:
         '现在，整个数组连同 system、tools 参数一起打包发给了 [[api:API]]。这一次模型没有直接回答，' +
         '而是返回了一个 tool_use 块——意思是“请帮我跑一下 ls”。关键在于：模型只是提出了请求，' +
-        '它没有手，什么都执行不了。stop_reason: tool_use 的含义就是：轮到你的代码执行了。' +
+        '它没有手，什么都执行不了。[[stopreason:stop_reason]]: tool_use 的含义就是：轮到你的代码执行了。' +
         '这条回复也被原样 push 进数组，成为一条 assistant 消息。',
       en:
         'Now the whole array, together with the system and tools parameters, is sent to the [[api:API]]. This time the ' +
         'reply is not a final answer: it is a tool_use block, which means "please run ls for me". The key point is that ' +
-        'the model only returns a request. It has no hands and can execute nothing. stop_reason: tool_use means it is ' +
+        'the model only returns a request. It has no hands and can execute nothing. [[stopreason:stop_reason]]: tool_use means it is ' +
         "your code's turn to act. This reply is pushed into the array as-is, as an assistant message.",
     },
     faq: {
@@ -232,12 +232,12 @@ const steps: Scenario["steps"] = [
       zh:
         '你的代码先检查 stop_reason——是 tool_use，所以不跳出循环，而是真正跑了一次 ls。' +
         '这一步 100% 发生在本地：模型碰不到你的文件系统，也看不到命令到底跑没跑，' +
-        '它只能看到你发回去的那段文字。跑完后，输出被包成 tool_result，作为一条 user 消息 push 进数组。' +
+        '它只能看到你发回去的那段文字。跑完后，输出被包成 [[toolresult:tool_result]]，作为一条 user 消息 push 进数组。' +
         '对模型来说，工具结果和你打的字没有本质区别——都只是别人发来给它看的文字。',
       en:
         'Your code checks stop_reason first. It is tool_use, so instead of leaving the loop the code actually runs ls. ' +
         'This step happens entirely on your machine: the model cannot touch your file system, and it cannot see whether ' +
-        'the command ran — it only sees the text you send back. When the command finishes, the output is wrapped as a ' +
+        'the command ran — it only sees the text you send back. When the command finishes, the output is wrapped as a [[toolresult:tool_result]] ' +
         'tool_result and pushed into the array as a user message. To the model, a tool result is no different from ' +
         'anything else it is shown: it is just text.',
     },

@@ -62,6 +62,20 @@ in one line why it follows the one before it. The numbers below come from positi
 14. **`/next` — What this course left out.** Where it stops, why, and where to go: real runs,
     frameworks, evaluation in earnest, multi-agent systems.
 
+## Coming back to it
+
+- **[`/all`](https://agent-lab-blond.vercel.app/all) — the whole course on one page.** Every
+  stop's prose in reading order, every heading anchored, so a link can point at a paragraph.
+  Where a stop has something to operate, only its conclusion is kept, and that is marked. It
+  prints, and it reads on a phone in one scroll.
+- **Search.** ⌘K searches the stop names and the prose of all fourteen stops in both
+  languages, showing which stop and which section a hit came from. The index is the same
+  course view `/all` uses, flattened; it is built on the first search and there is no
+  dependency and no network request.
+- **The glossary keeps up.** Sixteen terms now, each declaring the stop where it first appears.
+  `verify.mjs` fails if a term is defined and never marked, or marked earlier than its entry
+  claims.
+
 ## Running locally
 
 Requires Node ≥ 18.18 (an `.nvmrc` is included):
@@ -138,6 +152,8 @@ prerenders to static pages.
 | `lib/glossary.tsx` | Term dictionary and the `[[key:label]]` renderer |
 | `lib/stops.ts` | The stop list shared by sidebar, breadcrumb, and ⌘K palette |
 | `lib/checks.ts` · `app/group-check.tsx` | The check at the end of each of the six groups |
+| `lib/course.ts` | One shape for every stop's prose; `/all`, search and the checker share it |
+| `lib/search.ts` | The index and the query, built from `lib/course.ts` |
 | `verify.mjs` | Static checks over all of the above |
 | `app/selftest.tsx` · `app/selftest-suite.ts` | `?selftest=1` — the assertions a static check cannot make |
 

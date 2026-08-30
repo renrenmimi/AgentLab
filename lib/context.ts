@@ -280,12 +280,12 @@ export const blocks: Block[] = [
       },
       {
         zh:
-          "为什么要在意这个：因为模型一次能读进去的 token 数是有上限的，这个上限叫上下文窗口。" +
+          "为什么要在意这个：因为模型一次能读进去的 token 数是有上限的，这个上限叫[[contextwindow:上下文窗口]]。" +
           "它不是「读起来会有点慢」，而是一道墙——超过一个 token 请求都不会被受理。" +
           "[[stop:/loop]]那次 40 MB 日志的失败，就是撞在这道墙上。",
         en:
           "Why it matters: there is a ceiling on how many tokens a model can read in one request, and that " +
-          "ceiling is the context window. It is not a soft limit that makes things slow. It is a wall — one " +
+          "ceiling is the [[contextwindow:context window]]. It is not a soft limit that makes things slow. It is a wall — one " +
           "token over and the request is not accepted at all. The 40 MB log that failed at [[stop:/loop]] hit this " +
           "wall.",
       },

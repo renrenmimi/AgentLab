@@ -145,6 +145,7 @@ const modules = {
   again: await load("lib/again.ts"),
   next: await load("lib/next.ts"),
   checks: await load("lib/checks.ts"),
+  course: await load("lib/course.ts"),
 };
 
 // Every exported value, rooted at a readable name for error messages.
@@ -900,7 +901,10 @@ check("every figure quoted in prose is the figure the page computes", () => {
 // [[stop:…]] markers, but a plain href in a component would survive, and so
 // would a stale route directory. Both are swept here.
 check("nothing links to a route that is not a stop", () => {
-  const stops = new Set(modules.stops.STOPS.map((s) => s.href));
+  const stops = new Set([
+    ...modules.stops.STOPS.map((s) => s.href),
+    ...modules.stops.VIEWS,
+  ]);
   const external = /^(https?:|mailto:|#|\/api\/)/;
   const sweep = (dir) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -1020,6 +1024,59 @@ check("every group check is answerable and every wrong answer says why", () => {
   }
 });
 
+// 5h. The glossary keeps up with the course -----------------------------------
+// A glossary is easy to leave behind: the course grows, the dictionary does not.
+// Each entry declares the stop where its term first appears, and this check
+// insists that the marker is actually there — and that nothing marks it earlier,
+// which would mean the entry names the wrong stop.
+check("every glossary term is marked where it first appears", () => {
+  const { glossary } = modules.glossary;
+  const order = modules.stops.STOPS.map((s) => s.href);
+
+  // Which stops mark which terms, taken from the same course view /all uses.
+  const marks = new Map();
+  const record = (href, text) => {
+    for (const m of String(text).matchAll(/\[\[(\w+):/g)) {
+      if (m[1] === "stop") continue;
+      if (!marks.has(m[1])) marks.set(m[1], new Set());
+      marks.get(m[1]).add(href);
+    }
+  };
+  for (const stop of modules.course.COURSE) {
+    for (const section of stop.sections) {
+      for (const para of section.paras) {
+        record(stop.href, para.zh);
+        record(stop.href, para.en);
+      }
+      record(stop.href, section.heading.zh);
+      record(stop.href, section.heading.en);
+    }
+  }
+
+  for (const [key, entry] of Object.entries(glossary)) {
+    if (!entry.firstAt) {
+      fail(`glossary.${key}`, "does not say where the term first appears");
+      continue;
+    }
+    if (!order.includes(entry.firstAt)) {
+      fail(`glossary.${key}`, `firstAt "${entry.firstAt}" is not a stop`);
+      continue;
+    }
+    const seen = marks.get(key);
+    if (!seen || seen.size === 0) {
+      fail(`glossary.${key}`, "is defined but never marked in the prose");
+      continue;
+    }
+    const earliest = order.find((href) => seen.has(href));
+    if (earliest !== entry.firstAt) {
+      fail(
+        `glossary.${key}`,
+        `first marked at "${earliest}" but declares firstAt "${entry.firstAt}"`,
+      );
+    }
+  }
+});
+
 // 6. Routes --------------------------------------------------------------------
 check("every stop in the sidebar has a page, and every page is a stop", () => {
   const pageFor = (href) =>
@@ -1039,6 +1096,7 @@ check("every stop in the sidebar has a page, and every page is a stop", () => {
     if (!entry.isDirectory()) continue;
     if (!existsSync(join(appDir, entry.name, "page.tsx"))) continue;
     const href = `/${entry.name}`;
+    if (modules.stops.VIEWS.includes(href)) continue;
     if (!listed.has(href)) fail(`app/${entry.name}/page.tsx`, `route ${href} is not in the sidebar`);
   }
   if (existsSync(join(appDir, "page.tsx")) && !listed.has("/")) {

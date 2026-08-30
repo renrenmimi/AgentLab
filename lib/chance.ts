@@ -149,22 +149,22 @@ export const blocks: Block[] = [
         zh:
           "模型不会「想出」下一个词。它算出的是一整张表：" +
           "在当前这段文字后面，每一个可能的 [[token:token]] 各有多大概率。" +
-          "这张表出来之后，还需要有人从里面挑一个——挑的那一步叫采样（sampling），" +
+          "这张表出来之后，还需要有人从里面挑一个——挑的那一步叫[[sampling:采样]]（sampling），" +
           "它不是模型的一部分，是调用方的一段代码。",
         en:
           "A model does not think of the next word. What it computes is a table: for every possible " +
           "[[token:token]] that could come next, how likely it is. Something then has to pick one out of that " +
-          "table. That step is called sampling, and it is not part of the model — it is a piece of code on the " +
+          "table. That step is called [[sampling:sampling]], and it is not part of the model — it is a piece of code on the " +
           "calling side.",
       },
       {
         zh:
-          "温度（temperature）是这一步的旋钮。它不改变模型算出来的表，只改变挑的方式：" +
+          "[[temperature:温度]]（temperature）是这一步的旋钮。它不改变模型算出来的表，只改变挑的方式：" +
           "温度低，概率最高的那个几乎总是被选中；温度高，排在后面的选项也有机会。" +
           "把上面的温度拉到 0 再按几次，你会看到它每次都走同一条路；" +
           "拉到 1，那条「不查就报数」的路也会偶尔出现。",
         en:
-          "Temperature is the knob on that step. It does not change the table the model produced; it changes " +
+          "[[temperature:Temperature]] is the knob on that step. It does not change the table the model produced; it changes " +
           "how the pick is made. Low temperature and the most likely token is chosen nearly every time; high " +
           "temperature and the ones further down get a turn. Drag the temperature to 0 above and press again a " +
           "few times: the same path every time. Drag it to 1 and the path that answers without looking starts " +
