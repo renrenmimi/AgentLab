@@ -146,6 +146,8 @@ const modules = {
   next: await load("lib/next.ts"),
   checks: await load("lib/checks.ts"),
   course: await load("lib/course.ts"),
+  meta: await load("lib/meta.ts"),
+  order: await load("lib/order.ts"),
 };
 
 // Every exported value, rooted at a readable name for error messages.
@@ -155,6 +157,8 @@ const roots = [
   ["stops", modules.stops.STOPS],
   ["groups", modules.stops.GROUPS],
   ["checks", modules.checks.checks],
+  ["seo", modules.meta.SEO],
+  ["site", modules.meta.SITE],
   ["intro.scenes", modules.intro.scenes],
   ["intro.stage", modules.intro.stage],
   ["scenarios", modules.scenarios.scenarios],
@@ -1074,6 +1078,54 @@ check("every glossary term is marked where it first appears", () => {
         `first marked at "${earliest}" but declares firstAt "${entry.firstAt}"`,
       );
     }
+  }
+});
+
+// 5i. What a shared link says -------------------------------------------------
+// A title and a description are the only thing anyone sees before deciding to
+// open a page. Templated ones ("AgentLab — /cost") say nothing, so each is
+// written by hand — and the way to keep them written by hand is to fail when
+// two of them read alike.
+check("every stop has its own title and description, and none is a template", () => {
+  const { SEO } = modules.meta;
+  const routes = [...modules.stops.STOPS.map((s) => s.href), ...modules.stops.VIEWS];
+
+  for (const href of routes) {
+    const seo = SEO[href];
+    if (!seo) {
+      fail(`meta.SEO`, `"${href}" has no title or description`);
+      continue;
+    }
+    for (const lang of ["zh", "en"]) {
+      const d = seo.description?.[lang] ?? "";
+      if (d.length < 40) {
+        fail(`meta.SEO["${href}"].description.${lang}`, `${d.length} characters is a label, not a reason to open it`);
+      }
+      if (d.includes(href)) {
+        fail(`meta.SEO["${href}"].description.${lang}`, "repeats the route, which reads as a template");
+      }
+    }
+  }
+
+  for (const lang of ["zh", "en"]) {
+    for (const field of ["title", "description"]) {
+      const seen = new Map();
+      for (const href of routes) {
+        const value = SEO[href]?.[field]?.[lang];
+        if (!value) continue;
+        if (seen.has(value)) {
+          fail(`meta.SEO`, `"${href}" and "${seen.get(value)}" share a ${field} in ${lang}`);
+        }
+        seen.set(value, href);
+      }
+    }
+  }
+
+  // The reading order lives in one place, and lib/stops.ts builds on it.
+  const fromOrder = modules.order.HREFS.join(",");
+  const fromStops = modules.stops.STOPS.map((s) => s.href).join(",");
+  if (fromOrder !== fromStops) {
+    fail("order", `lib/order.ts and lib/stops.ts disagree:\n    ${fromOrder}\n    ${fromStops}`);
   }
 });
 
