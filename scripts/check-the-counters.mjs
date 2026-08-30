@@ -48,8 +48,11 @@ function run(source) {
 // The mutant reads itself by name, so every case has to redirect that read at
 // the copy, or it would measure the original and pass for the wrong reason.
 const readsItself = (s) => s.replace('join(ROOT, "verify.mjs")', 'join(ROOT, ".counters-mutant.mjs")');
+// Every read of the suite, not the first. verify.mjs reads that file in more
+// than one check now, and redirecting only the first left the counter check
+// reading the real file and passing while this script thought it was mutated.
 const readsMutantSuite = (s) =>
-  s.replace('join(ROOT, "app", "selftest-suite.ts")', 'join(ROOT, "app", ".counters-mutant-suite.ts")');
+  s.replaceAll('join(ROOT, "app", "selftest-suite.ts")', 'join(ROOT, "app", ".counters-mutant-suite.ts")');
 
 const cases = [];
 

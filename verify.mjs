@@ -32,17 +32,17 @@ const CACHE = join(ROOT, "node_modules", ".cache", "agentlab-verify");
 // change then appears in the diff, where a reviewer can see it.
 const EXPECTED = {
   // Counted as they run, so a check nobody calls lowers this.
-  checks: 20,
+  checks: 21,
   // Counted out of this file's own source, so an assertion appended after the
   // exit below raises this even though it never executes. This went from 137 to
   // 150 without an assertion being added: the tokenizer used to lose sync on a
   // regular expression containing a quote and stopped counting from there. The
   // guard was under-counting itself.
-  failSites: 150,
+  failSites: 154,
   // The same two ideas for the in-page suite, which CI cannot run. Its source is
   // read as text here; its own copy of the total is compared at run time.
-  suiteOkSites: 111,
-  suiteAssertions: 118,
+  suiteOkSites: 112,
+  suiteAssertions: 119,
 };
 
 // Count call sites of a named function, ignoring comments, string literals and
@@ -1219,7 +1219,84 @@ check("every stop has its own title and description, and none is a template", ()
   }
 });
 
-// 7. The counters themselves --------------------------------------------------
+// 7. No going back to a hand-written list of surfaces --------------------------
+// The contrast check used to be fed by TEXT_SELECTORS, sixty class names typed
+// out by hand. It reported a perfect score while seventeen of them matched no
+// element, because a selector that matches nothing is skipped rather than
+// reported: it was measuring forty-three surfaces and passing sixty, and three
+// published defects sat in the gap. A list does not go red when it goes stale.
+//
+// It has been replaced by a traversal, and the danger now is that it comes back
+// as a second opinion — a fallback, a belt-and-braces pass, a short list of
+// "important" surfaces checked twice. Two mechanisms mean the stale one keeps
+// voting. So a list of appearance selectors in that file is a failure here, by
+// shape rather than by name, and the exceptions are written down.
+//
+// A name may be added to this table, but adding it is an edit to this file, in a
+// diff somebody reads, with a reason attached.
+const SELECTOR_LISTS_ALLOWED = {
+  STATE_SELECTORS:
+    "elements that report a state, which cannot be traversed for because a tag " +
+    "carrying a meaning is structurally identical to one carrying none. Covered " +
+    "by an assertion that every name in it still matches something.",
+};
+
+check("the contrast check is not fed by a list of selectors again", () => {
+  const suite = readFileSync(join(ROOT, "app", "selftest-suite.ts"), "utf8");
+
+  if (/\bTEXT_SELECTORS\b/.test(suite)) {
+    fail(
+      "app/selftest-suite.ts",
+      "TEXT_SELECTORS is back. That list reported sixty surfaces while measuring " +
+        "forty-three; the traversal in measurePage() replaced it and must not be " +
+        "given a second opinion to disagree with.",
+    );
+  }
+
+  // Any array of class or id selectors, found by shape: a declaration whose
+  // entries are string literals beginning with . or #.
+  for (const m of suite.matchAll(/const\s+([A-Za-z_$][\w$]*)\s*=\s*\[([^\]]*)\]/g)) {
+    const [, name, body] = m;
+    const entries = [...body.matchAll(/["'`]\s*([.#][^"'`]*)["'`]/g)].map((e) => e[1]);
+    if (entries.length < 5) continue;
+
+    const reason = SELECTOR_LISTS_ALLOWED[name];
+    if (!reason) {
+      fail(
+        "app/selftest-suite.ts",
+        `${name} is a hand-written list of ${entries.length} appearance selectors. ` +
+          `A list like that passes for every name that matches nothing. Traverse ` +
+          `instead, or add ${name} to SELECTOR_LISTS_ALLOWED in verify.mjs with a reason.`,
+      );
+      continue;
+    }
+    // An allowed list still has to be checked against what it matched, or the
+    // exception reintroduces exactly the failure it was granted despite.
+    if (!suite.includes(`${name}.filter(`)) {
+      fail(
+        "app/selftest-suite.ts",
+        `${name} is allowed as a hand-written list, but nothing checks that its ` +
+          `names still match anything. The exception was granted on that condition.`,
+      );
+    }
+  }
+
+  // The same list written as one string rather than an array is the same list.
+  for (const m of suite.matchAll(/["'`]([^"'`\n]{40,})["'`]/g)) {
+    const parts = m[1].split(",").map((x) => x.trim());
+    const selectors = parts.filter((x) => /^[.#][\w-]/.test(x));
+    if (selectors.length >= 5 && selectors.length === parts.length) {
+      fail(
+        "app/selftest-suite.ts",
+        `a string of ${selectors.length} appearance selectors ("${selectors[0]}, ` +
+          `${selectors[1]}, ...") is the same hand-written list with different ` +
+          `punctuation, and fails the same way.`,
+      );
+    }
+  }
+});
+
+// 8. The counters themselves --------------------------------------------------
 // Everything above trusts that it ran. This does not. It reads both assertion
 // files as text and compares what they contain against the numbers declared at
 // the top, which is the only way to notice an assertion that was added, deleted,
