@@ -3607,3 +3607,244 @@ html[data-sidebar="collapsed"] .sidebar {
 .pm-after .lsn-col {
   width: 100%;
 }
+
+/* ---------- /chance：采样计数 ---------- */
+
+.ch-head {
+  margin-bottom: 8px;
+}
+
+.ch-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ch-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+}
+
+@media (max-width: 620px) {
+  .ch-bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .ch-track {
+    grid-column: 1 / -1;
+  }
+}
+
+.ch-bar-label {
+  min-width: 0;
+}
+
+.ch-move {
+  display: block;
+  color: var(--text-2);
+  word-break: break-all;
+}
+
+/* 好坏用一个词写出来，不只靠颜色 */
+.ch-kind {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.ch-good .ch-kind {
+  color: var(--teal-text);
+}
+
+.ch-slower .ch-kind {
+  color: var(--amber);
+}
+
+.ch-wrong .ch-kind {
+  color: var(--risk);
+}
+
+.ch-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.ch-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ch-good .ch-fill {
+  background: var(--teal);
+}
+
+.ch-slower .ch-fill {
+  background: var(--amber);
+}
+
+.ch-wrong .ch-fill {
+  background: var(--risk);
+}
+
+.ch-num {
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.ch-num i {
+  font-style: normal;
+  color: var(--text-3);
+}
+
+.ch-count {
+  color: var(--text);
+}
+
+.ch-last .lsn-quote {
+  margin: 0 0 8px;
+}
+
+.ch-last.ch-good {
+  border-color: var(--teal-border);
+}
+
+.ch-last.ch-wrong {
+  border-color: var(--risk);
+}
+
+/* ---------- /invent：三个问题的两种条件 ---------- */
+
+.iv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.iv-item {
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 12px;
+  padding: 12px 15px;
+  background: var(--panel-2);
+}
+
+.iv-ok {
+  border-left-color: var(--teal);
+}
+
+.iv-bad {
+  border-left-color: var(--risk);
+}
+
+.iv-ask {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.iv-item p {
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+
+.iv-item p:last-child {
+  margin-bottom: 0;
+}
+
+.iv-k {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 2px;
+}
+
+.iv-answer {
+  color: var(--text) !important;
+}
+
+.iv-ok .iv-check .iv-k {
+  color: var(--teal-text);
+}
+
+.iv-bad .iv-check .iv-k {
+  color: var(--risk);
+}
+
+.iv-via {
+  color: var(--accent-text) !important;
+  word-break: break-all;
+}
+
+/* ---------- /instructions：三种条件 ---------- */
+
+.in-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 15px;
+  background: var(--panel-2);
+}
+
+.in-system {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+
+.in-tools {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.in-tool {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  color: var(--text-2);
+  background: var(--panel);
+}
+
+/* 被拿掉的工具：划掉 + 写出「已移除」，不只靠颜色 */
+.in-gone {
+  color: var(--text-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--risk);
+  border-style: dashed;
+}
+
+.in-gone i {
+  font-style: normal;
+  text-decoration: none;
+  display: inline-block;
+  margin-left: 4px;
+}
+
+.in-run .pm-who {
+  min-width: 18px;
+}
