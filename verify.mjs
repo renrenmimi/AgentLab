@@ -131,7 +131,7 @@ const modules = {
   glossary: await load("lib/glossary.tsx"),
   stops: await load("lib/stops.ts"),
   intro: await load("lib/intro.ts"),
-  scenario: await load("lib/scenario.ts"),
+  scenarios: await load("lib/scenarios/index.ts"),
   build: await load("lib/build.ts"),
 };
 
@@ -142,8 +142,7 @@ const roots = [
   ["stops", modules.stops.STOPS],
   ["intro.scenes", modules.intro.scenes],
   ["intro.stage", modules.intro.stage],
-  ["scenario.agentCode", modules.scenario.agentCode],
-  ["scenario.steps", modules.scenario.steps],
+  ["scenarios", modules.scenarios.scenarios],
   ["build.codeTemplate", modules.build.codeTemplate],
   ["build.blanks", modules.build.blanks],
   ["build.runScript", modules.build.runScript],
@@ -247,23 +246,136 @@ function checkScenario(label, code, steps) {
     if (i === 0 && step.action) fail(at, "first step should not have an action");
   });
 
-  // Counters that only ever move forward.
+  // Counters only ever move forward, except across a reset, which is an
+  // explicit "same task, different approach, replayed from the start".
   let round = -1;
   let tokens = -1;
   steps.forEach((step, i) => {
+    if (step.reset) {
+      round = -1;
+      tokens = -1;
+    }
     if (step.round !== undefined) {
-      if (step.round < round) fail(`${label}.steps[${i}]`, `round goes backwards (${round} → ${step.round})`);
+      if (step.round < round) fail(`${label}.steps[${i}]`, `round goes backwards (${round} -> ${step.round})`);
       round = step.round;
     }
     if (step.tokens !== undefined) {
-      if (step.tokens < tokens) fail(`${label}.steps[${i}]`, `tokens go backwards (${tokens} → ${step.tokens})`);
+      if (step.tokens < tokens) fail(`${label}.steps[${i}]`, `tokens go backwards (${tokens} -> ${step.tokens})`);
       tokens = step.tokens;
+    }
+    // A reset clears both panels, so the step doing it has to refill them.
+    if (step.reset && !step.chat && !step.msgs) {
+      fail(`${label}.steps[${i}]`, "reset clears both panels but this step adds nothing back");
+    }
+    if (step.meter) {
+      const { used, limit } = step.meter;
+      if (!(limit > 0)) fail(`${label}.steps[${i}]`, `meter limit is ${limit}`);
+      if (used < 0) fail(`${label}.steps[${i}]`, `meter used is ${used}`);
+    }
+    if (step.stopTone && !step.stopReason) {
+      fail(`${label}.steps[${i}]`, "stopTone set without a stopReason to label it");
+    }
+    if (step.stopTone && !["wait", "done", "bad"].includes(step.stopTone)) {
+      fail(`${label}.steps[${i}]`, `unknown stopTone "${step.stopTone}"`);
     }
   });
 }
 
 check("no scenario step highlights a line outside its code snippet", () => {
-  checkScenario("scenario", modules.scenario.agentCode, modules.scenario.steps);
+  const seen = new Set();
+  modules.scenarios.scenarios.forEach((scenario, i) => {
+    const label = `scenarios[${i}] "${scenario.id ?? "?"}"`;
+    if (!scenario.id) fail(label, "no id");
+    else if (seen.has(scenario.id)) fail(label, `duplicate id "${scenario.id}"`);
+    seen.add(scenario.id);
+
+    if (scenario.outcome !== "clean" && scenario.outcome !== "fault") {
+      fail(label, `outcome is "${scenario.outcome}", expected "clean" or "fault"`);
+    }
+    if (!scenario.steps || scenario.steps.length < 2) {
+      fail(label, "a scenario needs at least two steps");
+      return;
+    }
+    checkScenario(label, scenario.code, scenario.steps);
+  });
+
+  // The default scenario is the one a first-time reader lands on.
+  const first = modules.scenarios.scenarios[0];
+  if (first && first.outcome !== "clean") {
+    fail("scenarios[0]", "the default scenario should be the clean run");
+  }
+});
+
+// 3b. Prose that cites a line number ------------------------------------------
+// The narration says things like "look at line 5" and "lines 24 to 27". Those
+// numbers are written by hand against a snippet that gets edited, so they drift.
+// Only the range is checkable, not whether the line is the right one.
+//
+// The narration also cites lines of *other* files ("lib/cart.test.ts line 31"),
+// which are not this snippet and must not be checked. Those always follow a
+// filename, so a match preceded by something ending in a file extension or a
+// colon is skipped.
+const LINE_REF_RE = /第\s*(\d+)\s*(?:到\s*(\d+)\s*)?行|lines?\s+(\d+)(?:\s*(?:to|and|-|–)\s*(\d+))?/gi;
+const FILE_BEFORE_RE = /(?:\.[a-z]{2,4}|:)\s*$/i;
+
+check("no narration cites a line number the snippet does not have", () => {
+  for (const scenario of modules.scenarios.scenarios) {
+    const lineCount = Math.min(scenario.code.zh.length, scenario.code.en.length);
+    scenario.steps.forEach((step, i) => {
+      const prose = [step.narration, step.faq?.a, step.faq?.q].filter(Boolean);
+      for (const pair of prose) {
+        for (const lang of ["zh", "en"]) {
+          const text = pair[lang];
+          if (typeof text !== "string") continue;
+          for (const m of text.matchAll(LINE_REF_RE)) {
+            if (FILE_BEFORE_RE.test(text.slice(Math.max(0, m.index - 24), m.index))) continue;
+            for (const raw of [m[1], m[2], m[3], m[4]]) {
+              if (raw === undefined) continue;
+              const num = Number(raw);
+              if (num < 1 || num > lineCount) {
+                fail(
+                  `scenarios "${scenario.id}".steps[${i}].${lang}`,
+                  `prose cites line ${num}, snippet has ${lineCount}`,
+                );
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+});
+
+// 3c. Walking each scenario ---------------------------------------------------
+// The loop page shows whatever stateAt() returns for the current step. Walking
+// every step of every scenario through the same function is the closest thing
+// to pressing the button five times without opening a browser.
+check("every scenario step leaves both panels in a sensible state", () => {
+  const { stateAt } = modules.scenarios;
+  for (const scenario of modules.scenarios.scenarios) {
+    let sawContent = false;
+    scenario.steps.forEach((step, i) => {
+      const at = `scenarios "${scenario.id}".steps[${i}]`;
+      const state = stateAt(scenario.steps, i);
+
+      // The array panel numbers its cards messages[0], messages[1], … so the
+      // non-system cards have to be countable.
+      const indexed = state.msgs.filter((m) => !m.sys).length;
+      if (indexed < 0) fail(at, "negative message count");
+      if (state.msgs.length > 0) sawContent = true;
+
+      // Once anything has been sent, the chat panel should not be empty again;
+      // an empty panel mid-run reads as a bug rather than as a beat.
+      if (i > 0 && sawContent && state.msgs.length === 0) {
+        fail(at, "the array panel is empty in the middle of a run");
+      }
+      if (state.tokens < 0) fail(at, `tokens is ${state.tokens}`);
+    });
+
+    const last = stateAt(scenario.steps, scenario.steps.length - 1);
+    if (last.chat.length === 0) fail(`scenarios "${scenario.id}"`, "the run ends with an empty chat panel");
+    if (last.msgs.length === 0) fail(`scenarios "${scenario.id}"`, "the run ends with an empty array panel");
+  }
 });
 
 // 4. Intro --------------------------------------------------------------------

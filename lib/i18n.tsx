@@ -171,11 +171,23 @@ export const ui = {
       en: "The code — that step was these lines",
     },
     codeNote: {
-      zh: "这 32 行就是一个 agent 的完整骨架，没有省略关键步骤。下一站你会亲手把它写出来。",
-      en: "These 32 lines are a complete agent. Nothing essential is left out. At the next stop you write them yourself.",
+      zh: "点亮的是这一步正在执行的行。五次运行用的是同一个循环，区别都在循环外面。第 3 站你会亲手把它写出来。",
+      en: "The highlighted lines are the ones running in this step. All five runs use the same loop; the differences are all outside it. At stop 3 you write it yourself.",
     },
-    lines: { zh: "共 32 行", en: "32 lines" },
+    linesSuffix: { zh: "行", en: "lines" },
     toBuild: { zh: "下一站：亲手写一个 →", en: "Next stop: write one yourself →" },
+
+    // 场景选择器
+    pickerLabel: { zh: "选择一次运行", en: "Choose a run" },
+    pickerHint: {
+      zh: "先看顺利的那次，再看四次出问题的。出问题的那四次才是这一站真正的内容。",
+      en: "Start with the clean run, then the four that go wrong. The four are where this stop earns its keep.",
+    },
+    outcomeClean: { zh: "顺利", en: "clean" },
+    outcomeFault: { zh: "出问题", en: "goes wrong" },
+    meterOver: { zh: "已超出", en: "over" },
+    asideLabel: { zh: "旁白", en: "note" },
+    toolFailed: { zh: "工具报错", en: "tool failed" },
   },
 
   build: {

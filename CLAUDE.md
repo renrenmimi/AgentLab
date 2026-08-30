@@ -26,8 +26,10 @@ AI agent 教学应用的项目背景。新会话请先读完这份文件再动�
 1. **`/` 什么是 Agent** ✅ — 六幕 CSS 动画（print 开场 → 文字进出 → 没有手 →
    工具=手 → 循环 → 公式揭晓）。数据在 `lib/intro.ts`，页面 `app/page.tsx`。
 2. **`/loop` 看它怎么跑** ✅ — 慢动作可视化：对话面板 + messages 数组透视 +
-   代码对照（31 行 agent 骨架逐步点亮）。数据 `lib/scenario.ts`，页面
-   `app/loop/page.tsx`。
+   代码对照（agent 骨架逐步点亮）。五次运行：一次顺利 + 四次出问题
+   （停不下来 / 选错工具 / 历史装不下 / 工具失败），每次出问题的都以
+   「改掉之后重放一遍」收尾。数据 `lib/scenarios/`（一个场景一个文件），
+   页面 `app/loop/page.tsx`。
 3. **`/build` 亲手写一个** ✅ — 同一份 31 行骨架挖 8 个空，每空先教后练；
    配常见错误的**针对性纠错**（如 role 填 tool → 解释为何是 user），
    3 次答错解锁"看答案"；全对后"运行"回放控制台动画 + 彩带庆祝。
@@ -38,7 +40,7 @@ AI agent 教学应用的项目背景。新会话请先读完这份文件再动�
 
 ## 关键设计决策
 
-- **模拟模式 + 真实模式双轨**。模拟模式回放 `lib/scenario.ts` 里的录制数据，
+- **模拟模式 + 真实模式双轨**。模拟模式回放 `lib/scenarios/` 里的录制数据，
   零成本、无需 API key、可分享；真实模式（规划中）走 Next.js API route
   服务端代理调用 Claude API——**key 只放服务端环境变量，绝不进浏览器**。
   前五章模拟模式就够，第六章才需要真实模式。
@@ -53,7 +55,7 @@ AI agent 教学应用的项目背景。新会话请先读完这份文件再动�
   刻意减少依赖）。深/浅主题用 `[data-theme]`（深色默认，`<head>` 里的无闪脚本
   在首帧前设好），工具条右上角 ☾/☀ 切换。
 - 每一站都是"数据文件 + 页面文件"一对：`lib/intro.ts`↔`app/page.tsx`、
-  `lib/scenario.ts`↔`app/loop/page.tsx`、`lib/build.ts`↔`app/build/page.tsx`。
+  `lib/scenarios/`↔`app/loop/page.tsx`、`lib/build.ts`↔`app/build/page.tsx`。
   新增站点沿用这个模式，并在 `app/sidebar.tsx` 的 `STOPS` 里登记（侧栏/面包屑/
   命令面板都从这份清单取数据）。
 - **界面外壳「Research OS」**（自 SYSDesigner 移植的三段式工作台）：
