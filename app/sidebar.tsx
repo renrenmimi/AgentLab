@@ -1,33 +1,16 @@
 "use client";
 
 // Left navigation rail of the "Research OS" workbench (ported from SYSDesigner).
-// AgentLab is a single linear 3-stop loop, so the rail is a flat list of stops
-// rather than a chapter tree. The STOP list + active-stop rule are exported so
-// the toolbar and command palette share the same source.
+// The course is a single linear sequence of stops, so the rail is a flat list
+// rather than a chapter tree. The list itself and the active-stop rule live in
+// lib/stops.ts, shared with the toolbar and the command palette.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ui, useLang, t, type L } from "@/lib/i18n";
+import { ui, useLang, t } from "@/lib/i18n";
+import { STOPS, activeStopIndex } from "@/lib/stops";
 import { useShell } from "./theme-provider";
 import { BrandMark } from "./logo";
-
-export type SideStop = { href: string; glyph: string; label: L };
-
-// The three stops of the learning loop, in order.
-export const STOPS: SideStop[] = [
-  { href: "/", glyph: "1", label: ui.nav.stop1 },
-  { href: "/loop", glyph: "2", label: ui.nav.stop2 },
-  { href: "/build", glyph: "3", label: ui.nav.stop3 },
-];
-
-// Which stop is active for a given path ("/loop/x" still counts as /loop).
-export function activeStopIndex(path: string): number {
-  if (path === "/") return 0;
-  const i = STOPS.findIndex(
-    (s) => s.href !== "/" && (path === s.href || path.startsWith(s.href + "/")),
-  );
-  return i === -1 ? 0 : i;
-}
 
 export default function Sidebar() {
   const path = usePathname();

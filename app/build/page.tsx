@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import Link from "next/link";
-import { codeTemplate, blanks, runScript } from "@/lib/build";
+import { codeTemplate, blanks, runScript, normalize } from "@/lib/build";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { RichText } from "@/lib/glossary";
 
@@ -358,20 +358,6 @@ function renderLine(
     }
   });
   return out;
-}
-
-// 宽松归一化：全角转半角、去空白、单引号转双引号、去掉尾部分号逗号，再转小写
-const FULL = "（）｛｝［］＂＇；，．！＝＜＞";
-const HALF = "(){}[]\"';,.!=<>";
-
-function normalize(s: string): string {
-  let out = s.trim();
-  for (let i = 0; i < FULL.length; i++) out = out.split(FULL[i]).join(HALF[i]);
-  out = out.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
-  out = out.replace(/\s+/g, "");
-  out = out.replace(/[;,]+$/, "");
-  out = out.replace(/'/g, '"');
-  return out.toLowerCase();
 }
 
 // 与 /loop 一致的极简语法高亮

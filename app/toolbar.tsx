@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ui, useLang, t } from "@/lib/i18n";
 import { useShell, useTheme } from "./theme-provider";
-import { STOPS, activeStopIndex } from "./sidebar";
+import { STOPS, activeStopIndex } from "@/lib/stops";
 
 // Tracks the desktop breakpoint so one button can do the right thing:
 // collapse the persistent rail on desktop, or toggle the drawer on mobile.

@@ -1,5 +1,7 @@
 # AgentLab — An Interactive Introduction to AI Agents
 
+[![CI](https://github.com/renrenmimi/AgentLab/actions/workflows/ci.yml/badge.svg)](https://github.com/renrenmimi/AgentLab/actions/workflows/ci.yml)
+
 **▶ [Open the course](https://agent-lab-blond.vercel.app)** — runs in your browser, nothing to install.
 
 An interactive introduction to a simple tool-using agent. It presents the user-facing
@@ -34,6 +36,7 @@ Requires Node ≥ 18.18 (an `.nvmrc` is included):
 nvm use         # switch to Node 22
 npm install
 npm run dev     # http://localhost:3000
+npm run verify  # static checks over the course content
 ```
 
 ## Notes on design
@@ -44,6 +47,10 @@ npm run dev     # http://localhost:3000
 - **A glossary built into the prose.** Writing `[[key:label]]` renders a clickable term that
   pops up a beginner-level explanation.
 - **Progress persists** to `localStorage`, so closing the tab does not lose your place.
+- **The content is checked, not just the types.** `node verify.mjs` imports the content
+  modules and asserts what a content bug looks like: a pair missing one language, a step
+  highlighting a line the snippet does not have, a blank with no correction for a wrong
+  answer, a `[[term]]` with no glossary entry, a stop with no page behind it.
 
 ## Structure
 
@@ -57,6 +64,8 @@ prerenders to static pages.
 | `lib/build.ts` | Stop 3 — the blanks, answers, and per-mistake corrections |
 | `lib/i18n.tsx` | Bilingual strings and the `useT()` hook |
 | `lib/glossary.tsx` | Term dictionary and the `[[key:label]]` renderer |
+| `lib/stops.ts` | The stop list shared by sidebar, breadcrumb, and ⌘K palette |
+| `verify.mjs` | Static checks over all of the above |
 
 ---
 
