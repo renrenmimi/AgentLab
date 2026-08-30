@@ -73,6 +73,11 @@ npm run dev     # http://localhost:3000
 npm run verify  # static checks over the course content
 ```
 
+Then open any page with `?selftest=1` — `http://localhost:3000/?selftest=1` — to run the
+behavioural assertions against the live DOM. The score goes into `document.title`, and the
+report is printed on the page and to the console. CI cannot run it, so the scores at 1440,
+768 and 390 pixels go in each pull request instead.
+
 ## Notes on design
 
 - **Simulated by default.** Every response comes from recorded data in `lib/scenarios/` —
@@ -87,7 +92,7 @@ npm run verify  # static checks over the course content
   highlighting a line the snippet does not have, a blank with no correction for a wrong
   answer, a `[[term]]` with no glossary entry, a stop with no page behind it.
 - **The behaviour is checked too.** `verify.mjs` cannot see a click. Opening any page with
-  `?selftest=1` runs assertions against the live DOM — that the scenario picker is a real
+  `?selftest=1` runs 72 assertions against the live DOM — that the scenario picker is a real
   tablist, that stepping through a run and back leaves the panels where `stateAt()` says,
   that the cost slider's numbers satisfy the arithmetic the prose claims, that a wrong
   answer at stop 3 produces its own correction — plus keyboard reachability, focus rings

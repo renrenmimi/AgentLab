@@ -1,4 +1,4 @@
-//「它为什么会编」：幻觉，以及工具为什么正好是它的解药。
+// 「它为什么会编」：幻觉，以及工具为什么正好是它的解药。
 
 import type { L } from "@/lib/i18n";
 import type { Block, LessonMeta } from "@/lib/lesson";

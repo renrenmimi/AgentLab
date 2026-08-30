@@ -1,8 +1,10 @@
 name: CI
 
+# Pull requests get checked, and main gets checked after a merge. Running on
+# every branch as well meant every PR ran the whole job twice.
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
 
 jobs:
