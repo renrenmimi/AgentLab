@@ -8,7 +8,8 @@
     "start": "next start",
     "verify": "node verify.mjs",
     "selftest": "node scripts/drive-selftest.mjs",
-    "counters": "node scripts/check-the-counters.mjs"
+    "counters": "node scripts/check-the-counters.mjs",
+    "prove": "node scripts/prove-contrast-catches.mjs"
   },
   "dependencies": {
     "next": "^15.3.0",
