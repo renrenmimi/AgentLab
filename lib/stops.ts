@@ -30,6 +30,7 @@ const ORDER: { href: string; label: L }[] = [
   // 出问题的时候
   { href: "/trust", label: ui.nav.trust },
   { href: "/permission", label: ui.nav.permission },
+  { href: "/again", label: ui.nav.again },
   // 怎么知道自己做对了
   { href: "/measure", label: ui.nav.measure },
 ];
