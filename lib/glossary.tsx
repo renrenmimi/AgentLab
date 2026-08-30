@@ -58,9 +58,12 @@ export const glossary: Record<string, { word: L; def: L }> = {
   },
 };
 
-const RE = /\[\[(\w+):([^\]]+)\]\]/g;
+// 正文里认两种标记，别的都不认：
+//   [[key:显示文字]]  可点击的术语
+//   **强调**          加粗
+// verify.mjs 会检查没有第三种标记漏出来变成字面字符。
+const RE = /\[\[(\w+):([^\]]+)\]\]|\*\*([^*]+)\*\*/g;
 
-// 把带 [[key:文字]] 标记的文案渲染成正文 + 可点击术语
 export function RichText({ text, lang }: { text: string; lang: Lang }) {
   const parts: ReactNode[] = [];
   let last = 0;
@@ -68,7 +71,11 @@ export function RichText({ text, lang }: { text: string; lang: Lang }) {
   for (const m of text.matchAll(RE)) {
     const idx = m.index!;
     if (idx > last) parts.push(text.slice(last, idx));
-    parts.push(<Term key={k++} termKey={m[1]} display={m[2]} lang={lang} />);
+    if (m[3] !== undefined) {
+      parts.push(<strong key={k++}>{m[3]}</strong>);
+    } else {
+      parts.push(<Term key={k++} termKey={m[1]} display={m[2]} lang={lang} />);
+    }
     last = idx + m[0].length;
   }
   if (last < text.length) parts.push(text.slice(last));

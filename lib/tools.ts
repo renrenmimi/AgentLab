@@ -115,8 +115,8 @@ export const cases: Case[] = [
       },
       call: 'read_file("README.md")',
       result: {
-        zh: "## 本地运行\\n\\n```bash\\nnpm install\\nnpm run dev\\n```",
-        en: "## Running locally\\n\\n```bash\\nnpm install\\nnpm run dev\\n```",
+        zh: "README 的「本地运行」一节：npm install，然后 npm run dev。",
+        en: "The README's Running locally section: npm install, then npm run dev.",
       },
       answer: {
         zh: "已经把安装说明改成 pnpm 了。",
@@ -151,8 +151,8 @@ export const cases: Case[] = [
         en: "The same as above.",
       },
       answer: {
-        zh: "我没有写文件的权限，这是需要的改动：\\n- npm install\\n+ pnpm install\\n- npm run dev\\n+ pnpm dev",
-        en: "I cannot write files. Here is the change you need:\\n- npm install\\n+ pnpm install\\n- npm run dev\\n+ pnpm dev",
+        zh: "我没有写文件的权限，这是需要的改动：\n- npm install\n+ pnpm install\n- npm run dev\n+ pnpm dev",
+        en: "I cannot write files. Here is the change you need:\n- npm install\n+ pnpm install\n- npm run dev\n+ pnpm dev",
       },
       verdict: {
         zh:

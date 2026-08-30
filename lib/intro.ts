@@ -138,12 +138,12 @@ export const stage = {
     en: "Can you tell me what is in my package.json?",
   },
   s2a: {
-    zh: "做不到……我接触不到你的电脑 🙅",
-    en: "I cannot — your computer is out of my reach 🙅",
+    zh: "做不到。你的电脑不在我能接触到的范围里。",
+    en: "I cannot. Your computer is not something I can reach.",
   },
   s2cap: {
-    zh: "读文件 ✗ 上网 ✗ 敲命令 ✗ —— 它没有手。",
-    en: "Files ✗ network ✗ commands ✗ — it has no hands.",
+    zh: "读文件 ✕　上网 ✕　敲命令 ✕　—— 它没有手。",
+    en: "Files ✕　network ✕　commands ✕　— it has no hands.",
   },
   actor1: { zh: "模型", en: "model" },
   actor1sub: { zh: "负责提出请求", en: "asks" },
@@ -158,8 +158,8 @@ export const stage = {
   n3: { zh: "③ 你执行工具", en: "③ You run the tool" },
   n4: { zh: "④ 结果追加到数组", en: "④ Append the result to the array" },
   exit: {
-    zh: "回复里没有工具请求？→ ✅ 结束",
-    en: "No tool request in the reply? → ✅ done",
+    zh: "回复里没有工具请求？→ ✓ 结束",
+    en: "No tool request in the reply? → ✓ done",
   },
   arr: { zh: "[ 数组 ]", en: "[ array ]" },
   loopWord: { zh: "循环", en: "loop" },

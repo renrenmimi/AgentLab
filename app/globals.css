@@ -413,10 +413,6 @@ body::after {
   opacity: 0.8;
 }
 
-.faq-chick {
-  font-size: 14px;
-}
-
 .faq p {
   margin: 8px 0 2px;
   color: var(--text-2);
@@ -2012,7 +2008,7 @@ a.btn {
   }
 }
 
-/* ---------- 🎒 新知识卡（先教后练） ---------- */
+/* ---------- 新知识卡（先教后练） ---------- */
 
 .q-lesson {
   display: flex;
@@ -2025,11 +2021,6 @@ a.btn {
   font-size: 13.5px;
   line-height: 1.7;
   color: var(--teal-text);
-}
-
-.q-lesson-icon {
-  font-size: 16px;
-  flex-shrink: 0;
 }
 
 .q-lesson b {
@@ -3262,13 +3253,7 @@ html[data-sidebar="collapsed"] .sidebar {
 }
 
 .tl-answer {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.tl-line {
-  display: block;
+  white-space: pre-line;
 }
 
 .tl-verdict {
@@ -3475,4 +3460,13 @@ html[data-sidebar="collapsed"] .sidebar {
   line-height: 1.75;
   white-space: pre-wrap;
   box-shadow: var(--shadow);
+}
+
+/* RichText 的 **强调**。加粗靠字重，不靠颜色。 */
+.lsn-p strong,
+.n-body strong,
+.faq p strong,
+.lsn-take p strong {
+  font-weight: 650;
+  color: var(--text);
 }

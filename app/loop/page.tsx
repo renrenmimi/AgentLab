@@ -173,7 +173,7 @@ export default function LoopChapter() {
         {step.faq && (
           <details className="faq">
             <summary>
-              <span className="faq-chick">🐣</span> {t(ui.loop.faqLabel, lang)}
+              {t(ui.loop.faqLabel, lang)}
               {t(ui.loop.faqSep, lang)}
               {t(step.faq.q, lang)}
             </summary>

@@ -234,6 +234,89 @@ check("every [[term:label]] reference resolves to a glossary entry", () => {
   }
 });
 
+// 2b. Markers, emoji and exclamation marks -------------------------------------
+// RichText renders exactly two markers, [[term:label]] and **bold**. Half of
+// one of them reaches the reader as literal characters, which is how **bold**
+// shipped as asterisks. The voice also rules out emoji and exclamation marks,
+// and a rule nobody checks is a rule that comes back.
+const TERM_MARKER = /\[\[(\w+):([^\]]+)\]\]/g;
+const BOLD_MARKER = /\*\*([^*]+)\*\*/g;
+// A gear and a play triangle are interface glyphs rather than emoji; ✓ ✕ ✗ →
+// are not pictographic at all and never match this in the first place.
+const ALLOWED_GLYPHS = new Set(["⚙", "▶"]);
+
+check("prose carries no unparsed marker, no emoji and no exclamation mark", () => {
+  for (const [name, value] of roots) {
+    walk(value, name, (v, path) => {
+      if (typeof v !== "string") return;
+
+      const stripped = v.replace(TERM_MARKER, "$2").replace(BOLD_MARKER, "$1");
+      if (stripped.includes("**")) {
+        fail(path, "an unpaired ** would reach the reader as asterisks");
+      }
+      if (stripped.includes("[[") || stripped.includes("]]")) {
+        fail(path, "a malformed [[…]] would reach the reader as brackets");
+      }
+      // A literal backslash-n is usually a newline someone meant to write and
+      // did not, reaching the reader as two characters. Inside a quoted
+      // fragment it is the opposite: a line of displayed source code where the
+      // escape is the point. So quoted spans are removed before looking.
+      const unquoted = v.replace(/"[^"]*"/g, "");
+      if (/\\n/.test(unquoted)) {
+        fail(path, "a literal \\n outside any quoted code would reach the reader as two characters");
+      }
+
+      for (const ch of stripped) {
+        if (ALLOWED_GLYPHS.has(ch)) continue;
+        if (/\p{Extended_Pictographic}/u.test(ch)) {
+          fail(path, `emoji ${JSON.stringify(ch)}; the voice does not use them`);
+        }
+      }
+
+      // Full-width always; the ASCII one only where it is punctuation rather
+      // than part of !== in a line of code.
+      if (stripped.includes("！")) fail(path, "an exclamation mark");
+      if (/!(?![=])/.test(stripped)) fail(path, "an exclamation mark");
+    });
+  }
+});
+
+// 2c. Emoji in the source, not just in the content ----------------------------
+// The content walk sees strings in lib/. A decorative emoji dropped into a
+// component would slip past it, so the source files are swept as well. The
+// allowed set is small and deliberate: four interface glyphs, and the six
+// pictograms that make up the illustrations on stop 1 — a brain for the model,
+// padlocks for the things it cannot reach, a hammer for tools. Those are the
+// picture rather than the tone, which is the distinction the voice draws.
+const SOURCE_GLYPHS = new Set([
+  "⚙", "▶", "☾", "☀",
+  "🧠", "📁", "🌐", "⌨", "🔒", "🛠",
+]);
+
+check("no emoji has crept into a component or a stylesheet", () => {
+  const sweep = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (![".next", "node_modules", ".git"].includes(entry.name)) sweep(full);
+        continue;
+      }
+      if (!/\.(tsx?|css)$/.test(entry.name)) continue;
+      const lines = readFileSync(full, "utf8").split("\n");
+      lines.forEach((line, i) => {
+        for (const ch of line) {
+          if (SOURCE_GLYPHS.has(ch)) continue;
+          if (/\p{Extended_Pictographic}/u.test(ch)) {
+            fail(`${relative(ROOT, full)}:${i + 1}`, `emoji ${JSON.stringify(ch)}`);
+          }
+        }
+      });
+    }
+  };
+  sweep(join(ROOT, "app"));
+  sweep(join(ROOT, "lib"));
+});
+
 // 3. Scenario: prose against code ---------------------------------------------
 function checkScenario(label, code, steps) {
   if (code.zh.length !== code.en.length) {
