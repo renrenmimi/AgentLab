@@ -86,6 +86,7 @@ export const ui = {
     delegate: { zh: "让另一个 agent 去做", en: "Handing work to another agent" },
     trust: { zh: "工具结果不可信", en: "Tool output is not your friend" },
     permission: { zh: "谁来说可以", en: "Who says yes" },
+    again: { zh: "工具失败之后", en: "When a tool fails" },
     measure: { zh: "怎么知道变好了", en: "Knowing it got better" },
   },
 

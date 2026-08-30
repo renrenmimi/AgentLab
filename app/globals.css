@@ -3848,3 +3848,72 @@ html[data-sidebar="collapsed"] .sidebar {
 .in-run .pm-who {
   min-width: 18px;
 }
+
+/* ---------- /again：失败的三种形态 ---------- */
+
+.ag-card {
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 12px;
+  padding: 13px 16px;
+  background: var(--panel-2);
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.ag-ok {
+  border-left-color: var(--teal);
+}
+
+.ag-warn {
+  border-left-color: var(--amber);
+}
+
+.ag-bad {
+  border-left-color: var(--risk);
+}
+
+.ag-row p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+
+.ag-key p {
+  color: var(--text);
+}
+
+.ag-key .iv-k b {
+  margin-left: 8px;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ag-tool {
+  display: block;
+  color: var(--accent-text);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.ag-what {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin: 2px 0 4px;
+}
+
+.ag-fix {
+  display: block;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px dashed var(--border);
+  color: var(--text-3);
+}
+
+.ag-fix b {
+  color: var(--teal-text);
+}

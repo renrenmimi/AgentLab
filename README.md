@@ -18,7 +18,7 @@ correctly, why a tool result cannot be trusted, and how to tell whether a change
 
 *The message history growing one step at a time*
 
-## Thirteen stops
+## Fourteen stops
 
 The first three build the mental model. The rest are about what makes agents actually
 hard — the questions a reader still could not answer after finishing the first three.
@@ -51,7 +51,10 @@ hard — the questions a reader still could not answer after finishing the first
 11. **`/trust` — Tool output is not your friend.** Prompt injection, shown before it is
     named, then the mitigations and what each one does not stop.
 12. **`/permission` — Who says yes.** The loop stops before a write and you make the call.
-13. **`/measure` — How you know it got better.** Ten saved tasks and a pass count.
+13. **`/again` — When a tool fails.** A call fails three ways, and in one of them you do not
+    know whether the work happened — which is the one a retry does twice. Backoff, attempt
+    limits, and idempotency through a concrete pair: a search and a payment.
+14. **`/measure` — How you know it got better.** Ten saved tasks and a pass count.
 
 ## Running locally
 

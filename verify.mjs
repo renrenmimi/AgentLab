@@ -143,6 +143,7 @@ const modules = {
   chance: await load("lib/chance.ts"),
   invent: await load("lib/invent.ts"),
   instructions: await load("lib/instructions.ts"),
+  again: await load("lib/again.ts"),
 };
 
 // Every exported value, rooted at a readable name for error messages.
@@ -162,7 +163,7 @@ const roots = [
 const LESSON_STOPS = [
   "chance", "invent", "instructions", "tools",
   "cost", "context", "delegate",
-  "trust", "permission", "measure",
+  "trust", "permission", "again", "measure",
 ];
 for (const name of LESSON_STOPS) {
   const mod = modules[name];
@@ -708,6 +709,34 @@ check("the numbers each lesson claims are the numbers its own model produces", (
   const bill = ins.systemBill(40);
   if (!(bill.dollars > 0) || bill.sentTimes !== 40) {
     fail("instructions.systemBill", `bill is ${JSON.stringify(bill)}`);
+  }
+
+  // /again: the stop turns on one failure mode being certain and two not, and
+  // on there being both kinds of tool to compare.
+  const ag = modules.again;
+  const certain = ag.failures.filter((f) => f.certain);
+  if (certain.length !== 1) {
+    fail("again.failures", `${certain.length} failures are certain; the stop says exactly one is`);
+  }
+  if (!ag.tools.some((x) => x.idempotent) || !ag.tools.some((x) => !x.idempotent)) {
+    fail("again.tools", "the comparison needs both a repeatable tool and one that is not");
+  }
+  for (const tool of ag.tools) {
+    if (!tool.idempotent && !tool.fix) {
+      fail(`again "${tool.name}"`, "is unsafe to repeat and offers no fix");
+    }
+    if (tool.idempotent && tool.fix) {
+      fail(`again "${tool.name}"`, "is safe to repeat but offers a fix, which reads as a contradiction");
+    }
+  }
+  // Backing off has to actually back off.
+  for (let n = 1; n < ag.MAX_ATTEMPTS - 1; n++) {
+    if (!(ag.backoffMs(n + 1) > ag.backoffMs(n))) {
+      fail("again.backoffMs", `attempt ${n + 1} does not wait longer than ${n}`);
+    }
+  }
+  if (!(ag.totalWaitMs(ag.MAX_ATTEMPTS) > ag.backoffMs(1))) {
+    fail("again.totalWaitMs", "the cumulative wait is not the sum of the gaps");
   }
 
   // /trust: the page divides measures into wording and structural, and says

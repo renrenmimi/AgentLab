@@ -667,6 +667,28 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   ok($$(".in-gone").length === 1, "removing the tool shows it struck out of the list");
   ok($$(".pm-bad").length === 0, "and the run cannot do it at all");
 
+  // ---- /again: the three failures are not interchangeable ---------------
+  await go("/again");
+  const failBtns = () => $$<HTMLButtonElement>(".lsn-choice");
+  ok(failBtns().length === 3, "three failure modes are offered", `${failBtns().length}`);
+  const certainty: string[] = [];
+  for (let i = 0; i < 3; i++) {
+    failBtns()[i]?.click();
+    await settle(3);
+    const mark = $(".ag-key .iv-k b");
+    certainty.push(mark?.className ?? "?");
+  }
+  ok(
+    certainty.filter((c) => c.includes("mark-pass")).length === 1,
+    "exactly one failure mode tells you the work did not happen",
+    certainty.join(", "),
+  );
+  ok(
+    $$(".lsn-table .mark-fail").length >= 2 && $$(".lsn-table .mark-pass").length >= 2,
+    "the tool table shows both repeatable and unrepeatable tools",
+  );
+  ok($$(".ag-fix").length >= 2, "every unrepeatable tool is shown with its fix", `${$$(".ag-fix").length}`);
+
   // ---- both themes ------------------------------------------------------
   const root = document.documentElement;
   const startedIn = root.dataset.theme;
