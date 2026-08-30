@@ -5,6 +5,7 @@ import Link from "next/link";
 import { scenes, stage } from "@/lib/intro";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { RichText } from "@/lib/glossary";
+import { useStopHeading } from "@/app/lesson";
 
 export default function IntroPage() {
   const [cursor, setCursor] = useState(0);
@@ -54,7 +55,7 @@ export default function IntroPage() {
     <main className="page">
       <header className="header">
         <div>
-          <h1 className="page-title">{t(ui.intro.title, lang)}</h1>
+          <h1 className="page-title">{useStopHeading(ui.intro.title, lang)}</h1>
           <p className="subtitle">{t(ui.intro.subtitle, lang)}</p>
         </div>
         <div className="progress" aria-label={t(ui.a11y.progress, lang)}>

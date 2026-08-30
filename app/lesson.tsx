@@ -9,14 +9,26 @@ import { usePathname } from "next/navigation";
 import { type ReactNode } from "react";
 import { ui, useLang, t, type L, type Lang } from "@/lib/i18n";
 import { STOPS } from "@/lib/stops";
-import { RichText } from "@/lib/glossary";
+import { RichText, stopWord } from "@/lib/glossary";
 import type { Block, LessonMeta } from "@/lib/lesson";
 
+// 标题里的序号由 lib/stops.ts 的顺序算出来。上一轮重排之后，
+// 十二个页面标题和一百多处交叉引用全部错位过一次；现在没有地方写死它。
+export function useStopHeading(name: L, lang: Lang): string {
+  const path = usePathname();
+  const word = stopWord(path, lang);
+  if (word === path) return t(name, lang);
+  // Mid-sentence the English form is "stop 8"; at the head of a title it is not.
+  const head = lang === "en" ? word[0].toUpperCase() + word.slice(1) : word;
+  return `${head} · ${t(name, lang)}`;
+}
+
 export function LessonHeader({ meta, lang }: { meta: LessonMeta; lang: Lang }) {
+  const title = useStopHeading(meta.title, lang);
   return (
     <header className="header">
       <div>
-        <h1 className="page-title">{t(meta.title, lang)}</h1>
+        <h1 className="page-title">{title}</h1>
         <p className="subtitle">{t(meta.subtitle, lang)}</p>
       </div>
     </header>

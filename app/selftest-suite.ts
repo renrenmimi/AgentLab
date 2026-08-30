@@ -1,6 +1,6 @@
 // The assertions themselves. See app/selftest.tsx for why this exists.
 
-import { STOPS } from "@/lib/stops";
+import { GROUPS, STOPS } from "@/lib/stops";
 import { scenarios, stateAt } from "@/lib/scenarios";
 import { ASSUMPTIONS, MAX_ROUNDS, money, runCost } from "@/lib/cost";
 import { blanks, normalize } from "@/lib/build";
@@ -688,6 +688,43 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     "the tool table shows both repeatable and unrepeatable tools",
   );
   ok($$(".ag-fix").length >= 2, "every unrepeatable tool is shown with its fix", `${$$(".ag-fix").length}`);
+
+  // ---- progress: the rail remembers where you have been -----------------
+  // Every stop was visited by the sweep at the top of this run, so by now the
+  // rail should be able to say so.
+  await go("/");
+  const groupHeads = $$(".side-group-name").length;
+  ok(groupHeads === GROUPS.length, "the rail is grouped", `${groupHeads} groups`);
+  ok(
+    $$(".side-group-why").length === GROUPS.length,
+    "every group says why it follows the one before it",
+  );
+
+  const readMarks = () => $$(".side-read").length;
+  const statusLabel = () => text($(".side-status-label"));
+  ok(
+    readMarks() >= STOPS.length - 1,
+    "every stop visited is marked as read",
+    `${readMarks()} marked of ${STOPS.length}`,
+  );
+  ok(
+    statusLabel().startsWith(String(STOPS.length)),
+    "the progress card counts them",
+    statusLabel(),
+  );
+
+  const resetBtn = $<HTMLButtonElement>(".side-reset");
+  ok(!!resetBtn && !resetBtn.disabled, "progress can be cleared");
+  resetBtn?.click();
+  await settle(3);
+  ok(readMarks() === 0, "clearing removes every mark", `${readMarks()} left`);
+  ok(
+    !localStorage.getItem("agentlab-visited"),
+    "and clears what was stored on this device",
+  );
+  // Put the reader back where they were rather than leaving a wiped rail.
+  await go("/loop");
+  await go("/");
 
   // ---- both themes ------------------------------------------------------
   const root = document.documentElement;

@@ -18,10 +18,14 @@ correctly, why a tool result cannot be trusted, and how to tell whether a change
 
 *The message history growing one step at a time*
 
-## Fourteen stops
+## Fifteen stops, in six groups
 
-The first three build the mental model. The rest are about what makes agents actually
-hard — the questions a reader still could not answer after finishing the first three.
+Fifteen stops is a path rather than a list, so the sidebar groups them and each group says
+in one line why it follows the one before it. The numbers below come from position in
+`lib/stops.ts`; nothing writes one down.
+
+**What it is** · **What the model is like** · **The text you write** · **What it costs** ·
+**When it goes wrong** · **How you know**
 
 1. **`/` — What an agent is.** From "a model only turns text into text" to "a program that
    loops and calls tools", without a line of code.
@@ -55,6 +59,8 @@ hard — the questions a reader still could not answer after finishing the first
     know whether the work happened — which is the one a retry does twice. Backoff, attempt
     limits, and idempotency through a concrete pair: a search and a payment.
 14. **`/measure` — How you know it got better.** Ten saved tasks and a pass count.
+15. **`/next` — What this course left out.** Where it stops, why, and where to go: real runs,
+    frameworks, evaluation in earnest, multi-agent systems.
 
 ## Running locally
 
@@ -74,7 +80,8 @@ npm run verify  # static checks over the course content
 - **Bilingual.** Every string is a `{ zh, en }` pair in `lib/i18n.tsx`.
 - **A glossary built into the prose.** Writing `[[key:label]]` renders a clickable term that
   pops up a beginner-level explanation.
-- **Progress persists** to `localStorage`, so closing the tab does not lose your place.
+- **Progress is remembered** in `localStorage` and shown in the sidebar, with a visible way to
+  clear it. No account, and nothing is sent anywhere.
 - **The content is checked, not just the types.** `node verify.mjs` imports the content
   modules and asserts what a content bug looks like: a pair missing one language, a step
   highlighting a line the snippet does not have, a blank with no correction for a wrong
@@ -105,14 +112,6 @@ prerenders to static pages.
 | `lib/stops.ts` | The stop list shared by sidebar, breadcrumb, and ⌘K palette |
 | `verify.mjs` | Static checks over all of the above |
 | `app/selftest.tsx` · `app/selftest-suite.ts` | `?selftest=1` — the assertions a static check cannot make |
-
-## After the loop
-
-Every run in this course was written: each step and each token count was chosen to make one
-point clearly. Real runs are not this tidy. If you want to keep going, the next step is a run
-nobody arranged — [AgentTape](https://github.com/renrenmimi/AgentTape) replays a Claude Code
-session that already happened, with the same three things you have been reading here: a
-timeline, the `messages` array getting longer, and where the tokens went.
 
 ---
 

@@ -12,6 +12,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { t, type L, type Lang } from "@/lib/i18n";
+import { STOPS } from "@/lib/stops";
 
 export const glossary: Record<string, { word: L; def: L }> = {
   api: {
@@ -58,10 +59,12 @@ export const glossary: Record<string, { word: L; def: L }> = {
   },
 };
 
-// 正文里认两种标记，别的都不认：
+// 正文里认三种标记，别的都不认：
 //   [[key:显示文字]]  可点击的术语
+//   [[stop:/cost]]    指向另一站，序号由 lib/stops.ts 的顺序算出来
 //   **强调**          加粗
-// verify.mjs 会检查没有第三种标记漏出来变成字面字符。
+// 交叉引用不写死数字，是因为它们一定会随着插入新站点而错位——
+// 上一轮就错了十几处。verify.mjs 会检查每个 [[stop:…]] 都指向真实存在的站点。
 const RE = /\[\[(\w+):([^\]]+)\]\]|\*\*([^*]+)\*\*/g;
 
 export function RichText({ text, lang }: { text: string; lang: Lang }) {
@@ -73,6 +76,8 @@ export function RichText({ text, lang }: { text: string; lang: Lang }) {
     if (idx > last) parts.push(text.slice(last, idx));
     if (m[3] !== undefined) {
       parts.push(<strong key={k++}>{m[3]}</strong>);
+    } else if (m[1] === "stop") {
+      parts.push(<StopRef key={k++} href={m[2]} lang={lang} />);
     } else {
       parts.push(<Term key={k++} termKey={m[1]} display={m[2]} lang={lang} />);
     }
@@ -80,6 +85,27 @@ export function RichText({ text, lang }: { text: string; lang: Lang }) {
   }
   if (last < text.length) parts.push(text.slice(last));
   return <>{parts}</>;
+}
+
+// 「第 8 站」这样的引用。序号是算出来的，所以插一站进来不会让正文说谎。
+export function stopNumber(href: string): number {
+  return STOPS.findIndex((s) => s.href === href) + 1;
+}
+
+export function stopWord(href: string, lang: Lang): string {
+  const n = stopNumber(href);
+  if (n === 0) return href;
+  return lang === "zh" ? `第 ${n} 站` : `stop ${n}`;
+}
+
+function StopRef({ href, lang }: { href: string; lang: Lang }) {
+  const n = stopNumber(href);
+  if (n === 0) return <>{href}</>;
+  return (
+    <a className="stop-ref" href={href}>
+      {stopWord(href, lang)}
+    </a>
+  );
 }
 
 function Term({

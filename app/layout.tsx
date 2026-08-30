@@ -6,6 +6,7 @@ import Sidebar from "./sidebar";
 import Toolbar from "./toolbar";
 import CommandPalette from "./command-palette";
 import SelfTest from "./selftest";
+import { ProgressProvider } from "./progress";
 
 export const metadata: Metadata = {
   title: "AgentLab — See inside the agent",
@@ -30,15 +31,17 @@ export default function RootLayout({
         <LangProvider>
           <ThemeProvider>
             <ShellProvider>
-              <div className="app-shell">
-                <Sidebar />
-                <div className="main-col">
-                  <Toolbar />
-                  <main className="workspace">{children}</main>
+              <ProgressProvider>
+                <div className="app-shell">
+                  <Sidebar />
+                  <div className="main-col">
+                    <Toolbar />
+                    <main className="workspace">{children}</main>
+                  </div>
                 </div>
-              </div>
-              <CommandPalette />
-              <SelfTest />
+                <CommandPalette />
+                <SelfTest />
+              </ProgressProvider>
             </ShellProvider>
           </ThemeProvider>
         </LangProvider>

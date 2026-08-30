@@ -11,6 +11,7 @@ import Link from "next/link";
 import { codeTemplate, blanks, runScript, normalize } from "@/lib/build";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { RichText } from "@/lib/glossary";
+import { useStopHeading } from "@/app/lesson";
 
 type Phase = "write" | "ready" | "running" | "done";
 
@@ -138,7 +139,7 @@ export default function BuildChapter() {
     <main className="page">
       <header className="header">
         <div>
-          <h1 className="page-title">{t(ui.build.title, lang)}</h1>
+          <h1 className="page-title">{useStopHeading(ui.build.title, lang)}</h1>
           <p className="subtitle">{t(ui.build.subtitle, lang)}</p>
         </div>
         <div className="progress" aria-label={t(ui.a11y.progress, lang)}>

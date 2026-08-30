@@ -3917,3 +3917,143 @@ html[data-sidebar="collapsed"] .sidebar {
 .ag-fix b {
   color: var(--teal-text);
 }
+
+/* ---------- 侧栏：分组、已读、清除进度 ---------- */
+
+.side-group + .side-group {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.side-group-name {
+  margin: 0 0 1px;
+  padding: 0 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.side-group-why {
+  margin: 0 0 6px;
+  padding: 0 10px;
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--text-3);
+  opacity: 0.9;
+}
+
+/* 已读用一个记号写出来，颜色只是附带 */
+.side-read {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--teal-text);
+  flex-shrink: 0;
+}
+
+.side-link.read .side-label {
+  color: var(--text-2);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.side-reset {
+  font: inherit;
+  font-size: 11px;
+  margin-top: 9px;
+  padding: 4px 10px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.side-reset:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.side-reset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---------- /next：四个方向 ---------- */
+
+.nx-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nx-item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--panel-2);
+}
+
+.nx-name {
+  margin: 0 0 9px;
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--text);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.nx-name a {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.nx-p {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--text-2);
+}
+
+.nx-p:last-child {
+  margin-bottom: 0;
+}
+
+.nx-why {
+  border-left: 2px solid var(--border-strong);
+  padding-left: 11px;
+}
+
+/* 指向另一站的引用。序号由顺序算出，正文里不写死。 */
+.stop-ref {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.stop-ref:hover {
+  text-decoration-style: solid;
+}

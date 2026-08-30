@@ -1,4 +1,4 @@
-// 第 9 站「怎么知道变好了」：十个存好的任务，一个通过数。
+//「怎么知道变好了」：十个存好的任务，一个通过数。
 // 关键在于每个任务都配一句「怎么算通过」——判据必须是能判的，
 // 否则跑十遍也只是十次「感觉」。
 
@@ -179,7 +179,7 @@ export function broke(): Task[] {
 // ---------------------------------------------------------------- 文案
 
 export const meta: LessonMeta = {
-  title: { zh: "第 9 站 · 怎么知道它变好了", en: "Stop 9 · How you know it got better" },
+  title: { zh: "怎么知道它变好了", en: "How you know it got better" },
   subtitle: {
     zh: "「感觉好多了」不是一个答案。十个存好的任务和一个通过数就是——这一站把最小可用的那一版做出来。",
     en: "\"It seems better\" is not an answer. Ten saved tasks and a pass count is. This stop builds the smallest version that works.",
@@ -317,28 +317,4 @@ export const bench = {
   fixedWord: { zh: "修好", en: "fixed" },
   brokeWord: { zh: "弄坏", en: "broken" },
   whyWord: { zh: "为什么变了", en: "why it changed" },
-};
-
-// ---------------------------------------------------------------- 课程结尾
-
-// 九站走完之后，最自然的下一步不是再读一站，是去看一次真的运行。
-export const onward = {
-  title: { zh: "接下来：去看一次真的", en: "What comes after this" },
-  href: "https://github.com/renrenmimi/AgentTape",
-  linkText: { zh: "AgentTape", en: "AgentTape" },
-  body: {
-    zh:
-      "这门课从头到尾用的都是写好的运行：每一步的内容、每一个 token 数字，都是为了讲清一件事而挑出来的。" +
-      "真实的运行没有这么整齐——它更长、更乱，也更有说服力。" +
-      "如果你想接着看下去，下一步不是再读一站，而是去看一次没有被安排过的运行：" +
-      "同一套东西——一条时间线、一个不断变长的 messages 数组、以及 token 花在了哪里——" +
-      "只不过对着的是真实的 Claude Code 会话记录。你在第 2 站学会的读法，在那里可以直接用上。",
-    en:
-      "Every run in this course was written: each step and each token count was chosen to make one point " +
-      "clearly. Real runs are not this tidy. They are longer, messier, and more convincing. If you want to " +
-      "keep going, the next step is not another stop but a run nobody arranged — the same three things you " +
-      "have been reading here, a timeline, a messages array getting longer, and where the tokens went, " +
-      "pointed at a real Claude Code session instead of a written one. The way of reading you picked up at " +
-      "stop 2 works there unchanged.",
-  },
 };

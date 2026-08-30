@@ -1,4 +1,4 @@
-// 第 4 站「它为什么这么贵」：一个可以算的成本模型 + 文案。
+//「它为什么这么贵」：一个可以算的成本模型 + 文案。
 //
 // 模型本身是纯函数，页面和 verify.mjs 用的是同一份。
 // 这里所有价格都是这一页自己设的示例价，不是任何厂商的实时价目表；
@@ -99,8 +99,8 @@ export const money = (n: number) => (n >= 1 ? `$${n.toFixed(2)}` : `$${n.toFixed
 
 export const meta: LessonMeta = {
   title: {
-    zh: "第 4 站 · 它为什么这么贵",
-    en: "Stop 4 · Why it costs what it costs",
+    zh: "它为什么这么贵",
+    en: "Why it costs what it costs",
   },
   subtitle: {
     zh: "一次运行的花费不是随轮数线性长的，是随轮数的平方长的。这一站把那条曲线画出来。",
@@ -122,12 +122,12 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "第 2 站已经看过这件事，但那时它只是一个现象：[[api:API]] 是[[stateless:无状态]]的，" +
+          "[[stop:/loop]]已经看过这件事，但那时它只是一个现象：[[api:API]] 是[[stateless:无状态]]的，" +
           "所以每一轮都要把整个[[array:数组]]从头发一遍。现在把它当成一道算术题。" +
           "第 1 轮你发出去的是 system 提示词、工具说明书、你的任务。" +
           "第 2 轮发的是这些，加上模型的回复，加上工具结果。第 3 轮是这些再加一轮的量。",
         en:
-          "Stop 2 showed this as a fact about how the API works: it is [[stateless:stateless]], so every " +
+          "[[stop:/loop]] showed this as a fact about how the API works: it is [[stateless:stateless]], so every " +
           "round resends the whole [[array:array]] from the beginning. Now treat it as arithmetic. Round 1 " +
           "sends the system prompt, the tool list and your task. Round 2 sends all of that plus the model's " +
           "reply plus the tool result. Round 3 sends all of that plus another round's worth.",

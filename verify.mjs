@@ -144,6 +144,7 @@ const modules = {
   invent: await load("lib/invent.ts"),
   instructions: await load("lib/instructions.ts"),
   again: await load("lib/again.ts"),
+  next: await load("lib/next.ts"),
 };
 
 // Every exported value, rooted at a readable name for error messages.
@@ -151,6 +152,7 @@ const roots = [
   ["ui", modules.i18n.ui],
   ["glossary", modules.glossary.glossary],
   ["stops", modules.stops.STOPS],
+  ["groups", modules.stops.GROUPS],
   ["intro.scenes", modules.intro.scenes],
   ["intro.stage", modules.intro.stage],
   ["scenarios", modules.scenarios.scenarios],
@@ -163,7 +165,7 @@ const roots = [
 const LESSON_STOPS = [
   "chance", "invent", "instructions", "tools",
   "cost", "context", "delegate",
-  "trust", "permission", "again", "measure",
+  "trust", "permission", "again", "measure", "next",
 ];
 for (const name of LESSON_STOPS) {
   const mod = modules[name];
@@ -224,12 +226,19 @@ check("every bilingual pair has both zh and en, and neither is empty", () => {
 const TERM_RE = /\[\[(\w+):([^\]]+)\]\]/g;
 const referencedTerms = new Set();
 
-check("every [[term:label]] reference resolves to a glossary entry", () => {
+check("every [[term:label]] and [[stop:/href]] reference resolves", () => {
   const known = new Set(Object.keys(modules.glossary.glossary));
+  const hrefs = new Set(modules.stops.STOPS.map((s) => s.href));
   for (const [name, value] of roots) {
     walk(value, name, (v, path) => {
       if (typeof v !== "string") return;
       for (const m of v.matchAll(TERM_RE)) {
+        // A cross-reference to another stop, whose number is computed from the
+        // reading order rather than written down.
+        if (m[1] === "stop") {
+          if (!hrefs.has(m[2])) fail(path, `cross-reference to "${m[2]}", which is not a stop`);
+          continue;
+        }
         referencedTerms.add(m[1]);
         if (!known.has(m[1])) fail(path, `unknown glossary term "${m[1]}"`);
         if (m[2].trim() === "") fail(path, `glossary term "${m[1]}" has an empty label`);
@@ -325,6 +334,22 @@ check("no emoji has crept into a component or a stylesheet", () => {
   };
   sweep(join(ROOT, "app"));
   sweep(join(ROOT, "lib"));
+});
+
+// 2d. No stop number written by hand ------------------------------------------
+// Reordering the course once already left twelve page titles and a hundred-odd
+// references pointing at the wrong stop. Numbers are computed from lib/stops.ts
+// now, and prose that writes one down is the way that comes back.
+check("no prose writes a stop number by hand", () => {
+  const BARE = /第\s*\d+\s*站|\bstops?\s+\d+\b/i;
+  for (const [name, value] of roots) {
+    walk(value, name, (v, path) => {
+      if (typeof v !== "string") return;
+      if (BARE.test(v)) {
+        fail(path, "writes a stop number by hand; use [[stop:/href]] so it follows the order");
+      }
+    });
+  }
 });
 
 // 3. Scenario: prose against code ---------------------------------------------
@@ -739,12 +764,52 @@ check("the numbers each lesson claims are the numbers its own model produces", (
     fail("again.totalWaitMs", "the cumulative wait is not the sum of the gaps");
   }
 
+  // /next: a closing stop that does not say why something was left out is a
+  // list of links rather than an ending.
+  for (const area of modules.next.areas) {
+    for (const key of ["what", "why", "where"]) {
+      if (!area[key]) fail(`next "${area.id}"`, `does not say ${key}`);
+    }
+  }
+  if (!modules.next.areas.some((a) => a.link)) {
+    fail("next.areas", "nothing to actually go and look at");
+  }
+
   // /trust: the page divides measures into wording and structural, and says
   // there are some of each.
   const strengths = new Set(modules.trust.mitigations.map((m) => m.strength));
   for (const s of ["text", "structural"]) {
     if (!strengths.has(s)) fail("trust", `no mitigation marked "${s}", but the prose contrasts the two`);
   }
+});
+
+// 5d. The reading order ---------------------------------------------------------
+// Fourteen stops is a path rather than a list, and a path has to be complete:
+// every stop in exactly one group, every group naming a reason it follows the
+// one before it, and no href in a group that is not a stop.
+check("every stop sits in exactly one group, and every group says why it follows", () => {
+  const { GROUPS, STOPS } = modules.stops;
+  const seen = new Map();
+  for (const [i, group] of GROUPS.entries()) {
+    if (!group.name) fail(`groups[${i}]`, "no name");
+    if (!group.why) fail(`groups[${i}]`, "does not say why it follows the group before it");
+    if (!group.hrefs.length) fail(`groups[${i}]`, "is empty");
+    for (const href of group.hrefs) {
+      if (seen.has(href)) fail(`groups[${i}]`, `"${href}" is also in group ${seen.get(href)}`);
+      seen.set(href, i);
+    }
+  }
+  for (const stop of STOPS) {
+    if (!seen.has(stop.href)) fail(`stops "${stop.href}"`, "is in no group");
+    if (!stop.label) fail(`stops "${stop.href}"`, "has no label");
+  }
+  if (seen.size !== STOPS.length) {
+    fail("groups", `groups cover ${seen.size} hrefs for ${STOPS.length} stops`);
+  }
+  // The numbers a reader sees have to run 1..n in order.
+  const glyphs = STOPS.map((s) => s.glyph).join(",");
+  const expected = STOPS.map((_, i) => String(i + 1)).join(",");
+  if (glyphs !== expected) fail("stops", `numbering is ${glyphs}`);
 });
 
 // 6. Routes --------------------------------------------------------------------
