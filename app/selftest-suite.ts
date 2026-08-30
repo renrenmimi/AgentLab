@@ -812,6 +812,181 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   );
   ok(scoreish.length === 0, "the checks show no score", scoreish.slice(0, 2).map(text).join("; ") || "none");
 
+  // ---- semantics --------------------------------------------------------
+  // Computed rather than eyeballed. A screen reader cannot be run here, so what
+  // is checked is everything a screen reader would read: the heading spine, the
+  // landmarks, whether a graphic announces itself or stays quiet, and whether
+  // the name of a control says what it does.
+  const headingFaults: string[] = [];
+  const landmarkFaults: string[] = [];
+  const graphicFaults: string[] = [];
+  const nameFaults: string[] = [];
+
+  // Names that pass a presence check and fail a person.
+  const EMPTY_NAMES = [
+    "button", "click", "click here", "here", "link", "more", "read more",
+    "go", "ok", "submit", "open", "close", "icon", "image", "svg",
+    "按钮", "点击", "点这里", "这里", "更多", "打开", "关闭", "图标",
+  ];
+
+  const accessibleName = (el: Element): string => {
+    const labelledby = el.getAttribute("aria-labelledby");
+    if (labelledby) {
+      const parts = labelledby
+        .split(/\s+/)
+        .map((id) => text(document.getElementById(id)))
+        .filter(Boolean);
+      if (parts.length) return parts.join(" ");
+    }
+    const aria = el.getAttribute("aria-label");
+    if (aria?.trim()) return aria.trim();
+    const own = text(el);
+    if (own) return own;
+    if (el.id) {
+      const label = text(document.querySelector(`label[for="${el.id}"]`));
+      if (label) return label;
+    }
+    const wrapping = text(el.closest("label"));
+    if (wrapping) return wrapping;
+    const title = el.getAttribute("title");
+    if (title?.trim()) return title.trim();
+    return text(el.querySelector("title"));
+  };
+
+  for (const stop of STOPS) {
+    if (!(await go(stop.href))) continue;
+    settleAnimations();
+
+    const headings = $$("h1, h2, h3, h4, h5, h6");
+    const levels = headings.map((h) => Number(h.tagName[1]));
+    const h1s = levels.filter((n) => n === 1).length;
+    if (h1s !== 1) headingFaults.push(`${stop.href}: ${h1s} h1 elements`);
+    for (let i = 1; i < levels.length; i++) {
+      if (levels[i] - levels[i - 1] > 1) {
+        headingFaults.push(
+          `${stop.href}: h${levels[i - 1]} then h${levels[i]} (${text(headings[i]).slice(0, 22)})`,
+        );
+      }
+    }
+    if (levels.length && levels[0] !== 1) {
+      headingFaults.push(`${stop.href}: first heading is h${levels[0]}, not h1`);
+    }
+    for (const h of headings) {
+      if (!text(h)) headingFaults.push(`${stop.href}: an empty ${h.tagName.toLowerCase()}`);
+    }
+
+    const mains = $$("main");
+    if (mains.length !== 1) landmarkFaults.push(`${stop.href}: ${mains.length} main landmarks`);
+    const navs = $$("nav");
+    if (navs.length === 0) landmarkFaults.push(`${stop.href}: no nav landmark`);
+    const navNames = navs.map((n) => accessibleName(n));
+    if (new Set(navNames).size !== navNames.length) {
+      landmarkFaults.push(`${stop.href}: two navs share a name (${navNames.join(" / ")})`);
+    }
+    if (navNames.some((n) => !n)) landmarkFaults.push(`${stop.href}: a nav has no name`);
+
+    for (const g of $$("svg, img, canvas")) {
+      const hidden =
+        g.getAttribute("aria-hidden") === "true" || g.closest("[aria-hidden='true']") != null;
+      if (hidden) continue;
+      const name = accessibleName(g);
+      const role = g.getAttribute("role");
+      if (!name) {
+        graphicFaults.push(`${stop.href}: <${g.tagName.toLowerCase()}> neither named nor hidden`);
+      } else if (g.tagName.toLowerCase() === "svg" && role !== "img") {
+        graphicFaults.push(`${stop.href}: named <svg> without role="img"`);
+      }
+    }
+
+    for (const el of $$<HTMLElement>(
+      "button, a[href], input, select, textarea, summary, [role='tab'], [role='slider']",
+    )) {
+      if (el.getAttribute("aria-hidden") === "true" || el.closest("[aria-hidden='true']")) continue;
+      const name = accessibleName(el).replace(/\s+/g, " ").trim();
+      if (!name) {
+        nameFaults.push(`${stop.href}: unnamed ${el.tagName.toLowerCase()}.${el.className.split(" ")[0]}`);
+      } else if (EMPTY_NAMES.includes(name.toLowerCase())) {
+        nameFaults.push(`${stop.href}: "${name}" names nothing`);
+      }
+    }
+  }
+
+  ok(headingFaults.length === 0, "one h1 per stop and no heading level skipped", headingFaults.slice(0, 4).join("; ") || `${STOPS.length} stops`);
+  ok(landmarkFaults.length === 0, "main and nav landmarks are present and distinct", landmarkFaults.slice(0, 4).join("; ") || `${STOPS.length} stops`);
+  ok(graphicFaults.length === 0, "every graphic is either named or hidden from assistive technology", graphicFaults.slice(0, 4).join("; ") || "all clear");
+  ok(nameFaults.length === 0, "every control has a name that says what it does", nameFaults.slice(0, 4).join("; ") || "all clear");
+
+  // ---- widgets report their own state -----------------------------------
+  await go("/loop");
+  const tabs2 = $$<HTMLElement>('[role="tab"]');
+  ok(tabs2.every((x) => x.hasAttribute("aria-selected")), "every tab reports whether it is selected");
+  const tablistName = accessibleName($('[role="tablist"]')!);
+  ok(!!tablistName, "the tablist is named", tablistName || "unnamed");
+
+  // The rail's progress bar is a different thing from the run's meter, and only
+  // the second one is supposed to move as the run advances.
+  const rail = $(".side-status [role='progressbar']");
+  ok(
+    !!rail && Number.isFinite(Number(rail.getAttribute("aria-valuenow"))),
+    "the reading-progress bar reports a numeric value",
+    rail?.getAttribute("aria-valuenow") ?? "absent",
+  );
+
+  // Pick the scenario whose meter actually climbs.
+  $$<HTMLButtonElement>('[role="tab"]')[1]?.click();
+  await settle(3);
+  const meterEl = $(".meter-track[role='progressbar']");
+  if (meterEl) {
+    const before = meterEl.getAttribute("aria-valuenow");
+    for (let i = 0; i < 4; i++) {
+      $$<HTMLButtonElement>(".controls .btn-primary")[0]?.click();
+      await settle(2);
+    }
+    const node = $(".meter-track[role='progressbar']");
+    const after = node?.getAttribute("aria-valuenow");
+    ok(before !== after, "a progressbar's value changes when the run advances", `${before} → ${after}`);
+    const now = Number(after);
+    const max = Number(node?.getAttribute("aria-valuemax"));
+    ok(
+      Number.isFinite(now) && Number.isFinite(max) && now <= max,
+      "a progressbar reports a value inside its range",
+      `${now} of ${max}`,
+    );
+  }
+
+  await go("/cost");
+  const rangeEl = $<HTMLInputElement>('input[type="range"]');
+  if (rangeEl) {
+    const read = () => rangeEl.getAttribute("aria-valuenow") ?? rangeEl.value;
+    setRange(rangeEl, 7);
+    await settle(2);
+    const a = read();
+    setRange(rangeEl, 31);
+    await settle(2);
+    ok(a !== read(), "a slider's reported value follows the control", `${a} → ${read()}`);
+    ok(!!accessibleName(rangeEl), "the slider is named", accessibleName(rangeEl) || "unnamed");
+  }
+
+  await go("/permission");
+  const askLegend = $("fieldset.pm-ask legend");
+  ok(!!text(askLegend), "the approval decision is announced as a question", text(askLegend));
+
+  // ---- the charts say what they show ------------------------------------
+  await go("/cost");
+  const chart = $("svg.chart-svg");
+  const chartName = chart ? accessibleName(chart) : "";
+  ok(
+    chart?.getAttribute("role") === "img",
+    "the cost chart is exposed as an image rather than as its path data",
+  );
+  ok(
+    chartName.length > 40,
+    "the chart's text alternative carries its conclusion, not just a label",
+    chartName.slice(0, 90),
+  );
+  const conclusion = $(".chart-conclusion");
+  ok(!!text(conclusion), "the conclusion the chart shows is also written out", text(conclusion).slice(0, 80));
+
   // ---- both themes ------------------------------------------------------
   const root = document.documentElement;
   const startedIn = root.dataset.theme;

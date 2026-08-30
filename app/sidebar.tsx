@@ -41,10 +41,15 @@ export default function Sidebar() {
 
         <nav className="side-nav" aria-label={t(ui.a11y.stops, lang)}>
           {GROUPS.map((group, gi) => (
-            <div key={gi} className="side-group">
-              <h2 className="side-group-name" title={t(group.why, lang)}>
+            <div
+              key={gi}
+              className="side-group"
+              role="group"
+              aria-label={t(group.name, lang)}
+            >
+              <div className="side-group-name" aria-hidden>
                 {t(group.name, lang)}
-              </h2>
+              </div>
               <p className="side-group-why">{t(group.why, lang)}</p>
               {STOPS.filter((s) => s.group === gi).map((s) => {
                 const active = s.href === path;

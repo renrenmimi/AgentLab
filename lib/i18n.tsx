@@ -144,7 +144,8 @@ export const ui = {
     codePanel: { zh: "代码面板", en: "Code panel" },
     answerInput: { zh: "你的答案", en: "Your answer" },
     runOutput: { zh: "运行输出", en: "Run output" },
-    stops: { zh: "站点导航", en: "Stops" },
+    stops: { zh: "全部站点", en: "All stops" },
+    stepNav: { zh: "上一站 / 下一站", en: "Previous and next stop" },
   },
 
   intro: {

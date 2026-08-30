@@ -4280,3 +4280,11 @@ html[data-sidebar="collapsed"] .sidebar {
   font-size: 12px;
   color: var(--text-3);
 }
+
+/* 图表的结论也写成文字。图里读得出来的东西，不该只有看得见的人能读到。 */
+.chart-conclusion {
+  margin: 9px 2px 0;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--text-2);
+}
