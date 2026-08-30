@@ -18,9 +18,9 @@ correctly, why a tool result cannot be trusted, and how to tell whether a change
 
 *The message history growing one step at a time*
 
-## Fifteen stops, in six groups
+## Fourteen stops, in six groups
 
-Fifteen stops is a path rather than a list, so the sidebar groups them and each group says
+Fourteen stops is a path rather than a list, so the sidebar groups them and each group says
 in one line why it follows the one before it. The numbers below come from position in
 `lib/stops.ts`; nothing writes one down.
 
@@ -48,18 +48,18 @@ in one line why it follows the one before it. The numbers below come from positi
    tasks, three different omissions.
 8. **`/cost` — Why it costs that.** The array is resent every round, so spending grows with
    the square of the rounds. Drag the slider and watch the curve bend.
-9. **`/context` — When it will not fit.** Refuse, truncate, or summarise, all applied to the
-   same conversation so you can see what each one loses.
-10. **`/delegate` — Handing work to another agent.** A subagent buys context and costs you
-    the ability to check its work.
-11. **`/trust` — Tool output is not your friend.** Prompt injection, shown before it is
+9. **`/context` — When it will not fit.** Refuse, truncate, summarise, or hand the work to
+   another agent — the first three applied to the same conversation so you can see what each
+   loses, and the fourth showing what a boundary costs: the caller gets a summary, not the
+   work, and cannot check it.
+10. **`/trust` — Tool output is not your friend.** Prompt injection, shown before it is
     named, then the mitigations and what each one does not stop.
-12. **`/permission` — Who says yes.** The loop stops before a write and you make the call.
-13. **`/again` — When a tool fails.** A call fails three ways, and in one of them you do not
+11. **`/permission` — Who says yes.** The loop stops before a write and you make the call.
+12. **`/again` — When a tool fails.** A call fails three ways, and in one of them you do not
     know whether the work happened — which is the one a retry does twice. Backoff, attempt
     limits, and idempotency through a concrete pair: a search and a payment.
-14. **`/measure` — How you know it got better.** Ten saved tasks and a pass count.
-15. **`/next` — What this course left out.** Where it stops, why, and where to go: real runs,
+13. **`/measure` — How you know it got better.** Ten saved tasks and a pass count.
+14. **`/next` — What this course left out.** Where it stops, why, and where to go: real runs,
     frameworks, evaluation in earnest, multi-agent systems.
 
 ## Running locally

@@ -52,7 +52,7 @@ export const GROUPS: StopGroup[] = [
       zh: "控制住了行为，接下来是账单和上限——两者都来自同一件事：数组每一轮都要重发。",
       en: "With behaviour under control, next come the bill and the ceiling, both from one fact: the array is resent every round.",
     },
-    hrefs: ["/cost", "/context", "/delegate"],
+    hrefs: ["/cost", "/context"],
   },
   {
     name: { zh: "出问题的时候", en: "When it goes wrong" },
@@ -82,7 +82,6 @@ const LABELS: Record<string, L> = {
   "/tools": ui.nav.tools,
   "/cost": ui.nav.cost,
   "/context": ui.nav.context,
-  "/delegate": ui.nav.delegate,
   "/trust": ui.nav.trust,
   "/permission": ui.nav.permission,
   "/again": ui.nav.again,

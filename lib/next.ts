@@ -117,10 +117,10 @@ export const areas: Area[] = [
     name: { zh: "多个 agent", en: "Multi-agent systems" },
     what: {
       zh:
-        "[[stop:/delegate]]只讲了最简单的一种：一个父 agent 把一段活交给一个子 agent。" +
+        "[[stop:/context]]的最后一节只讲了最简单的一种：一个 agent 把一段活交给另一个。" +
         "再往上还有很多形态——多个 agent 并行、互相评审、按角色分工、共享一块状态。",
       en:
-        "[[stop:/delegate]] covers only the simplest arrangement: a parent hands a stretch of work to a subagent. Beyond " +
+        "The last section of [[stop:/context]] covers only the simplest arrangement: one agent hands a stretch of work to another. Beyond " +
         "it there are many shapes — agents in parallel, reviewing each other, split by role, sharing state.",
     },
     why: {
@@ -135,11 +135,11 @@ export const areas: Area[] = [
     },
     where: {
       zh:
-        "如果你确实要做，[[stop:/delegate]]那条边界的代价是最值得带着的东西：" +
+        "如果你确实要做，[[stop:/context]]那条「边界的代价」是最值得带着的东西：" +
         "每加一层，外面那一层就少看见一层里面发生的事。" +
         "多 agent 系统里最常见的失败，不是某个 agent 做错了，是没有人看得见它做错了。",
       en:
-        "If you do go there, the thing worth carrying from [[stop:/delegate]] is the cost of a boundary: each layer you " +
+        "If you do go there, the thing worth carrying from [[stop:/context]] is the cost of a boundary: each layer you " +
         "add is a layer the outer one can no longer see into. The common failure in these systems is not that " +
         "an agent got something wrong; it is that nobody could see that it had.",
     },

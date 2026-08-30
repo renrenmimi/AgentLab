@@ -83,7 +83,6 @@ export const ui = {
     tools: { zh: "怎么描述工具", en: "Describing a tool" },
     cost: { zh: "它为什么这么贵", en: "Why it costs that" },
     context: { zh: "装不下的时候", en: "When it will not fit" },
-    delegate: { zh: "让另一个 agent 去做", en: "Handing work to another agent" },
     trust: { zh: "工具结果不可信", en: "Tool output is not your friend" },
     permission: { zh: "谁来说可以", en: "Who says yes" },
     again: { zh: "工具失败之后", en: "When a tool fails" },

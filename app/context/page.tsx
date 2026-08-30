@@ -7,7 +7,9 @@ import {
   bench,
   blocks,
   conversation,
+  ledger,
   meta,
+  summary,
   totalTokens,
   type Msg,
   type Strategy,
@@ -111,6 +113,49 @@ export default function ContextStop() {
       </Workbench>
 
       <Prose block={blocks[1]} lang={lang} />
+
+      <Workbench title={bench.handoffTitle} note={bench.handoffNote} lang={lang}>
+        <div className="dl-msgs">
+          <div className="dl-msg">
+            <span className="dl-k">{t(bench.askWord, lang)}</span>
+            <p>{t(summary.ask, lang)}</p>
+          </div>
+          <div className="dl-msg">
+            <span className="dl-k">{t(bench.gotWord, lang)}</span>
+            <p>{t(summary.got, lang)}</p>
+          </div>
+        </div>
+
+        <div className="lsn-scroll">
+          <table className="lsn-table">
+          <thead>
+            <tr>
+              <th />
+              <th>{t(bench.colParent, lang)}</th>
+              <th>{t(bench.colActual, lang)}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ledger.map((row, i) => (
+              <tr key={i}>
+                <td>{t(row.label, lang)}</td>
+                <td className={row.parentBad ? "mark-fail" : undefined}>
+                  {t(row.parent, lang)}
+                </td>
+                <td className="num">{t(row.actual, lang)}</td>
+              </tr>
+            ))}
+          </tbody>
+          </table>
+        </div>
+
+        <div className="lsn-col lsn-col-bad">
+          <div className="lsn-col-h">✕ {t(bench.missedWord, lang)}</div>
+          <p className="lsn-note">{t(summary.missed, lang)}</p>
+        </div>
+      </Workbench>
+
+      <Prose block={blocks[2]} lang={lang} />
 
       <Takeaway text={meta.takeaway} lang={lang} />
       <StopNav lang={lang} />
