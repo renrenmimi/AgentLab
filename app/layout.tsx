@@ -5,6 +5,7 @@ import { ThemeProvider, ShellProvider, themeScript } from "./theme-provider";
 import Sidebar from "./sidebar";
 import Toolbar from "./toolbar";
 import CommandPalette from "./command-palette";
+import SelfTest from "./selftest";
 
 export const metadata: Metadata = {
   title: "AgentLab — See inside the agent",
@@ -37,6 +38,7 @@ export default function RootLayout({
                 </div>
               </div>
               <CommandPalette />
+              <SelfTest />
             </ShellProvider>
           </ThemeProvider>
         </LangProvider>
