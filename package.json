@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "verify": "node verify.mjs"
+    "verify": "node verify.mjs",
+    "selftest": "node scripts/drive-selftest.mjs"
   },
   "dependencies": {
     "next": "^15.3.0",
