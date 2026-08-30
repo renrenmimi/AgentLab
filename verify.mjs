@@ -133,6 +133,12 @@ const modules = {
   intro: await load("lib/intro.ts"),
   scenarios: await load("lib/scenarios/index.ts"),
   build: await load("lib/build.ts"),
+  cost: await load("lib/cost.ts"),
+  context: await load("lib/context.ts"),
+  tools: await load("lib/tools.ts"),
+  trust: await load("lib/trust.ts"),
+  delegate: await load("lib/delegate.ts"),
+  measure: await load("lib/measure.ts"),
 };
 
 // Every exported value, rooted at a readable name for error messages.
@@ -147,6 +153,15 @@ const roots = [
   ["build.blanks", modules.build.blanks],
   ["build.runScript", modules.build.runScript],
 ];
+
+// 第 4 站往后的每一站结构相同：meta + blocks + bench，外加自己的数据。
+for (const name of ["cost", "context", "tools", "trust", "delegate", "measure"]) {
+  const mod = modules[name];
+  for (const [key, value] of Object.entries(mod)) {
+    if (typeof value === "function") continue;
+    roots.push([`${name}.${key}`, value]);
+  }
+}
 
 console.log("AgentLab content checks\n");
 
@@ -438,6 +453,103 @@ check("every build blank has an answer, a hint and a wrong-answer correction", (
       }
     }
   });
+});
+
+// 5b. Each stop from 4 onward has the same three parts ------------------------
+check("every lesson stop has a title, a subtitle, a takeaway and some prose", () => {
+  for (const name of ["cost", "context", "tools", "trust", "delegate", "measure"]) {
+    const mod = modules[name];
+    for (const key of ["title", "subtitle", "takeaway"]) {
+      if (!mod.meta?.[key]) fail(`${name}.meta`, `missing ${key}`);
+    }
+    if (!Array.isArray(mod.blocks) || mod.blocks.length === 0) {
+      fail(`${name}.blocks`, "no prose blocks");
+      continue;
+    }
+    mod.blocks.forEach((b, i) => {
+      if (!b.title) fail(`${name}.blocks[${i}]`, "no title");
+      if (!Array.isArray(b.paras) || b.paras.length === 0) {
+        fail(`${name}.blocks[${i}]`, "no paragraphs");
+      }
+    });
+  }
+});
+
+// 5c. Claims the prose makes about its own numbers ----------------------------
+// These pages state results out loud — the curve bends, caching wins from round
+// two, truncation drops the task, the change is worth one point. Each of those
+// is computed by an exported function, so each of them can be checked rather
+// than believed.
+check("the numbers each lesson claims are the numbers its own model produces", () => {
+  // /cost: the cumulative curve is convex, with and without caching.
+  const { ASSUMPTIONS, runCost, MAX_ROUNDS } = modules.cost;
+  for (const cached of [false, true]) {
+    const { cumulative } = runCost(ASSUMPTIONS, MAX_ROUNDS, { cached });
+    const secondDiffs = cumulative
+      .slice(2)
+      .map((v, i) => v - 2 * cumulative[i + 1] + cumulative[i]);
+    if (!secondDiffs.every((d) => d > 0)) {
+      fail("cost", `the ${cached ? "cached" : "uncached"} curve is not convex; the page says it bends`);
+    }
+  }
+  // The page says caching costs more at one round and less from two onward.
+  const one = {
+    plain: runCost(ASSUMPTIONS, 1, { cached: false }).total,
+    cached: runCost(ASSUMPTIONS, 1, { cached: true }).total,
+  };
+  if (!(one.cached > one.plain)) fail("cost", "the page says caching costs more at round 1; it does not");
+  for (const n of [2, 5, 40]) {
+    const plain = runCost(ASSUMPTIONS, n, { cached: false }).total;
+    const cached = runCost(ASSUMPTIONS, n, { cached: true }).total;
+    if (!(cached < plain)) fail("cost", `the page says caching wins from round 2; at ${n} rounds it does not`);
+  }
+
+  // /context: refusing sends nothing; the other two have to fit, and the page
+  // says in as many words that truncation is the one that loses the task.
+  const ctx = modules.context;
+  const truncated = ctx.apply("truncate", ctx.conversation, ctx.LIMIT);
+  const summarised = ctx.apply("summarise", ctx.conversation, ctx.LIMIT);
+  if (ctx.totalTokens(ctx.conversation) <= ctx.LIMIT) {
+    fail("context", "the example conversation fits; the whole stop assumes it does not");
+  }
+  for (const [name, out] of [["truncate", truncated], ["summarise", summarised]]) {
+    if (!out.fits) fail("context", `${name} does not bring the conversation under the limit`);
+    if (out.total > ctx.LIMIT) fail("context", `${name} leaves ${out.total} tokens against a ${ctx.LIMIT} limit`);
+  }
+  if (!truncated.lostTask) fail("context", "the page says truncation drops the task; it does not");
+  if (summarised.lostTask) fail("context", "the page says summarising keeps the task; it does not");
+
+  // /measure: the arithmetic on the page has to be the arithmetic in the table.
+  const ms = modules.measure;
+  const v1 = ms.score("v1");
+  const v2 = ms.score("v2");
+  if (v2 - v1 !== ms.fixed().length - ms.broke().length) {
+    fail("measure", `score delta ${v2 - v1} does not equal fixed ${ms.fixed().length} minus broken ${ms.broke().length}`);
+  }
+  if (ms.fixed().length === 0 || ms.broke().length === 0) {
+    fail("measure", "the stop needs both a fix and a regression to make its point");
+  }
+  for (const task of ms.tasks) {
+    if (task.v1 !== task.v2 && !task.why) {
+      fail(`measure.tasks[#${task.id}]`, "flipped between versions with no explanation");
+    }
+    if (task.v1 === task.v2 && task.why) {
+      fail(`measure.tasks[#${task.id}]`, "explains a change that did not happen");
+    }
+  }
+
+  // /tools: each case needs one bad side and one good side to compare.
+  for (const c of modules.tools.cases) {
+    if (c.vague.good) fail(`tools "${c.id}"`, "the vague side is marked good");
+    if (!c.precise.good) fail(`tools "${c.id}"`, "the precise side is not marked good");
+  }
+
+  // /trust: the page divides measures into wording and structural, and says
+  // there are some of each.
+  const strengths = new Set(modules.trust.mitigations.map((m) => m.strength));
+  for (const s of ["text", "structural"]) {
+    if (!strengths.has(s)) fail("trust", `no mitigation marked "${s}", but the prose contrasts the two`);
+  }
 });
 
 // 6. Routes --------------------------------------------------------------------

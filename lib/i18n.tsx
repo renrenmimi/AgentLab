@@ -76,6 +76,12 @@ export const ui = {
     stop1: { zh: "什么是 Agent", en: "What is an agent" },
     stop2: { zh: "看它怎么跑", en: "Watch it run" },
     stop3: { zh: "亲手写一个", en: "Write one yourself" },
+    stop4: { zh: "它为什么这么贵", en: "Why it costs that" },
+    stop5: { zh: "装不下的时候", en: "When it will not fit" },
+    stop6: { zh: "怎么描述工具", en: "Describing a tool" },
+    stop7: { zh: "工具结果不可信", en: "Tool output is not your friend" },
+    stop8: { zh: "让另一个 agent 去做", en: "Handing work to another agent" },
+    stop9: { zh: "怎么知道变好了", en: "Knowing it got better" },
   },
 
   // ---------- Research OS shell (sidebar / toolbar / command palette) ----------
@@ -88,7 +94,7 @@ export const ui = {
   },
   side: {
     status: { zh: "STATUS", en: "STATUS" },
-    progress: { zh: "三站学习闭环", en: "Three stops, one loop" },
+    progress: { zh: "九站，一个循环", en: "Nine stops, one loop" },
   },
   toolbar: {
     hideNav: { zh: "隐藏导航栏", en: "Hide navigation" },
@@ -96,7 +102,7 @@ export const ui = {
     search: { zh: "搜索 / Search…", en: "Search…" },
   },
   cmdk: {
-    placeholder: { zh: "搜索三站 / Search…", en: "Search the three stops…" },
+    placeholder: { zh: "搜索所有站点 / Search…", en: "Search the stops…" },
     empty: { zh: "没有匹配项", en: "No matches" },
     navHint: {
       zh: "↑↓ 选择 · ↵ 跳转 · esc 关闭",
@@ -126,7 +132,7 @@ export const ui = {
     codePanel: { zh: "代码面板", en: "Code panel" },
     answerInput: { zh: "你的答案", en: "Your answer" },
     runOutput: { zh: "运行输出", en: "Run output" },
-    stops: { zh: "三站导航", en: "Stops" },
+    stops: { zh: "站点导航", en: "Stops" },
   },
 
   intro: {
@@ -190,6 +196,18 @@ export const ui = {
     toolFailed: { zh: "工具报错", en: "tool failed" },
   },
 
+  lesson: {
+    // 所有新站点共用的一句话：这些页面上的模型行为都是写好的，不是现场调用。
+    simulatedNote: {
+      zh: "这一站的所有模型行为都是写好的教学演示，不是现场调用 API 的结果。数字是按下面写明的假设算出来的。",
+      en: "Every model behaviour on this stop is a written illustration, not a live API call. The numbers are computed from the assumptions stated below.",
+    },
+    takeaway: { zh: "记住这一条", en: "The one thing to keep" },
+    tryIt: { zh: "动手试试", en: "Try it" },
+    prev: { zh: "上一站", en: "Previous stop" },
+    next: { zh: "下一站", en: "Next stop" },
+  },
+
   build: {
     title: { zh: "第 3 站 · 亲手写一个", en: "Stop 3 · Write one yourself" },
     subtitle: {
@@ -219,6 +237,18 @@ export const ui = {
     again: { zh: "↻ 再写一遍", en: "↻ Write it again" },
     backLoop: { zh: "回看慢动作", en: "Watch the slow motion again" },
     backIntro: { zh: "回到第 1 站", en: "Back to stop 1" },
+    halfway: {
+      zh:
+        "会写它，和能把它写好，是两件事。后面六站讲的都是第二件：" +
+        "它为什么这么贵、装不下的时候怎么办、工具该怎么描述、" +
+        "工具结果为什么不能全信、什么时候该交给另一个 agent、以及怎么知道你的改动真的让它变好了。",
+      en:
+        "Being able to write it and being able to write it well are different things. The remaining six stops " +
+        "are about the second: why it costs what it costs, what to do when the history will not fit, how to " +
+        "describe a tool, why tool output cannot be trusted, when to hand work to another agent, and how to " +
+        "know that a change actually improved anything.",
+    },
+    toCost: { zh: "下一站：它为什么这么贵 →", en: "Next stop: why it costs that →" },
     codeTitle: {
       zh: "agent.js —— 你正在写的文件",
       en: "agent.js — the file you are writing",
