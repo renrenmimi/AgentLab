@@ -41,8 +41,8 @@ const EXPECTED = {
   failSites: 150,
   // The same two ideas for the in-page suite, which CI cannot run. Its source is
   // read as text here; its own copy of the total is compared at run time.
-  suiteOkSites: 108,
-  suiteAssertions: 115,
+  suiteOkSites: 111,
+  suiteAssertions: 118,
 };
 
 // Count call sites of a named function, ignoring comments, string literals and

@@ -317,18 +317,39 @@ async function runAt(chrome, url, { width, height }, keepOpen) {
     ).catch(() => {});
 
     // The suite walks fourteen stops several times over, in two themes.
+    //
+    // A window error used to end the run on the spot, and that threw away a
+    // whole measurement for something the suite had not done. The listener above
+    // catches every error on the page, including ones the framework raises and
+    // recovers from — a ResizeObserver notification loop is reported as an error
+    // event and is not a failure of anything. One width came back as "the suite
+    // threw" while the same width passed on its own, twice.
+    //
+    // So an error no longer ends the run. It is recorded, the wait continues,
+    // and if the report arrives it is reported alongside the score. Only when no
+    // report follows within a minute is the error treated as the reason.
     const deadline = Date.now() + 10 * 60 * 1000;
+    const GRACE_MS = 60 * 1000;
     let report = null;
+    let pageError = null;
+    let giveUpAt = null;
     while (Date.now() < deadline) {
-      const thrown = await evaluate(send, "window.__driverError").catch(() => null);
-      if (thrown) {
-        return { width, threw: thrown };
+      if (!pageError) {
+        const thrown = await evaluate(send, "window.__driverError").catch(() => null);
+        if (thrown) {
+          pageError = thrown;
+          giveUpAt = Date.now() + GRACE_MS;
+        }
       }
       report = await evaluate(
         send,
         "window.__selftest ? JSON.stringify(window.__selftest) : null",
       ).catch(() => null);
       if (report) break;
+      if (giveUpAt && Date.now() > giveUpAt) {
+        const stop = await evaluate(send, "document.body.dataset.stop").catch(() => "?");
+        return { width, threw: `${pageError}\n  (no report in the minute after; last stop: ${stop})` };
+      }
       await sleep(250);
     }
 
@@ -336,7 +357,7 @@ async function runAt(chrome, url, { width, height }, keepOpen) {
       const stop = await evaluate(send, "document.body.dataset.stop").catch(() => "?");
       return { width, threw: `no report after 10 minutes (last stop: ${stop})` };
     }
-    return { width, ...JSON.parse(report) };
+    return { width, ...JSON.parse(report), pageError };
   } finally {
     try {
       socket?.close();
@@ -370,9 +391,17 @@ try {
     runs.push(run);
     if (run.threw) {
       console.log(`${run.width}px — the suite threw before reporting`);
-      console.log(`  ${run.threw.split("\n")[0]}`);
+      // The whole thing, not the first line. A stack trace cut to one line is
+      // how the last one of these went unexplained.
+      for (const line of String(run.threw).split("\n")) console.log(`  ${line}`);
     } else {
       console.log(`${run.width}px — ${run.pass}/${run.total} passed`);
+      if (run.pageError) {
+        // Reported, not swallowed: the page raised something while the suite was
+        // running, and whoever reads this score should know that.
+        console.log(`  note: the page raised an error during the run, and the suite finished anyway`);
+        for (const line of String(run.pageError).split("\n").slice(0, 3)) console.log(`    ${line}`);
+      }
       for (const r of run.results) {
         if (!r.ok) console.log(`  FAIL ${r.label}${r.note ? `  [${r.note}]` : ""}`);
       }

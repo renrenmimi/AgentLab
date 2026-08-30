@@ -1284,7 +1284,10 @@ a.btn {
 }
 
 .sc-in {
-  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  /* The third surface to be found with white text on the --accent pair, after
+     .btn-primary and .bubble-user, and with the same 2.4:1. The darker pair is
+     what the other two were moved to. */
+  background: linear-gradient(135deg, var(--btn-a), var(--btn-b));
   color: #fff;
   border-bottom-right-radius: 4px;
   box-shadow: 0 4px 14px var(--accent-glow);
