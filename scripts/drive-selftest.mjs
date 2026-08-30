@@ -53,7 +53,7 @@ const WIDTHS = [
 // ---------------------------------------------------------------- arguments
 
 function parseArgs(argv) {
-  const args = { url: null, widths: WIDTHS, port: 3210, keep: false, inject: null };
+  const args = { url: null, widths: WIDTHS, port: 3210, keep: false, inject: null, injectJs: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--url") args.url = argv[++i];
@@ -63,11 +63,13 @@ function parseArgs(argv) {
       const known = WIDTHS.find((x) => x.width === w);
       args.widths = [known ?? { width: w, height: 900 }];
     } else if (a === "--inject") args.inject = readFileSync(argv[++i], "utf8");
+    else if (a === "--inject-js") args.injectJs = readFileSync(argv[++i], "utf8");
     else if (a === "--keep-open") args.keep = true;
     else if (a === "--help" || a === "-h") {
       console.log(
         "usage: node scripts/drive-selftest.mjs [--url URL] [--width 1440|768|390]\n" +
-          "                                       [--port N] [--inject FILE.css]",
+          "                                       [--port N] [--inject FILE.css]\n" +
+          "                                       [--inject-js FILE.js]",
       );
       process.exit(0);
     }
@@ -261,7 +263,7 @@ async function serve(port) {
 
 // ---------------------------------------------------------------- one run
 
-async function runAt(chrome, url, { width, height }, keepOpen, injectCss) {
+async function runAt(chrome, url, { width, height }, keepOpen, injectCss, injectJs) {
   const profile = mkdtempSync(join(tmpdir(), "agentlab-selftest-"));
   const port = 9200 + Math.floor(Math.random() * 700);
   const proc = spawn(
@@ -316,6 +318,14 @@ async function runAt(chrome, url, { width, height }, keepOpen, injectCss) {
           ` const put = () => document.head && document.head.appendChild(s);` +
           ` if (document.head) put(); else addEventListener("DOMContentLoaded", put); })();`,
       });
+    }
+
+    // Script run before anything on the page. This is how a broken suite is
+    // simulated from outside without editing it: scripts/check-the-counters.mjs
+    // uses it to make the traversal return half the nodes it should, and checks
+    // that the suite says so.
+    if (injectJs) {
+      await send("Page.addScriptToEvaluateOnNewDocument", { source: injectJs });
     }
 
     await send("Page.navigate", { url: `${url}/?selftest=1` });
@@ -404,7 +414,7 @@ console.log("");
 const runs = [];
 try {
   for (const size of args.widths) {
-    const run = await runAt(chrome, url, size, args.keep, args.inject);
+    const run = await runAt(chrome, url, size, args.keep, args.inject, args.injectJs);
     runs.push(run);
     if (run.threw) {
       console.log(`${run.width}px — the suite threw before reporting`);
@@ -413,6 +423,13 @@ try {
       for (const line of String(run.threw).split("\n")) console.log(`  ${line}`);
     } else {
       console.log(`${run.width}px — ${run.pass}/${run.total} passed`);
+      // The coverage numbers, printed whether or not they failed. They are the
+      // point of the rewrite and a number nobody sees is not a signal — the
+      // previous mechanism reported a perfect score while measuring 72 per cent
+      // of the surfaces, and nothing on screen said so.
+      for (const r of run.results ?? []) {
+        if (/^the traversal (measured|made)/.test(r.label)) console.log(`  ${r.note}`);
+      }
       if (run.pageError) {
         // Reported, not swallowed: the page raised something while the suite was
         // running, and whoever reads this score should know that.

@@ -117,7 +117,8 @@ Both `verify.mjs` and the in-page suite declare how many assertions they hold, a
 the real number differs. That guard has its own test:
 
 ```bash
-npm run counters   # breaks both counters four ways; fails if a break goes unnoticed
+npm run counters   # breaks the counters five ways; fails if a break goes unnoticed
+                   # the fifth needs a build and about ninety seconds
 npm run prove      # reverts three shipped contrast fixes; fails if the suite misses one
 ```
 
@@ -143,7 +144,7 @@ which is which matters more than knowing what each one covers.
 |---|---|---|
 | `node verify.mjs` | the content: bilingual pairs, line ranges, blanks, glossary markers, stop numbers, figures quoted in prose | **automatically**, in CI, on every push and every pull request |
 | `?selftest=1`, via `npm run selftest` | the live page: roles and states, keyboard paths, contrast, headings, landmarks, the arithmetic each stop displays | **by hand**, from a committed script, before a merge |
-| `npm run counters` | that both files still contain the number of assertions they claim to | by hand, or whenever either file is edited |
+| `npm run counters` | that both files still contain the number of assertions they claim to, and that the traversal has not quietly stopped descending | by hand, or whenever either file is edited |
 | `npm run prove` | that the contrast check still catches defects that have already shipped | by hand, when the measuring changes |
 
 ### How contrast is measured, and why it changed
@@ -161,11 +162,27 @@ quieter every time a class was renamed and never said so. Traversal measures
 about 207 surfaces per pass instead of 43, and roughly ten thousand across a run.
 
 Traversal has the opposite failure: stepping over an element that is there. So
-the suite asserts its own coverage — the share of text-bearing nodes it managed
-to measure has to clear a declared floor (91.5% at 1440px, 90.3% at 768, 89.6%
-at 390), the absolute number of measurements has to clear a floor too, since a
-ratio cannot see a walk that stopped descending, every skip has to give one of
-six declared reasons, and every stop has to be measured in both themes.
+the suite asserts its own coverage. Every skip has to give one of six declared
+reasons, every stop has to be measured in both themes, and two numbers have to
+clear declared floors — a share and a count. The count is there because the
+share cannot see a walk that stopped descending: fewer nodes found is fewer
+nodes skipped as well, and the ratio does not move.
+
+**Declared:** 119 assertions, coverage floor 0.88, and a floor on measurements of
+10200 at 1200px and wider, 10100 at 700 and wider, 10000 below.
+
+**Measured:**
+
+| Width | Measurements | Present | Coverage | Skipped, by reason |
+|---|---|---|---|---|
+| 1440 | 11,259 | 12,291 | 91.6% | clipped-to-nothing 871, fully-transparent 97, disabled 64 |
+| 768 | 11,111 | 12,291 | 90.4% | + not-rendered 148 |
+| 390 | 11,027 | 12,291 | 89.7% | + not-rendered 232 |
+
+`clipped-to-nothing` is the `.sr-only` pattern, `disabled` is the WCAG 1.4.3
+exemption, `fully-transparent` is mostly the scenes of the opening animation that
+are not the current one. The whole of the difference between 91.6% and 89.7% is
+`not-rendered`: the sidebar leaving the layout at narrow widths.
 
 `verify.mjs` fails if a list of appearance selectors reappears in the suite,
 by shape rather than by name. Two mechanisms mean the stale one keeps voting.

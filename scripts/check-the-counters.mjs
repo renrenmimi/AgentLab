@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 // check-the-counters.mjs — negative tests for the assertion counters.
 //
-// verify.mjs and the in-page suite both declare how many assertions they expect
-// and fail when the real number differs. That guard is worth exactly as much as
-// the proof that it fires, so this file breaks it on purpose, four ways, and
-// fails if any of the four goes unnoticed.
+// verify.mjs and the in-page suite both declare how much they contain and fail
+// when the real number differs. That guard is worth exactly as much as the proof
+// that it fires, so this file breaks it on purpose, five ways, and fails if any
+// of the five goes unnoticed.
+//
+// The fifth needs a browser and a build, and takes about ninety seconds:
+//
+//   npx next build && npm run counters
 //
 // Nothing here edits a tracked file. Each case writes a mutated copy of
 // verify.mjs into the repository root — the same directory, so that the copy
@@ -15,7 +19,8 @@
 //   node scripts/check-the-counters.mjs
 
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,6 +29,9 @@ const VERIFY = join(ROOT, "verify.mjs");
 const SUITE = join(ROOT, "app", "selftest-suite.ts");
 const MUTANT_VERIFY = join(ROOT, ".counters-mutant.mjs");
 const MUTANT_SUITE = join(ROOT, "app", ".counters-mutant-suite.ts");
+
+let scratchDir = null;
+const scratch = () => (scratchDir ??= mkdtempSync(join(tmpdir(), "agentlab-counters-")));
 
 const verifySource = readFileSync(VERIFY, "utf8");
 const suiteSource = readFileSync(SUITE, "utf8");
@@ -116,6 +124,69 @@ cases.push({
   },
 });
 
+// The fifth case is not like the other four. Those break a count inside a file
+// that Node can run in a second. This one breaks the traversal itself, which
+// only exists in a browser, so it costs a build and about ninety seconds — and
+// it earns them, because the failure it simulates is the one the coverage
+// assertions were added for. It is not optional and it does not skip: a guard
+// with a case that quietly does not run is the thing this whole file is about.
+async function traversalReturnsTooFew() {
+  const js = join(scratch(), "truncate.js");
+  writeFileSync(
+    js,
+    `(() => {
+       const real = Element.prototype.querySelectorAll;
+       Element.prototype.querySelectorAll = function (selector) {
+         const found = real.call(this, selector);
+         // Only the traversal's own walk, and only every other node of it.
+         //
+         // Every other rather than the first half on purpose. Cutting the tail
+         // would drop mostly measurable nodes and leave the skipped ones behind,
+         // which moves the coverage ratio and lets the ratio take the credit.
+         // Taking alternate nodes keeps the mix, so the ratio stays where it was
+         // and the absolute count is the only thing that can notice.
+         if (selector === "*" && this === document.body) {
+           return Array.prototype.filter.call(found, (_, i) => i % 2 === 0);
+         }
+         return found;
+       };
+     })();`,
+  );
+
+  if (!existsSync(join(ROOT, ".next"))) {
+    return {
+      ok: false,
+      why: "there is no .next build. Run npx next build first; this case cannot be skipped.",
+    };
+  }
+
+  let out;
+  try {
+    out = execFileSync(
+      process.execPath,
+      [join(ROOT, "scripts", "drive-selftest.mjs"), "--width", "1440", "--inject-js", js],
+      { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+    );
+  } catch (err) {
+    out = `${err.stdout ?? ""}${err.stderr ?? ""}`;
+  }
+
+  const countFired = /the traversal made at least \d+ measurements/.test(out);
+  const ratioFired = /measured at least \d+ per cent/.test(out);
+  if (!countFired) {
+    return { ok: false, why: `the measurement floor said nothing. The suite reported:\n${out.trim()}` };
+  }
+  // The point of having two numbers, shown rather than asserted in prose: half
+  // the nodes means half the numerator and half the denominator, so the ratio
+  // does not move and only the count can see it.
+  return {
+    ok: true,
+    note: ratioFired
+      ? "the ratio fired too, though it is not what this case relies on"
+      : "and the coverage ratio stayed silent, which is exactly why the count is declared as well",
+  };
+}
+
 let failures = 0;
 console.log("");
 for (const c of cases) {
@@ -134,6 +205,16 @@ for (const c of cases) {
 // The point of all four is that a guard nobody has seen fire is not a guard, so
 // this file is worthless if it can pass while doing nothing. An unmutated run
 // has to come back clean, or the cases above prove nothing.
+const truncation = await traversalReturnsTooFew();
+console.log(`  ${truncation.ok ? "✓" : "✗"} the traversal returns fewer nodes than it should`);
+if (truncation.ok) console.log(`      ${truncation.note}`);
+else {
+  failures++;
+  console.log(`      ${truncation.why}`);
+}
+
+if (scratchDir) rmSync(scratchDir, { recursive: true, force: true });
+
 const clean = run(readsItself(verifySource));
 const stillGreen = /checks passed/.test(clean);
 console.log(`  ${stillGreen ? "✓" : "✗"} an unmutated copy still passes`);
@@ -144,5 +225,5 @@ if (failures) {
   console.log(`${failures} of the counters did not fire. The guard is not guarding.\n`);
   process.exit(1);
 }
-console.log("all four counters fire, and a clean copy still passes.\n");
+console.log("all five counters fire, and a clean copy still passes.\n");
 process.exit(0);
