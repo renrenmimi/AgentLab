@@ -774,7 +774,9 @@ body::after {
 }
 
 .chip-end {
-  color: var(--green);
+  /* --green is the fill colour for bars and marks; as text on --green-bg it is
+     2.99:1 in the light theme. --teal-text is the same hue chosen to be read. */
+  color: var(--teal-text);
   background: var(--green-bg);
   border-color: transparent;
   font-weight: 700;

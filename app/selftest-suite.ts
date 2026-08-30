@@ -440,7 +440,7 @@ function required(el: Element, pseudo?: string): number {
 // can compare it against the assertions that actually executed, and read out of
 // this file by verify.mjs so CI notices a change even though CI cannot run the
 // suite itself. Changing an assertion means changing this number.
-const EXPECTED_ASSERTIONS = 118;
+const EXPECTED_ASSERTIONS = 119;
 
 // The share of text-bearing nodes a run has to actually measure.
 //
@@ -451,6 +451,26 @@ const EXPECTED_ASSERTIONS = 118;
 // waited for. Neither failure turns anything red on its own, so coverage is a
 // number the suite asserts rather than a property it hopes for.
 const COVERAGE_FLOOR = 0.88;
+
+/**
+ * Elements that report a state, which have to say so in words and not only in
+ * colour. Written by hand because there is nothing structural to traverse for: a
+ * tag that means "this run ended" looks exactly like a tag that means nothing.
+ *
+ * The contrast list was dangerous because a name that stopped matching was
+ * silently skipped. These names are checked against what they matched.
+ */
+const STATE_SELECTORS = [
+  ".mark-pass",
+  ".mark-fail",
+  ".chip-end",
+  ".chip-bad",
+  ".chip-tool",
+  ".scn-tag",
+  ".tr-tag",
+  ".lsn-col-h",
+  ".tool-out-tag",
+];
 
 /**
  * The smallest number of measurements a whole run may make, by layout.
@@ -503,6 +523,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   const nameless: string[] = [];
   const positiveTab: string[] = [];
   const colourOnly: string[] = [];
+  const stateSeen = new Set<string>();
   const lowContrast: { id: string; where: string; ratio: number; need: number }[] = [];
   // Traversal reports two numbers, not one. How many surfaces failed is the
   // obvious one; how many were measured at all is the one that went wrong last
@@ -517,6 +538,23 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   // and the state it was driven into, so a failure says where to look.
   const sweep = (where: string) => {
     const theme = document.documentElement.dataset.theme ?? "?";
+
+    // Anything that reports a state has to say so in words as well as in hue.
+    //
+    // This runs here, beside the measuring, rather than once per stop at rest.
+    // Four of the nine names matched nothing when it ran at rest — the chips and
+    // the tool-output heading exist only after a run has been stepped — so the
+    // check was passing on five names and silent about four. That is the same
+    // failure the contrast list had, in the second list.
+    for (const name of STATE_SELECTORS) {
+      for (const el of $$(name)) {
+        stateSeen.add(name);
+        if (text(el).replace(/[✓✕✗→←·]/g, "").trim() === "") {
+          colourOnly.push(`${where} ${el.className}`);
+        }
+      }
+    }
+
     const pass = measurePage();
     measuredCount += pass.measured.length;
     if (pass.measured.length > 0) measuredIn.add(`${theme}${where}`);
@@ -554,15 +592,6 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
       if (ti && Number(ti) > 0) positiveTab.push(`${stop.href} ${el.className}`);
     }
 
-    // Anything that reports a state has to say so in words as well as in hue.
-    for (const el of $$(
-      ".mark-pass, .mark-fail, .chip-end, .chip-bad, .chip-tool, .scn-tag, .tr-tag, .lsn-col-h, .tool-out-tag",
-    )) {
-      if (text(el).replace(/[✓✕✗→←·]/g, "").trim() === "") {
-        colourOnly.push(`${stop.href} ${el.className}`);
-      }
-    }
-
     // Contrast, in whichever theme the page is currently in.
     sweep(stop.href);
   }
@@ -571,7 +600,13 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   ok(overflow.length === 0, `nothing overflows sideways at ${width}px`, overflow.join("; ") || "none");
   ok(nameless.length === 0, "every control has an accessible name", nameless.slice(0, 4).join("; ") || "none");
   ok(positiveTab.length === 0, "no positive tabindex disturbs the tab order", positiveTab.join("; ") || "none");
-  ok(colourOnly.length === 0, "no state is signalled by colour alone", colourOnly.slice(0, 4).join("; ") || "none");
+  // Deduplicated: the same element is now visited in every pass it survives.
+  const colourOnlyUnique = [...new Set(colourOnly)];
+  ok(
+    colourOnlyUnique.length === 0,
+    "no state is signalled by colour alone",
+    colourOnlyUnique.slice(0, 4).join("; ") || "none",
+  );
 
   // ---- focus ------------------------------------------------------------
   await go("/loop");
@@ -1417,6 +1452,20 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   await stepRun(2);
   await measureHere("/loop-pending");
 
+  // A run carried all the way to its end. The closing chip only exists on the
+  // last step of a scenario, so stepping three times never reached it and the
+  // state list was quietly one name short. Stops on its own terms rather than
+  // after a fixed count, because the number of steps differs by scenario.
+  for (let i = 0; i < 30; i++) {
+    if (document.body.dataset.stop !== "/loop") break;
+    if ($(".chip-end")) break;
+    const advance = $$<HTMLButtonElement>(".controls .btn-primary")[0];
+    if (!advance || advance.disabled) break;
+    advance.click();
+    await settle(2);
+  }
+  await measureHere("/loop-done");
+
   // The closing scene of the opening animation carries the formula badge.
   // Stepping to it is not an option: on the last scene the advance control
   // becomes a link to the next stop, so one click too many leaves the page.
@@ -1530,6 +1579,13 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     undeclared.length === 0,
     "every surface skipped was skipped for a declared reason",
     undeclared.join(", ") || `${skipTally.size} of ${SKIP_REASONS.length} reasons used`,
+  );
+
+  const unmatched = STATE_SELECTORS.filter((name) => !stateSeen.has(name));
+  ok(
+    unmatched.length === 0,
+    "every selector in the state list still matches something",
+    unmatched.join(", ") || `${STATE_SELECTORS.length} names, all matched`,
   );
 
   // A stop that contributes nothing is the seventeen dead selectors again, in a

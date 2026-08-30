@@ -118,6 +118,7 @@ the real number differs. That guard has its own test:
 
 ```bash
 npm run counters   # breaks both counters four ways; fails if a break goes unnoticed
+npm run prove      # reverts three shipped contrast fixes; fails if the suite misses one
 ```
 
 ## Notes on design
@@ -142,7 +143,32 @@ which is which matters more than knowing what each one covers.
 |---|---|---|
 | `node verify.mjs` | the content: bilingual pairs, line ranges, blanks, glossary markers, stop numbers, figures quoted in prose | **automatically**, in CI, on every push and every pull request |
 | `?selftest=1`, via `npm run selftest` | the live page: roles and states, keyboard paths, contrast, headings, landmarks, the arithmetic each stop displays | **by hand**, from a committed script, before a merge |
-| `npm run counters` | that the two above still contain the number of assertions they claim to | by hand, or whenever either file is edited |
+| `npm run counters` | that both files still contain the number of assertions they claim to | by hand, or whenever either file is edited |
+| `npm run prove` | that the contrast check still catches defects that have already shipped | by hand, when the measuring changes |
+
+### How contrast is measured, and why it changed
+
+Every node that paints text is found by walking the rendered tree and measured
+in place. There is no list of surfaces. There was one, for three rounds — sixty
+class names typed out by hand — and this is what it did:
+
+> It reported a perfect score while seventeen of its sixty entries matched no
+> element at all. It was measuring 43 surfaces and passing 60, and three
+> published contrast defects were sitting in the 17.
+
+A selector that matches nothing is skipped rather than reported, so the list got
+quieter every time a class was renamed and never said so. Traversal measures
+about 207 surfaces per pass instead of 43, and roughly ten thousand across a run.
+
+Traversal has the opposite failure: stepping over an element that is there. So
+the suite asserts its own coverage — the share of text-bearing nodes it managed
+to measure has to clear a declared floor (91.5% at 1440px, 90.3% at 768, 89.6%
+at 390), the absolute number of measurements has to clear a floor too, since a
+ratio cannot see a walk that stopped descending, every skip has to give one of
+six declared reasons, and every stop has to be measured in both themes.
+
+`verify.mjs` fails if a list of appearance selectors reappears in the suite,
+by shape rather than by name. Two mechanisms mean the stale one keeps voting.
 
 The second row is the gap, and it is worth being plain about it. The in-page
 suite is the half that catches what a static reader cannot see, and it is the
@@ -182,9 +208,11 @@ Opening any page with `?selftest=1` runs the assertions a static check cannot ma
 live DOM: that the tab list is a real tab list, that stepping through a run and back matches
 `stateAt()`, that the cost slider's numbers still satisfy the arithmetic, that a wrong answer
 in a group check shows that option's own correction and that the right answer cannot be found
-in the markup. It also computes contrast for sixty text surfaces in both themes, walks the
-heading spine and the landmarks of all fourteen stops, and checks that every graphic is either
-named or hidden and that every control's name says what it does.
+in the markup. It walks the heading spine and the landmarks of all fourteen stops, checks that
+every graphic is either named or hidden and that every control's name says what it does, and
+computes contrast for every text-bearing node on every stop in both themes — including
+pseudo-elements, SVG text, and text painted through its own background — while reporting what
+share of them it reached.
 
 **What none of that covers, and why:**
 
@@ -225,6 +253,7 @@ prerenders to static pages.
 | `verify.mjs` | Static checks over all of the above |
 | `scripts/drive-selftest.mjs` | Runs `?selftest=1` in a real browser and reports the score |
 | `scripts/check-the-counters.mjs` | Breaks both assertion counters on purpose and fails if a break goes unnoticed |
+| `scripts/prove-contrast-catches.mjs` | Puts shipped contrast defects back and fails if the suite does not notice |
 | `app/selftest.tsx` · `app/selftest-suite.ts` | `?selftest=1` — the assertions a static check cannot make |
 
 ---
