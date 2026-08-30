@@ -96,10 +96,22 @@ npm run dev     # http://localhost:3000
 npm run verify  # static checks over the course content
 ```
 
-Then open any page with `?selftest=1` — `http://localhost:3000/?selftest=1` — to run the
-behavioural assertions against the live DOM. The score goes into `document.title`, and the
-report is printed on the page and to the console. CI cannot run it, so the scores at 1440,
-768 and 390 pixels go in each pull request instead.
+Then run the in-page suite. It lives behind a flag on every page, and a committed driver
+runs it in a real browser at the three widths the course is checked at:
+
+```bash
+npx next build
+npm run selftest                       # all three widths, exits non-zero on a failure
+npm run selftest -- --width 390        # one width
+npm run selftest -- --url http://localhost:3000   # against a server you already have
+CHROME_PATH=/path/to/chrome npm run selftest      # if Chrome is somewhere unusual
+```
+
+`scripts/drive-selftest.mjs` launches Chrome with a debugging port and drives it over the
+DevTools protocol using the `WebSocket` built into Node 22, so it needs nothing from npm.
+Opening `http://localhost:3000/?selftest=1` by hand does the same thing without the driver:
+the score goes into `document.title` and the report is printed on the page and to the
+console.
 
 ## Notes on design
 
@@ -167,6 +179,7 @@ prerenders to static pages.
 | `lib/meta.ts` | Per-stop title and description, written one at a time |
 | `app/og/route.tsx` | One route, fifteen share cards, no dependency |
 | `verify.mjs` | Static checks over all of the above |
+| `scripts/drive-selftest.mjs` | Runs `?selftest=1` in a real browser and reports the score |
 | `app/selftest.tsx` · `app/selftest-suite.ts` | `?selftest=1` — the assertions a static check cannot make |
 
 ---
