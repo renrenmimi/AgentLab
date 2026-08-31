@@ -142,10 +142,18 @@ which is which matters more than knowing what each one covers.
 
 | | What it checks | When it runs |
 |---|---|---|
-| `node verify.mjs` | the content: bilingual pairs, line ranges, blanks, glossary markers, stop numbers, figures quoted in prose | **automatically**, in CI, on every push and every pull request |
-| `?selftest=1`, via `npm run selftest` | the live page: roles and states, keyboard paths, contrast, headings, landmarks, the arithmetic each stop displays | **by hand**, from a committed script, before a merge |
+| `node verify.mjs` | the content: bilingual pairs, line ranges, blanks, glossary markers, stop numbers, figures quoted in prose | **automatically**, in CI, every push and pull request |
+| `?selftest=1`, via `npm run selftest` | the live page: roles and states, keyboard paths, contrast, headings, landmarks, the arithmetic each stop displays | **automatically**, in CI, every push and pull request |
+| `npm run prove` | that the contrast check still catches defects that have already shipped | **automatically**, in CI, on `main` after a merge |
 | `npm run counters` | that both files still contain the number of assertions they claim to, and that the traversal has not quietly stopped descending | by hand, or whenever either file is edited |
-| `npm run prove` | that the contrast check still catches defects that have already shipped | by hand, when the measuring changes |
+
+The second row is new. It ran by hand for five rounds, which is how the sibling
+project accumulated eighteen silently failing assertions and how three contrast
+defects shipped here. The workflow passes the declared totals on the command
+line — `--expect-assertions 121 --expect-coverage 0.88` — rather than only
+letting the suite check itself, so lowering them is a line in a diff about CI.
+Zero failures is not the assertion: a run that measures less can report
+everything it did measure as green.
 
 ### How contrast is measured, and why it changed
 
@@ -187,13 +195,11 @@ are not the current one. The whole of the difference between 91.6% and 89.7% is
 `verify.mjs` fails if a list of appearance selectors reappears in the suite,
 by shape rather than by name. Two mechanisms mean the stale one keeps voting.
 
-The second row is the gap, and it is worth being plain about it. The in-page
-suite is the half that catches what a static reader cannot see, and it is the
-half that only runs when somebody remembers to run it. The sibling project,
-AgentTape, ran the same arrangement and wrote in its CI configuration that the
-suite "is run by hand before every merge." Eighteen of its assertions then
-failed continuously for an entire round of work. Every CI run was green,
-because CI was not running them.
+That gap is closed, and it is worth recording what it cost while it was open.
+The sibling project, AgentTape, ran the same arrangement and wrote in its CI
+configuration that the suite "is run by hand before every merge." Eighteen of its
+assertions then failed continuously for an entire round of work. Every CI run was
+green, because CI was not running them.
 
 This project was worse off than that. The script that drove its suite was
 written as scratch and deleted, so for five merged pull requests — which folded
@@ -202,16 +208,19 @@ a stop away, renumbered the rest, moved a landmark and renamed two others — th
 what `scripts/drive-selftest.mjs` is; running it again found three contrast
 failures that had shipped, on surfaces no run had ever measured.
 
-So the honest statement is: **the green check on a pull request means the
-content is verified, not that the pages are.** Until the driver runs in CI, the
-in-page suite is verified by a person typing `npm run selftest` and reading the
-number. `npm run counters` exists because that number is the only signal, and a
-signal nobody can trust is not a signal.
+The two projects do not share a driver. Two repositories cannot share a file
+without a dependency or a submodule, and neither is worth it for a two-hundred
+line script, so AgentTape keeps its own. What they share is a shape and an
+environment contract: `CHROME_PATH` first and then the usual names on `PATH`, an
+explicit port, a non-zero exit, and the viewport set through
+`Emulation.setDeviceMetricsOverride` rather than by resizing a window.
 
-Putting the driver into CI is deliberately left for later, and left for both projects at
-once: AgentLab and AgentTape have the same problem and can share one driver, which is why
-this one is committed, has no dependencies, and finds Chrome by looking in the places a
-Linux runner would keep it rather than the places a Mac does.
+One thing in the driver is not an implementation detail.
+`Emulation.setFocusEmulationEnabled` has to be on, because a headless window is
+never the focused window and `:focus-visible` never matches without it — every
+focus assertion would pass while testing nothing. Its failure used to be
+swallowed. On a laptop that means somebody eventually notices the focus rings are
+wrong; on a runner it means nobody ever does. It is a hard error now.
 
 ## What is checked, and what is not
 

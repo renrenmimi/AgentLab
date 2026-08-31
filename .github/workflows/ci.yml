@@ -30,3 +30,73 @@ jobs:
 
       - name: Build
         run: npx next build
+
+  # The in-page suite, in a real browser, at the three widths the course is
+  # checked at. It ran by hand for five rounds, which is how the sibling project
+  # accumulated eighteen silently failing assertions and how three contrast
+  # defects shipped here.
+  #
+  # ubuntu-latest ships Chrome. The driver finds it through CHROME_PATH first and
+  # then the usual names on PATH, and sets the viewport with
+  # Emulation.setDeviceMetricsOverride rather than resizing a window, so a result
+  # does not depend on the runner's screen.
+  selftest:
+    name: in-page suite
+    runs-on: ubuntu-latest
+    # Fails the job rather than hanging it. The driver bounds each viewport at
+    # ten minutes and each DevTools request at sixty seconds, and reports the
+    # last assertion the suite completed; this is the outer bound in case the
+    # runner itself is the thing that is stuck.
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npx next build
+
+      # The declared totals are passed here rather than only read from the
+      # suite. The suite checks its own count against its own constant and
+      # verify.mjs checks that constant against the suite's source, but both of
+      # those move together when somebody edits both. Lowering the numbers below
+      # is a line in a diff about CI, which is a different thing to read.
+      - name: Run the suite at three widths in both themes
+        run: |
+          node scripts/drive-selftest.mjs \
+            --expect-assertions 121 \
+            --expect-coverage 0.88
+
+  # Not on every push: it drives the browser four more times, and it answers a
+  # question that only changes when the measuring changes. On main after a merge
+  # is often enough, and it is the run that would notice a contrast check that
+  # had quietly stopped detecting anything.
+  prove:
+    name: the detector still detects
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npx next build
+
+      - name: Put shipped contrast defects back and check the suite notices
+        run: node scripts/prove-contrast-catches.mjs

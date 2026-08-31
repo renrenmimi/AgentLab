@@ -532,6 +532,10 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   const results: Result[] = [];
   const ok = (cond: boolean, label: string, note?: string) => {
     results.push({ ok: !!cond, label, note });
+    // Published as the suite goes, so a run that never finishes can still say
+    // where it stopped. A browser killed by a runner's own limit, or a page that
+    // wedges, otherwise produces a timeout and no information at all.
+    document.documentElement.dataset.selftestAt = `${results.length}: ${label}`;
   };
 
   const globalsBefore = new Set(Object.keys(window));
