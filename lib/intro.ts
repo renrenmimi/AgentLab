@@ -18,12 +18,14 @@ export const scenes: Scene[] = [
     text: {
       zh:
         "只要你写过一次 print(\"hello world\")，你就已经知道编程的全部本质：程序就是写给电脑的指令清单，" +
-        "电脑一行一行照着做，仅此而已。接下来用到的每一个新概念——数组、循环、API——都会在用到的那一刻现场教给你；" +
+        "电脑一行一行照着做，仅此而已。接下来用到的每一个新概念——[[array:数组]]、[[loop:循环]]、[[api:API]]——" +
+        "都会在用到的那一刻现场教给你；" +
         "正文里带虚线下划线的词，点一下就有解释。除了那一行 print，什么都不需要提前会。",
       en:
         "If you have written print(\"hello world\") once, you already know what a program is: a list of " +
-        "instructions for the computer, followed one line at a time. That is all. Every new idea used here — arrays, " +
-        "loops, APIs — is explained at the moment you need it, and any word with a dotted underline can be clicked for " +
+        "instructions for the computer, followed one line at a time. That is all. Every new idea used here — " +
+        "[[array:arrays]], [[loop:loops]], [[api:APIs]] — is explained at the moment you need it, and any word " +
+        "with a dotted underline can be clicked for " +
         "a plain explanation. Beyond that one line of print, nothing is assumed.",
     },
   },

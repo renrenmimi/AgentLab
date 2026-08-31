@@ -22,7 +22,7 @@ export const glossary: Record<
   { word: L; def: L; firstAt: string }
 > = {
   api: {
-    firstAt: "/loop",
+    firstAt: "/",
     word: { zh: "API", en: "API" },
     def: {
       zh: "别人搭好的“服务窗口”：你的程序把请求通过网络发过去，它把结果发回来。Claude API 就是一个“文字进、文字出”的窗口。",
@@ -35,6 +35,14 @@ export const glossary: Record<
     def: {
       zh: "一排带编号的格子，可以一直往后追加新格子。写作 [ ]，比如 [\"苹果\", \"香蕉\"] 是两格。",
       en: "A row of numbered slots you can keep appending to. Written [ ], e.g. [\"apple\", \"banana\"] has two slots.",
+    },
+  },
+  loop: {
+    firstAt: "/",
+    word: { zh: "循环", en: "loop" },
+    def: {
+      zh: "让同一段代码反复执行，直到某个条件成立才停。这门课的结论就是一句话：agent 是一个数组加一个循环——循环每转一圈，数组就长一点。",
+      en: "Running the same piece of code over and over until some condition says stop. The conclusion of this course is one sentence: an agent is an array plus a loop, and the array grows by one turn each time round.",
     },
   },
   push: {
@@ -143,12 +151,18 @@ export const glossary: Record<
   },
 };
 
-// 正文里认三种标记，别的都不认：
+// 正文里认四种标记，别的都不认：
 //   [[key:显示文字]]  可点击的术语
-//   [[stop:/cost]]    指向另一站，序号由 lib/stops.ts 的顺序算出来
+//   [[stop:/cost]]    指向读者已经走过的一站
+//   [[ahead:/cost]]   指向后面的一站，只作路标
 //   **强调**          加粗
 // 交叉引用不写死数字，是因为它们一定会随着插入新站点而错位——
-// 上一轮就错了十几处。verify.mjs 会检查每个 [[stop:…]] 都指向真实存在的站点。
+// 上一轮就错了十几处。verify.mjs 会检查每个引用都指向真实存在的站点。
+//
+// stop 和 ahead 渲染成同一个样子，读者看到的没有区别。分开写是给检查看的：
+// 指向后面的一站可以是路标（「那是第 10 站的事」），但不能是依赖——如果一句话
+// 要读者先懂后面那一站才读得通，按顺序走的人就会卡在这里。verify.mjs 因此
+// 要求 [[stop:…]] 只能向后指，[[ahead:…]] 只能向前指，两边都不许写反。
 const RE = /\[\[(\w+):([^\]]+)\]\]|\*\*([^*]+)\*\*/g;
 
 export function RichText({ text, lang }: { text: string; lang: Lang }) {
@@ -160,7 +174,7 @@ export function RichText({ text, lang }: { text: string; lang: Lang }) {
     if (idx > last) parts.push(text.slice(last, idx));
     if (m[3] !== undefined) {
       parts.push(<strong key={k++}>{m[3]}</strong>);
-    } else if (m[1] === "stop") {
+    } else if (m[1] === "stop" || m[1] === "ahead") {
       parts.push(<StopRef key={k++} href={m[2]} lang={lang} />);
     } else {
       parts.push(<Term key={k++} termKey={m[1]} display={m[2]} lang={lang} />);
