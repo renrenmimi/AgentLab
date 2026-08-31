@@ -159,10 +159,43 @@ async function connect(port) {
     else resolve(msg.result);
   };
 
+  // A dead socket used to be silent. Chrome exiting left every request in flight
+  // waiting for an answer that was never coming, and since the wait loop only
+  // checks its deadline between awaits, one unanswered request suspended the
+  // deadline as well. A run sat for forty-nine minutes against a ten-minute
+  // limit. Both halves are fixed: the socket closing rejects what is pending, and
+  // every request carries its own timeout.
+  const abandon = (why) => {
+    for (const [id, { reject }] of pending) {
+      pending.delete(id);
+      reject(new Error(why));
+    }
+  };
+  ws.onclose = () => abandon("the DevTools socket closed while a request was in flight");
+  ws.onerror = () => abandon("the DevTools socket errored while a request was in flight");
+
+  // Sixty seconds. The page is single-threaded and the suite measures twelve
+  // thousand nodes in one synchronous pass, so an evaluate can legitimately wait
+  // several seconds behind it. Nothing legitimately waits a minute.
+  const CALL_TIMEOUT_MS = 60 * 1000;
+
   const send = (method, params = {}) =>
     new Promise((resolve, reject) => {
       const id = ++nextId;
-      pending.set(id, { resolve, reject });
+      const timer = setTimeout(() => {
+        pending.delete(id);
+        reject(new Error(`${method} did not answer within ${CALL_TIMEOUT_MS / 1000}s`));
+      }, CALL_TIMEOUT_MS);
+      pending.set(id, {
+        resolve: (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        reject: (err) => {
+          clearTimeout(timer);
+          reject(err);
+        },
+      });
       ws.send(JSON.stringify({ id, method, params }));
     });
 
@@ -266,6 +299,11 @@ async function serve(port) {
 async function runAt(chrome, url, { width, height }, keepOpen, injectCss, injectJs) {
   const profile = mkdtempSync(join(tmpdir(), "agentlab-selftest-"));
   const port = 9200 + Math.floor(Math.random() * 700);
+  // Detached, and killed as a group. Chrome used to be a plain child cleaned up
+  // in a finally, which is skipped when this process is killed rather than
+  // returning — and a headless Chrome with nine helpers left running competes
+  // with the next run for the machine. That is not hypothetical: it is why one
+  // width of one run took forty-nine minutes.
   const proc = spawn(
     chrome,
     [
@@ -279,8 +317,28 @@ async function runAt(chrome, url, { width, height }, keepOpen, injectCss, inject
       "--force-device-scale-factor=1",
       "about:blank",
     ],
-    { stdio: ["ignore", "ignore", "ignore"] },
+    { stdio: ["ignore", "ignore", "ignore"], detached: true },
   );
+
+  const killChrome = () => {
+    try {
+      process.kill(-proc.pid, "SIGKILL");
+    } catch {
+      try {
+        proc.kill("SIGKILL");
+      } catch {
+        /* already gone */
+      }
+    }
+  };
+  // A signal skips the finally below, so the same cleanup is attached to the
+  // ways this process can be ended from outside.
+  const onSignal = () => {
+    killChrome();
+    process.exit(130);
+  };
+  process.once("SIGINT", onSignal);
+  process.once("SIGTERM", onSignal);
 
   let socket;
   try {
@@ -391,7 +449,9 @@ async function runAt(chrome, url, { width, height }, keepOpen, injectCss, inject
     } catch {
       /* already gone */
     }
-    proc.kill("SIGKILL");
+    process.removeListener("SIGINT", onSignal);
+    process.removeListener("SIGTERM", onSignal);
+    killChrome();
     try {
       rmSync(profile, { recursive: true, force: true, maxRetries: 5 });
     } catch {
@@ -429,6 +489,7 @@ try {
       // of the surfaces, and nothing on screen said so.
       for (const r of run.results ?? []) {
         if (/^the traversal (measured|made)/.test(r.label)) console.log(`  ${r.note}`);
+        if (/^the quietest text/.test(r.label)) console.log(`  quietest: ${r.note}`);
       }
       if (run.pageError) {
         // Reported, not swallowed: the page raised something while the suite was

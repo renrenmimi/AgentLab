@@ -176,7 +176,10 @@ function MsgRow({
 }) {
   return (
     <li className={`ctx-row${state === "drop" ? " ctx-dropped" : ""}`}>
-      <span className="ctx-role">{m.role}</span>
+      <span className="ctx-role">
+        {m.role}
+        {state === "drop" && <span className="ctx-drop-tag">{t(bench.droppedWord, lang)}</span>}
+      </span>
       <span className="ctx-body">
         <b>
           {t(m.label, lang)}
