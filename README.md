@@ -32,6 +32,12 @@ the agent adapts, answer a question wrongly and be told which idea the mistake c
 
 *`/all` — the same prose in reading order, for coming back to*
 
+![The share card for the opening stop](docs/share-card.png)
+
+*What a shared link looks like. One route draws all fifteen at `/og?s=/cost`, in the
+course's own colours, with the stop number computed from `lib/order.ts` — so nothing has to
+be redrawn when the order changes.*
+
 ## The stops
 
 The numbers come from position in `lib/order.ts`; nothing writes one down.
