@@ -22,7 +22,7 @@
 // and a colour pair does not depend on the viewport.
 
 import { execFileSync } from "node:child_process";
-import { writeFileSync, rmSync, mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -35,16 +35,18 @@ const scratch = mkdtempSync(join(tmpdir(), "agentlab-prove-"));
 // defect was live, kept so the two numbers can be compared.
 const CASES = [
   {
-    name: "round two's --btn-a / --btn-b pair reverted to the accent pair",
+    name: "the accent surface reverted to the bright accent pair",
     story:
-      "one revert, three surfaces. The list named the first, matched the second " +
-      "but never in a state where it existed, and did not contain the third.",
+      "one revert, four surfaces. The old selector list named the button, matched " +
+      "the chat bubble but never in a state where it existed, and did not contain " +
+      "the scene bubble or the language switch at all.",
     css: `:root, [data-theme="dark"], [data-theme="light"] {
-            --btn-a: #a99cff;
-            --btn-b: #8a7cf6;
+            --accent-solid-a: #a99cff;
+            --accent-solid-b: #8a7cf6;
           }`,
+    needs: ["--accent-solid-a", "--accent-solid-b"],
     expect: ["btn-primary", "bubble-user", "sc-in"],
-    found: "2.36:1 dark, 3.34:1 light",
+    found: "2.36:1 dark, 3.34:1 light, three times over three rounds",
   },
   {
     name: "round four's .f-agent fix reverted",
@@ -52,6 +54,7 @@ const CASES = [
     css: `.f-agent {
             background: linear-gradient(120deg, var(--accent-2), var(--teal), var(--accent-2)) !important;
           }`,
+    needs: [".f-agent", "--accent-2"],
     expect: ["f-agent"],
     found: "2.10:1 dark, against the 3:1 large text needs",
   },
@@ -59,6 +62,7 @@ const CASES = [
     name: "round four's .tool-pending fix reverted",
     story: "the pending badge, on a teal-tinted chip in the light theme.",
     css: `[data-theme="light"] { --amber: #8f5f0e; }`,
+    needs: ["--amber"],
     expect: ["tool-pending"],
     found: "4.35:1 light",
   },
@@ -79,9 +83,26 @@ function run(css) {
   }
 }
 
+// A revert that names something the stylesheet no longer has changes nothing,
+// and a case that changes nothing tests nothing. That happened the first time
+// this file outlived a rename: it reverted --btn-a, which had become
+// --accent-solid-a, and reported that the suite had missed a defect it was never
+// shown. It failed loudly, which is right, but it said the wrong thing. This
+// says the right thing.
+const css = readFileSync(join(ROOT, "app", "globals.css"), "utf8");
+
 console.log("");
 let failures = 0;
 for (const c of CASES) {
+  const gone = (c.needs ?? []).filter((name) => !css.includes(name));
+  if (gone.length) {
+    failures++;
+    console.log(`  ✗ ${c.name}`);
+    console.log(`      this case reverts ${gone.join(", ")}, which app/globals.css no`);
+    console.log(`      longer contains. The case is stale, not the suite. Update it.`);
+    console.log("");
+    continue;
+  }
   const out = run(c.css);
   const line =
     out.split("\n").find((l) => l.includes("clear their contrast requirement")) ?? "";

@@ -32,13 +32,13 @@ const CACHE = join(ROOT, "node_modules", ".cache", "agentlab-verify");
 // change then appears in the diff, where a reviewer can see it.
 const EXPECTED = {
   // Counted as they run, so a check nobody calls lowers this.
-  checks: 22,
+  checks: 23,
   // Counted out of this file's own source, so an assertion appended after the
   // exit below raises this even though it never executes. This went from 137 to
   // 150 without an assertion being added: the tokenizer used to lose sync on a
   // regular expression containing a quote and stopped counting from there. The
   // guard was under-counting itself.
-  failSites: 158,
+  failSites: 164,
   // The same two ideas for the in-page suite, which CI cannot run. Its source is
   // read as text here; its own copy of the total is compared at run time.
   suiteOkSites: 113,
@@ -1374,7 +1374,119 @@ check("opacity is declared wherever it is used, and never beside a colour", () =
   }
 });
 
-// 9. The counters themselves --------------------------------------------------
+// 9. One surface for accent text ----------------------------------------------
+// White on the bright accent pair measures 2.36:1. That defect has been found
+// and fixed three times, with the same number each time: .btn-primary in round
+// two, .bubble-user in round four, .sc-in in round five. Round two's fix gave
+// .btn-primary its own darker gradient and left the bright one in place, so the
+// next author reached for it twice more. Two solutions to one problem is how the
+// second and third instances happened.
+//
+// There is one accent surface now, and one colour allowed on it. This is the
+// check that would have caught all three, two rounds before the first of them.
+const ACCENT_STOPS = ["--accent-solid-a", "--accent-solid-b", "--teal-deep"];
+
+// sRGB relative luminance and the WCAG ratio, on hex literals. Small enough to
+// carry here rather than to depend on, and the numbers it produces are the ones
+// written into the stylesheet beside the tokens.
+function ratio(hexA, hexB) {
+  const channel = (v) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  const luminance = (hex) => {
+    const h = hex.replace("#", "");
+    const wide = h.length === 3 ? [...h].map((c) => c + c).join("") : h;
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(wide.slice(i, i + 2), 16));
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  };
+  const [hi, lo] = [luminance(hexA), luminance(hexB)].sort((a, b) => b - a);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+check("text on the accent surface uses the one colour meant for it", () => {
+  const css = readFileSync(join(ROOT, "app", "globals.css"), "utf8");
+
+  const valueOf = (token) => {
+    const found = css.match(new RegExp(`${token}:\\s*(#[0-9a-fA-F]{3,8})`));
+    return found ? found[1] : null;
+  };
+
+  // The claim written beside the tokens, checked rather than trusted.
+  const onAccent = valueOf("--on-accent");
+  if (!onAccent) {
+    fail("app/globals.css", "--on-accent is not defined; nothing names the colour for accent text");
+  } else {
+    for (const stop of ACCENT_STOPS) {
+      const value = valueOf(stop);
+      if (!value) {
+        fail("app/globals.css", `${stop} is not defined, but the accent surface is built from it`);
+        continue;
+      }
+      const measured = ratio(onAccent, value);
+      if (measured < 4.5) {
+        fail(
+          "app/globals.css",
+          `${onAccent} on ${stop} (${value}) is ${measured.toFixed(2)}:1. Every stop of ` +
+            `the accent surface has to clear 4.5, or text is safe at one end of the ` +
+            `gradient and not the other.`,
+        );
+      }
+    }
+  }
+
+  const withoutKeyframes = css.replace(/@keyframes[\s\S]*?\n}/g, "");
+  for (const rule of withoutKeyframes.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selector = rule[1].trim().split("\n").pop().trim();
+    const body = rule[2];
+    const hasColour = /(^|[\s;]) *color:/.test(body);
+    const hasGradient = /gradient\(|--accent-surface/.test(body);
+    if (!hasColour || !hasGradient) continue;
+
+    // A background clipped to the text is the text, not a surface behind it.
+    // .brand is drawn that way and is measured through the traversal instead.
+    if (/background-clip:\s*text/.test(body)) continue;
+
+    const colour = body.match(/(^|[\s;]) *color:\s*([^;]+);/)[2].trim();
+    if (colour !== "var(--on-accent)") {
+      fail(
+        "app/globals.css",
+        `"${selector}" puts "${colour}" on a gradient. The colour for a gradient ` +
+          `surface is var(--on-accent), which is the only one whose contrast against ` +
+          `every stop is asserted. This rule is the shape that shipped three times.`,
+      );
+    }
+
+    // Only the background declaration. A box-shadow in the same rule mentions
+    // --accent-glow, which is not a stop and never touches the text.
+    const background = (body.match(/background(?:-image)?:[\s\S]*?;/) ?? [""])[0];
+    for (const used of background.matchAll(/var\((--[\w-]+)\)/g)) {
+      const token = used[1];
+      if (!/accent|teal|btn/.test(token)) continue;
+      if (token === "--on-accent" || token === "--accent-surface") continue;
+      if (!ACCENT_STOPS.includes(token)) {
+        fail(
+          "app/globals.css",
+          `"${selector}" builds a gradient from ${token}, which is not one of the ` +
+            `stops asserted to carry --on-accent. Use --accent-surface, or add the ` +
+            `stop to ACCENT_STOPS in verify.mjs once it clears 4.5.`,
+        );
+      }
+    }
+  }
+
+  // The pair round two introduced. Removing it is the point: leaving both meant
+  // two answers to one question, which is how this happened twice more.
+  if (/--btn-a|--btn-b/.test(css)) {
+    fail(
+      "app/globals.css",
+      "--btn-a and --btn-b are back. They were round two's separate fix for this " +
+        "exact defect, and keeping two accent surfaces is what let it ship twice more.",
+    );
+  }
+});
+
+// 10. The counters themselves --------------------------------------------------
 // Everything above trusts that it ran. This does not. It reads both assertion
 // files as text and compares what they contain against the numbers declared at
 // the top, which is the only way to notice an assertion that was added, deleted,
