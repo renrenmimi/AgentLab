@@ -71,6 +71,35 @@ The numbers come from position in `lib/order.ts`; nothing writes one down.
 14. **`/next` — What this course left out.** Where it stops, why, and where to go: real runs,
     frameworks, evaluation in earnest, multi-agent systems.
 
+## What it assumes
+
+The course used to say that beyond one line of `print("hello world")`, nothing was assumed.
+That was written for a three-stop version and stopped being true a long time ago: `/build`
+asks you to read a thirty-one line skeleton, `/tools` shows a JSON tool description, `/loop`
+runs a code panel beside the conversation, and `/again` is about idempotency.
+
+So here is the measured version instead. Fifteen terms have a glossary entry and are
+explained where they first appear — array, loop, API, token, object, push, stateless,
+`stop_reason`, `tool_result`, system prompt, sampling, temperature, context window, prompt
+injection, backoff, idempotent. **Seventeen more are used without one.** `verify.mjs` holds
+that list and fails if a word on it moves, or if a word joins it without being added
+deliberately.
+
+| | Words | First met at |
+|---|---|---|
+| **Programming vocabulary**, used as if known | 函数 / function, 变量 / variable, 字符串 / string, 布尔 / boolean, JSON, 参数 / argument, 字段 / field, 接口 / interface, 栈 / stack, 服务器 / server | `/`, `/loop`, `/build`, `/chance`, `/context` |
+| **Operational vocabulary** | 缓存 / cache, 超时 / timeout, 重试 / retry, 副作用 / side effect | `/loop`, `/chance`, `/again` |
+| **Domain vocabulary** the course develops by using it | 模型 / model, 提示词 / prompt, 上下文 / context | `/`, `/loop` |
+
+What that adds up to: you need to be able to **read** a short line of code, not write one. If
+you know what a function and a variable are and have seen a JSON object, nothing here will
+stop you. If you have not, the third group is the one to expect trouble from, and `/build`
+is where you would meet it.
+
+Stating this is more useful than promising nothing. A course that names its prerequisites can
+be checked against them, and this one is: the list above comes out of the same run that
+verifies the prose.
+
 ## Coming back to it
 
 - **[`/all`](https://agent-lab-blond.vercel.app/all) — the whole course on one page.** Every
