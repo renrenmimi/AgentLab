@@ -238,6 +238,23 @@ function gradientStops(image: string | null): RGBA[] {
 }
 
 /**
+ * Every ancestor between this element and the root that dims it, nearest first.
+ *
+ * All of them, not the nearest: two containers at 0.9 make 0.81, and naming only
+ * the inner one would leave the outer one undeclared and unnoticed.
+ */
+function dimSources(el: Element): Element[] {
+  const found: Element[] = [];
+  let node: Element | null = el;
+  while (node) {
+    const o = parseFloat(style(node).opacity);
+    if (!Number.isNaN(o) && o < 1) found.push(node);
+    node = node.parentElement;
+  }
+  return found;
+}
+
+/**
  * Every skip a measurement pass is allowed to make.
  *
  * Enumerating them is the point. A traversal that quietly steps over an element
@@ -258,7 +275,8 @@ type SkipReason = (typeof SKIP_REASONS)[number];
 
 type Measurement = { id: string; ratio: number; need: number };
 type Skip = { id: string; reason: SkipReason };
-type Pass = { measured: Measurement[]; skipped: Skip[] };
+type Dimmed = { source: string; ratio: number; need: number };
+type Pass = { measured: Measurement[]; skipped: Skip[]; dimmed: Dimmed[] };
 
 /** A short, stable name for a surface, for the report rather than for matching. */
 function describe(el: Element, pseudo?: string): string {
@@ -303,6 +321,7 @@ function measurePage(): Pass {
   styleCache = new Map();
   const measured: Measurement[] = [];
   const skipped: Skip[] = [];
+  const dimmed: Dimmed[] = [];
   // Kept alongside each measurement so an animated surface can be re-read at
   // other phases without being counted twice.
   const taken: { el: Element; pseudo?: string; m: Measurement }[] = [];
@@ -333,6 +352,9 @@ function measurePage(): Pass {
     const m: Measurement = { id, ratio, need: required(el, pseudo) };
     measured.push(m);
     taken.push({ el, pseudo, m });
+    for (const source of dimSources(el)) {
+      dimmed.push({ source: describe(source), ratio, need: m.need });
+    }
   };
 
   const all: Element[] = [document.body, ...document.body.querySelectorAll("*")];
@@ -380,7 +402,7 @@ function measurePage(): Pass {
   }
 
   styleCache = null;
-  return { measured, skipped };
+  return { measured, skipped, dimmed };
 }
 
 /**
@@ -440,7 +462,7 @@ function required(el: Element, pseudo?: string): number {
 // can compare it against the assertions that actually executed, and read out of
 // this file by verify.mjs so CI notices a change even though CI cannot run the
 // suite itself. Changing an assertion means changing this number.
-const EXPECTED_ASSERTIONS = 119;
+const EXPECTED_ASSERTIONS = 120;
 
 // The share of text-bearing nodes a run has to actually measure.
 //
@@ -451,6 +473,22 @@ const EXPECTED_ASSERTIONS = 119;
 // waited for. Neither failure turns anything red on its own, so coverage is a
 // number the suite asserts rather than a property it hopes for.
 const COVERAGE_FLOOR = 0.88;
+
+/**
+ * The only elements allowed to dim text with `opacity`.
+ *
+ * Nine of the fourteen contrast defects found last round had one cause: opacity
+ * used as a brightness knob on top of a token already at the palest end of the
+ * ramp. A token has a contrast somebody chose; the same token at 45 per cent has
+ * a contrast nobody computed and nobody could see in a review.
+ *
+ * The nine were removed, but the class of mistake is what matters, and the half
+ * a stylesheet cannot show is inherited dimming: a container at 0.85 dims text
+ * that never mentions opacity. The traversal already multiplies through it, so
+ * it can name every case. A dimmed surface whose source is not on this list
+ * fails, which means a new dim step has to be declared here before it can ship.
+ */
+const DIM_SOURCES = [".ct"];
 
 /**
  * Elements that report a state, which have to say so in words and not only in
@@ -531,6 +569,8 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   // reported a pass on all sixty.
   let measuredCount = 0;
   const skipTally = new Map<string, number>();
+  // Where dimming comes from, and the worst contrast anything under it reached.
+  const dimTally = new Map<string, { worst: number; need: number; seen: number }>();
   const measuredIn = new Set<string>();
   const missingStops: string[] = [];
 
@@ -559,6 +599,17 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     measuredCount += pass.measured.length;
     if (pass.measured.length > 0) measuredIn.add(`${theme}${where}`);
     for (const s of pass.skipped) skipTally.set(s.reason, (skipTally.get(s.reason) ?? 0) + 1);
+    for (const d of pass.dimmed) {
+      const held = dimTally.get(d.source);
+      if (!held) dimTally.set(d.source, { worst: d.ratio, need: d.need, seen: 1 });
+      else {
+        held.seen++;
+        if (d.ratio < held.worst) {
+          held.worst = d.ratio;
+          held.need = d.need;
+        }
+      }
+    }
     for (const m of pass.measured) {
       if (m.ratio < m.need) {
         lowContrast.push({ id: m.id, where: `${theme}${where}`, ratio: m.ratio, need: m.need });
@@ -1579,6 +1630,21 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     undeclared.length === 0,
     "every surface skipped was skipped for a declared reason",
     undeclared.join(", ") || `${skipTally.size} of ${SKIP_REASONS.length} reasons used`,
+  );
+
+  // Dimming, which is the mechanism behind nine of the fourteen defects found
+  // last round. The list is short on purpose: a dim step that is not declared is
+  // a contrast nobody computed.
+  const dimReport = [...dimTally.entries()]
+    .sort((a, b) => a[1].worst - b[1].worst)
+    .map(([source, v]) => `${source} worst ${v.worst.toFixed(2)}:1 (needs ${v.need})`);
+  const undeclaredDim = [...dimTally.keys()].filter(
+    (source) => !DIM_SOURCES.some((name) => source.includes(name)),
+  );
+  ok(
+    undeclaredDim.length === 0,
+    "every dimmed text surface comes from a declared dim step",
+    undeclaredDim.join(", ") || dimReport.join("; ") || "nothing is dimmed",
   );
 
   const unmatched = STATE_SELECTORS.filter((name) => !stateSeen.has(name));
