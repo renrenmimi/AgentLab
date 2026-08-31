@@ -295,11 +295,11 @@ export const blocks: Block[] = [
       },
       a: {
         zh:
-          "它跟别的提示词一样占 [[token:token]]，而且每一轮都随请求重发（见[[stop:/cost]]），所以不是越长越好。" +
+          "它跟别的提示词一样占 [[token:token]]，而且每一轮都随请求重发（见[[ahead:/cost]]），所以不是越长越好。" +
           "一个够用的标准：写到「一个没见过这个项目的人，光看这段描述就能正确地决定要不要用它」为止。" +
           "通常两三句话就够：一句说什么时候用，一句说边界，一句说返回什么和多少。",
         en:
-          "It costs [[token:token]]s like any other prompt, and it is resent on every round ([[stop:/cost]]), so " +
+          "It costs [[token:token]]s like any other prompt, and it is resent on every round ([[ahead:/cost]]), so " +
           "longer is not better. A workable bar: write until someone who has never seen the project could " +
           "decide correctly, from that passage alone, whether to use it. Two or three sentences usually do " +
           "it — one for when to use it, one for the boundary, one for what comes back and how much.",

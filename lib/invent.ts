@@ -269,13 +269,13 @@ export const blocks: Block[] = [
           "所以真正管用的不是「要求它引用」，是**要求引用可以被核对**，并且真的去核对。" +
           "「lib/client.ts 第 4 行」这种引用有价值，因为打开文件看一眼就能证伪；" +
           "「根据项目文档」这种引用没有价值，因为它没有指向任何可以打开的东西。" +
-          "[[stop:/tools]]那条「把返回量的上限写进工具说明」在这里又用上了：" +
+          "[[ahead:/tools]]那条「把返回量的上限写进工具说明」在这里又用上了：" +
           "一个返回文件和行号的工具，让核对变成一件几秒钟的事。",
         en:
           "So the technique that pays is not requiring a citation but **requiring a citation you can check**, " +
           "and then checking it. A reference to lib/client.ts line 4 is worth something because opening the " +
           "file falsifies it in seconds. A reference to the project documentation is worth nothing, because it " +
-          "points at nothing you can open. The rule from [[stop:/tools]] returns here: a tool that returns a filename " +
+          "points at nothing you can open. The rule from [[ahead:/tools]] returns here: a tool that returns a filename " +
           "and a line number makes verification a few seconds' work.",
       },
     ],
@@ -289,13 +289,13 @@ export const blocks: Block[] = [
           "会少很多，不会没有。有三个漏口值得记住。" +
           "检索没找到相关内容时，模型还是会答——除非你的工具明确告诉它「零条」（前面那一条）。" +
           "检索回来的内容本身可能是错的或者过期的，而模型没有立场质疑它。" +
-          "以及，检索回来的东西是外部内容，可能在对模型说话——那是[[stop:/trust]]。" +
+          "以及，检索回来的东西是外部内容，可能在对模型说话——那是[[ahead:/trust]]。" +
           "检索把「凭印象编」换成了「依赖你给的材料」，材料的质量就成了新的上限。",
         en:
           "Much less, not none, and there are three gaps worth remembering. When retrieval finds nothing " +
           "relevant the model still answers, unless your tool says plainly that nothing came back. What was " +
           "retrieved can itself be wrong or out of date, and the model is in no position to doubt it. And " +
-          "retrieved material is outside content, which may be talking to the model — that is [[stop:/trust]]. " +
+          "retrieved material is outside content, which may be talking to the model — that is [[ahead:/trust]]. " +
           "Retrieval replaces inventing from impressions with depending on what you supplied, which makes the " +
           "quality of what you supplied the new ceiling.",
       },

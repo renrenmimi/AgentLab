@@ -403,7 +403,7 @@ const steps: Scenario["steps"] = [
         en: 'So how much code do I actually have to write?',
       },
       a: {
-        zh: '下面代码面板里的 32 行就是完整骨架，没有省略任何关键步骤。[[stop:/build]]你会一个空一个空把它填出来——到时候你会发现，每一行你都已经在这个页面上“按”过一遍了。',
+        zh: '下面代码面板里的 32 行就是完整骨架，没有省略任何关键步骤。[[ahead:/build]]你会一个空一个空把它填出来——到时候你会发现，每一行你都已经在这个页面上“按”过一遍了。',
         en: 'The 32 lines in the panel below are the complete skeleton, with nothing essential left out. At the next stop you fill it in one blank at a time, and you will find that you have already pressed a button for every one of these lines on this page.',
       },
     },

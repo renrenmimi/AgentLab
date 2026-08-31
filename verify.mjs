@@ -66,13 +66,13 @@ function cssRules(source) {
 // change then appears in the diff, where a reviewer can see it.
 const EXPECTED = {
   // Counted as they run, so a check nobody calls lowers this.
-  checks: 23,
+  checks: 24,
   // Counted out of this file's own source, so an assertion appended after the
   // exit below raises this even though it never executes. This went from 137 to
   // 150 without an assertion being added: the tokenizer used to lose sync on a
   // regular expression containing a quote and stopped counting from there. The
   // guard was under-counting itself.
-  failSites: 165,
+  failSites: 171,
   // The same two ideas for the in-page suite, which CI cannot run. Its source is
   // read as text here; its own copy of the total is compared at run time.
   suiteOkSites: 116,
@@ -399,7 +399,7 @@ check("every [[term:label]] and [[stop:/href]] reference resolves", () => {
       for (const m of v.matchAll(TERM_RE)) {
         // A cross-reference to another stop, whose number is computed from the
         // reading order rather than written down.
-        if (m[1] === "stop") {
+        if (m[1] === "stop" || m[1] === "ahead") {
           if (!hrefs.has(m[2])) fail(path, `cross-reference to "${m[2]}", which is not a stop`);
           continue;
         }
@@ -1233,6 +1233,160 @@ check("every glossary term is marked where it first appears", () => {
       );
     }
   }
+});
+
+// 5j. Nothing is used before it is taught -------------------------------------
+// The one thing a course can be wrong about that no contrast audit can see: a
+// reader meeting a word before it is explained. Everything else here checks that
+// the page is right. This checks that the path through it is walkable in order.
+//
+// Three questions, in reading order, over the prose as a reader sees it — markers
+// resolved to the words they display, because a marked term is still a use.
+
+// Technical words the course uses without a glossary entry, and the stop where a
+// reader first meets each. This is not a list of defects. It is the prerequisite
+// list, and the README states it rather than claiming there is none, so it has
+// to be the measured one. A word joining it is a deliberate edit here: the
+// course's assumptions should change only on purpose.
+const ASSUMED = [
+  ["函数", "function", "/chance"],
+  ["变量", "variable", "/build"],
+  ["字符串", "string", "/build"],
+  ["JSON", "JSON", "/loop"],
+  ["布尔", "boolean", "/build"],
+  ["服务器", "server", "/"],
+  ["缓存", "cache", "/loop"],
+  ["超时", "timeout", "/again"],
+  ["重试", "retry", "/loop"],
+  ["参数", "argument", "/"],
+  ["提示词", "prompt", "/loop"],
+  ["模型", "model", "/"],
+  ["上下文", "context", "/loop"],
+  ["副作用", "side effect", "/chance"],
+  ["栈", "stack", "/context"],
+  ["接口", "interface", "/loop"],
+  ["字段", "field", "/loop"],
+];
+
+check("nothing is used before the stop that teaches it", () => {
+  const { glossary } = modules.glossary;
+  const order = modules.stops.STOPS.map((s) => s.href);
+  const place = new Map(order.map((href, i) => [href, i]));
+
+  // The prose as a reader sees it: markers become the words they display.
+  const readable = (value) =>
+    String(value)
+      .replace(/\[\[(?:stop|ahead):[^\]]+\]\]/g, " ")
+      .replace(/\[\[\w+:([^\]]*)\]\]/g, "$1")
+      .replace(/\*\*/g, "");
+
+  const pageText = new Map();
+  for (const stop of modules.course.COURSE) {
+    const bits = [];
+    for (const section of stop.sections) {
+      bits.push(readable(section.heading.zh), readable(section.heading.en));
+      for (const para of section.paras) bits.push(readable(para.zh), readable(para.en));
+    }
+    pageText.set(stop.href, bits.join("\n"));
+  }
+
+  // Chinese has no word boundaries, so a substring is the honest test there. In
+  // English a boundary is needed, or "token" matches inside "tokenizer".
+  const says = (text, word) => {
+    if (/[一-鿿]/.test(word)) return text.includes(word);
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(^|[^\\w-])${escaped}(s|es)?($|[^\\w-])`, "i").test(text);
+  };
+
+  // 1. A glossary term used before the stop that introduces it.
+  for (const [key, entry] of Object.entries(glossary)) {
+    const introduced = place.get(entry.firstAt);
+    if (introduced === undefined) continue;
+    for (let i = 0; i < introduced; i++) {
+      const href = order[i];
+      const form = [entry.word.zh, entry.word.en].find(
+        (w) => w && says(pageText.get(href) ?? "", w),
+      );
+      if (form) {
+        fail(
+          `glossary.${key}`,
+          `"${form}" appears at ${href}, which a reader reaches before ${entry.firstAt}, ` +
+            `where the term is introduced. Mark it at ${href} and move firstAt, or ` +
+            `reword the earlier sentence.`,
+        );
+        break;
+      }
+    }
+  }
+
+  // 2. A reference pointing the wrong way for its kind. Both render the same and
+  //    a reader cannot tell them apart; the distinction exists for this check. A
+  //    signpost may point forward — "that is stop ten" — but a citation may not,
+  //    because a sentence that needs a later stop to make sense stops the reader
+  //    walking in order.
+  const signposts = [];
+  for (const stop of modules.course.COURSE) {
+    const from = place.get(stop.href);
+    const raw = stop.sections
+      .flatMap((section) => [
+        section.heading.zh,
+        section.heading.en,
+        ...section.paras.flatMap((para) => [para.zh, para.en]),
+      ])
+      .join("\n");
+    for (const m of raw.matchAll(/\[\[(stop|ahead):([^\]]+)\]\]/g)) {
+      const to = place.get(m[2]);
+      if (to === undefined || from === undefined) continue;
+      if (m[1] === "stop" && to > from) {
+        fail(
+          stop.href,
+          `[[stop:${m[2]}]] points forward. A reference a reader has not reached is a ` +
+            `signpost, not a citation: write [[ahead:${m[2]}]] if the sentence still ` +
+            `makes sense without it, and reword it if it does not.`,
+        );
+      }
+      if (m[1] === "ahead" && to <= from) {
+        fail(
+          stop.href,
+          `[[ahead:${m[2]}]] points backward. The reader has already been there, so it ` +
+            `is a citation: write [[stop:${m[2]}]].`,
+        );
+      }
+      if (m[1] === "ahead") signposts.push(`${stop.href} → ${m[2]}`);
+    }
+  }
+  const uniqueSignposts = [...new Set(signposts)];
+  note(`forward signposts (${uniqueSignposts.length}): ${uniqueSignposts.join(", ")}`);
+
+  // 3. What the course assumes, checked against what it actually says.
+  const defined = new Set(
+    Object.values(glossary)
+      .flatMap((e) => [e.word.zh, e.word.en])
+      .filter(Boolean),
+  );
+  for (const [zh, en, expected] of ASSUMED) {
+    if (defined.has(zh) || defined.has(en)) {
+      fail("ASSUMED", `"${zh}" has a glossary entry now and is no longer assumed; remove it`);
+      continue;
+    }
+    const at = order.find((href) => {
+      const text = pageText.get(href) ?? "";
+      return says(text, zh) || says(text, en);
+    });
+    if (!at) {
+      fail("ASSUMED", `"${zh}" / "${en}" is listed as assumed but appears nowhere; the list is stale`);
+    } else if (at !== expected) {
+      fail(
+        "ASSUMED",
+        `"${zh}" first appears at ${at}, but the list says ${expected}. The README quotes ` +
+          `this list as the course's prerequisites, so it has to be the measured one.`,
+      );
+    }
+  }
+  note(
+    `assumed without a glossary entry (${ASSUMED.length}): ` +
+      ASSUMED.map(([zh, en, at]) => `${zh}/${en} ${at}`).join(", "),
+  );
 });
 
 // 5i. What a shared link says -------------------------------------------------

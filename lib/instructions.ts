@@ -102,13 +102,13 @@ export const setups: Setup[] = [
       zh:
         "这一句话确实改变了行为，绝大多数情况下管用，值得写。" +
         "但它管的是倾向，不是可能性：工具还在列表里。" +
-        "只要有一轮的采样落在另一边（[[stop:/chance]]），或者有一段外部内容说服了它（[[stop:/trust]]），" +
+        "只要有一轮的采样落在另一边（[[stop:/chance]]），或者有一段外部内容说服了它（[[ahead:/trust]]），" +
         "这条规则就被绕过去了，而且没有任何东西会在那一刻拦住它。",
       en:
         "That sentence does change the behaviour, it works nearly always, and it is worth writing. But what " +
         "it governs is a tendency and not a possibility: the tool is still in the list. One round where the " +
         "sampling lands elsewhere ([[stop:/chance]]), or one piece of outside content that argues well enough " +
-        "([[stop:/trust]]), and the rule is simply gone past, with nothing in place to stop it at that moment.",
+        "([[ahead:/trust]]), and the rule is simply gone past, with nothing in place to stop it at that moment.",
     },
     tone: "warn",
   },
@@ -203,12 +203,12 @@ export const blocks: Block[] = [
         zh:
           "[[stop:/loop]]的代码面板里有这么一行：system: \"你是一个本地文件助手……\"。" +
           "它和 messages 是并列的两个参数，不是[[array:数组]]里的一个元素。" +
-          "这个位置差别是有意的：数组会随着对话变长、会被截断、会被摘要（[[stop:/context]]），" +
+          "这个位置差别是有意的：数组会随着对话变长、会被截断、会被摘要（[[ahead:/context]]），" +
           "而 system 提示词是你每一轮都原样重新提供的那一段，它不会因为对话变长而被挤掉。",
         en:
           "The code panel at [[stop:/loop]] has this line: system: \"You are a local file assistant…\". It is a " +
           "parameter alongside messages, not an element of the [[array:array]]. The distinction is " +
-          "deliberate: the array grows with the conversation, gets truncated, gets summarised ([[stop:/context]]), while " +
+          "deliberate: the array grows with the conversation, gets truncated, gets summarised ([[ahead:/context]]), while " +
           "the system prompt is the passage you supply again, unchanged, on every round. It cannot be squeezed " +
           "out by a long conversation.",
       },
@@ -229,26 +229,26 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "把[[stop:/cost]]那条规律套到 system 提示词上：一段 900 个 [[token:token]] 的提示词，" +
+          "把[[ahead:/cost]]那条规律套到 system 提示词上：一段 900 个 [[token:token]] 的提示词，" +
           "在一次 40 轮的运行里会被发出去 40 次。" +
-          "它写了一次，你买了四十次——上面的数字就是按[[stop:/cost]]那个成本模型算出来的。",
+          "它写了一次，你买了四十次——上面的数字就是按[[ahead:/cost]]那个成本模型算出来的。",
         en:
-          "Apply the rule from [[stop:/cost]] to the system prompt: a 900-[[token:token]] passage in a forty-round " +
+          "Apply the rule from [[ahead:/cost]] to the system prompt: a 900-[[token:token]] passage in a forty-round " +
           "run goes out forty times. You wrote it once and bought it forty times — the figure above is " +
-          "computed with the same cost model [[stop:/cost]] uses.",
+          "computed with the same cost model [[ahead:/cost]] uses.",
       },
       {
         zh:
           "这不是叫你把提示词写短。一段写得好的 900 token 提示词，能省下的轮数远比它自己贵。" +
           "值得记住的是另一件事：**system 提示词的每一句都在按轮数计费**，" +
           "所以那些「以防万一先写上」的段落，代价不是一次，是每一次。" +
-          "顺带一条：它要放在最前面且保持一字不变，才吃得到缓存（[[stop:/cost]]）——" +
+          "顺带一条：它要放在最前面且保持一字不变，才吃得到缓存（[[ahead:/cost]]）——" +
           "在里面塞一个当前时间戳，整段缓存就作废了。",
         en:
           "This is not an argument for short prompts. Nine hundred well-spent tokens save more rounds than " +
           "they cost. What is worth remembering is the other thing: **every sentence in a system prompt is " +
           "billed per round**, so a paragraph added just in case costs you not once but every time. And a " +
-          "related point: it earns the cache discount from [[stop:/cost]] only by staying first and staying " +
+          "related point: it earns the cache discount from [[ahead:/cost]] only by staying first and staying " +
           "byte-identical — drop a current timestamp into it and the whole prefix stops matching.",
       },
     ],
@@ -303,13 +303,13 @@ export const blocks: Block[] = [
       },
       {
         zh:
-          "[[stop:/trust]]会把这件事推到极端：如果一段外部内容可以对模型说话，" +
+          "[[ahead:/trust]]会把这件事推到极端：如果一段外部内容可以对模型说话，" +
           "那么「我在 system 里叮嘱过它」就是在和攻击者比谁的文字更有说服力——" +
           "这场比试你不一定输，但你也不一定赢，而且你事先不知道结果。" +
           "所以做决定的顺序应该是：先问「这件事能不能干脆做不到」，" +
           "做不到就不需要叮嘱；只有在必须能做的时候，才退回到用提示词去调整倾向。",
         en:
-          "[[stop:/trust]] takes this to its limit: if a piece of outside content can address the model, then I told " +
+          "[[ahead:/trust]] takes this to its limit: if a piece of outside content can address the model, then I told " +
           "it in the system prompt becomes a contest with an attacker over whose text is more persuasive. You " +
           "will not necessarily lose that contest, and you will not necessarily win it, and you do not know " +
           "in advance. So the order of the questions should be: first ask whether the thing can simply be " +
