@@ -71,7 +71,7 @@ jobs:
       - name: Run the suite at three widths in both themes
         run: |
           node scripts/drive-selftest.mjs \
-            --expect-assertions 121 \
+            --expect-assertions 123 \
             --expect-coverage 0.88
 
   # Not on every push: it drives the browser four more times, and it answers a

@@ -150,7 +150,7 @@ which is which matters more than knowing what each one covers.
 The second row is new. It ran by hand for five rounds, which is how the sibling
 project accumulated eighteen silently failing assertions and how three contrast
 defects shipped here. The workflow passes the declared totals on the command
-line — `--expect-assertions 121 --expect-coverage 0.88` — rather than only
+line — `--expect-assertions 123 --expect-coverage 0.88` — rather than only
 letting the suite check itself, so lowering them is a line in a diff about CI.
 Zero failures is not the assertion: a run that measures less can report
 everything it did measure as green.
@@ -176,7 +176,7 @@ clear declared floors — a share and a count. The count is there because the
 share cannot see a walk that stopped descending: fewer nodes found is fewer
 nodes skipped as well, and the ratio does not move.
 
-**Declared:** 119 assertions, coverage floor 0.88, and a floor on measurements of
+**Declared:** 123 assertions, coverage floor 0.88, and a floor on measurements of
 10200 at 1200px and wider, 10100 at 700 and wider, 10000 below.
 
 **Measured:**

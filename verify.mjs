@@ -20,6 +20,40 @@ import ts from "typescript";
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const CACHE = join(ROOT, "node_modules", ".cache", "agentlab-verify");
 
+// Leaf rules out of a stylesheet, with nesting handled.
+//
+// The obvious regular expression for this is /([^{}]+)\{([^{}]*)\}/g, and it was
+// the one in use. It cannot see inside an at-rule: [^{}] stops at the first
+// brace, so everything in a @media block is either skipped or mis-attributed.
+// Nine @media blocks in this stylesheet, and a dimming rule inside one of them
+// would have been invisible to the check written to forbid it. That is the same
+// shape as the tokenizer that stopped counting at a regular expression: a
+// scanner that stops early reports a smaller number with complete confidence.
+function cssRules(source) {
+  const rules = [];
+  let depth = 0;
+  let start = 0;
+  const stack = [];
+  for (let i = 0; i < source.length; i++) {
+    const c = source[i];
+    if (c === "{") {
+      stack.push(source.slice(start, i).trim());
+      depth++;
+      start = i + 1;
+    } else if (c === "}") {
+      const body = source.slice(start, i);
+      const selector = stack.pop() ?? "";
+      // A block containing another block is an at-rule wrapper, not a rule.
+      if (!body.includes("{")) {
+        rules.push({ selector: selector.split("\n").pop().trim(), body });
+      }
+      depth--;
+      start = i + 1;
+    }
+  }
+  return rules;
+}
+
 // ------------------------------------------------------------- counted guards
 //
 // The sibling project found a block of assertions appended after this file's
@@ -38,11 +72,11 @@ const EXPECTED = {
   // 150 without an assertion being added: the tokenizer used to lose sync on a
   // regular expression containing a quote and stopped counting from there. The
   // guard was under-counting itself.
-  failSites: 164,
+  failSites: 165,
   // The same two ideas for the in-page suite, which CI cannot run. Its source is
   // read as text here; its own copy of the total is compared at run time.
-  suiteOkSites: 114,
-  suiteAssertions: 121,
+  suiteOkSites: 116,
+  suiteAssertions: 123,
 };
 
 // Count call sites of a named function, ignoring comments, string literals and
@@ -55,6 +89,36 @@ const EXPECTED = {
 // know it is inside a regex reads that quote as the start of a string and loses
 // sync with the rest of the file. The count then came back as zero, which the
 // guard reported honestly and uselessly. A zero is now its own message.
+// The same count, taken by a real parser.
+//
+// A scanner that stops early reports a smaller number with complete confidence,
+// and that is undetectable from one measurement. The hand tokenizer above did
+// exactly this: it read a quote inside a regular expression as the start of a
+// string and stopped counting from there, moving a declared total from 137 to
+// 150 with no assertion added, and nothing noticed for a round.
+//
+// So the number is taken twice, by methods that fail differently. TypeScript is
+// already a devDependency and is already imported here to compile the content
+// modules; asking it for an abstract syntax tree costs nothing and shares no
+// code with the tokenizer. If the two ever disagree, one of them is wrong and
+// the check says so rather than believing whichever ran.
+function callSitesByAst(source, name, fileName) {
+  const tree = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true);
+  let count = 0;
+  const visit = (node) => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === name
+    ) {
+      count++;
+    }
+    ts.forEachChild(node, visit);
+  };
+  ts.forEachChild(tree, visit);
+  return count;
+}
+
 function callSites(source, name) {
   let code = "";
   let previous = "";
@@ -1329,9 +1393,7 @@ check("opacity is declared wherever it is used, and never beside a colour", () =
   // suite measures animated surfaces at four phases rather than trusting them.
   const withoutKeyframes = css.replace(/@keyframes[\s\S]*?\n}/g, "");
 
-  for (const rule of withoutKeyframes.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const selector = rule[1].trim().split("\n").pop().trim();
-    const body = rule[2];
+  for (const { selector, body } of cssRules(withoutKeyframes)) {
     if (!/(^|[\s;]) *opacity:/.test(body)) continue;
 
     if (/(^|[\s;]) *color:/.test(body)) {
@@ -1436,9 +1498,7 @@ check("text on the accent surface uses the one colour meant for it", () => {
   }
 
   const withoutKeyframes = css.replace(/@keyframes[\s\S]*?\n}/g, "");
-  for (const rule of withoutKeyframes.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const selector = rule[1].trim().split("\n").pop().trim();
-    const body = rule[2];
+  for (const { selector, body } of cssRules(withoutKeyframes)) {
     const hasColour = /(^|[\s;]) *color:/.test(body);
     const hasGradient = /gradient\(|--accent-surface/.test(body);
     if (!hasColour || !hasGradient) continue;
@@ -1493,6 +1553,24 @@ check("text on the accent surface uses the one colour meant for it", () => {
 // or written somewhere it can never execute.
 check("every assertion in both files is accounted for", () => {
   const here = readFileSync(join(ROOT, "verify.mjs"), "utf8");
+  const suiteForCount = readFileSync(join(ROOT, "app", "selftest-suite.ts"), "utf8");
+
+  // Two methods, one number, before either number is used for anything.
+  for (const [label, source, name, fileName] of [
+    ["verify.mjs fail()", here, "fail", "verify.js"],
+    ["the suite's ok()", suiteForCount, "ok", "suite.ts"],
+  ]) {
+    const scanned = callSites(source, name);
+    const parsed = callSitesByAst(source, name, fileName);
+    if (scanned !== parsed) {
+      fail(
+        "verify.mjs",
+        `counting ${label} gave ${scanned} by tokenizer and ${parsed} by parser. ` +
+          `One of them is stopping early, and a count taken once cannot tell which.`,
+      );
+    }
+  }
+
   const fails = callSites(here, "fail");
   if (fails !== EXPECTED.failSites) {
     fail(

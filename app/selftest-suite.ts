@@ -17,6 +17,29 @@ const settle = async (n = 3) => {
   for (let i = 0; i < n; i++) await frame();
 };
 
+/**
+ * Wait until a reading changes, or say so.
+ *
+ * The sibling project found that waiting on the DOM is necessary and not
+ * sufficient: a commit happens before the passive effect that republishes
+ * derived state, and a double requestAnimationFrame lands between the two. Its
+ * suite read zero steps from a page whose slider said 31.
+ *
+ * The rule that follows is to wait on the source of truth the next line reads,
+ * not on a number of frames. Every place below where a click is supposed to
+ * change a value now waits for that value, and a wait that never resolves is a
+ * named failure rather than a reading taken too early — which is the part that
+ * matters, because taking the reading too early looks like a passing test with
+ * the wrong number in it.
+ */
+async function waitForChange<T>(read: () => T, was: T, what: string): Promise<string | null> {
+  for (let i = 0; i < 120; i++) {
+    if (read() !== was) return null;
+    await frame();
+  }
+  return `${what} never changed from ${String(was)} in 120 frames`;
+}
+
 const lang = (): Lang =>
   (document.documentElement.dataset.lang === "zh" ? "zh" : "en") as Lang;
 
@@ -238,6 +261,35 @@ function gradientStops(image: string | null): RGBA[] {
 }
 
 /**
+ * The same count, taken a second way.
+ *
+ * The traversal finds text by walking every element and asking whether it has a
+ * text child. A walk that stops descending returns fewer elements, and since the
+ * skipped count shrinks with it, the coverage ratio does not move — the absolute
+ * floor is what catches that, and a floor is a blunt instrument set well below
+ * the real number.
+ *
+ * This is the sharp one. A TreeWalker over text nodes reaches the same elements
+ * by a different route, through the text rather than through the tree, and the
+ * two counts have to agree exactly. verify.mjs learned the same lesson about its
+ * own tokenizer: a scanner that stops early reports a smaller number with
+ * complete confidence, and one measurement cannot tell.
+ */
+function textElementsByWalker(): number {
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const owners = new Set<Element>();
+  let node = walker.nextNode();
+  while (node) {
+    const parent = node.parentElement;
+    if (parent && (node.nodeValue ?? "").trim() !== "" && !NEVER_PAINTS.test(parent.tagName)) {
+      owners.add(parent);
+    }
+    node = walker.nextNode();
+  }
+  return owners.size;
+}
+
+/**
  * Every ancestor between this element and the root that dims it, nearest first.
  *
  * All of them, not the nearest: two containers at 0.9 make 0.81, and naming only
@@ -276,7 +328,7 @@ type SkipReason = (typeof SKIP_REASONS)[number];
 type Measurement = { id: string; ratio: number; need: number };
 type Skip = { id: string; reason: SkipReason };
 type Dimmed = { source: string; ratio: number; need: number };
-type Pass = { measured: Measurement[]; skipped: Skip[]; dimmed: Dimmed[] };
+type Pass = { measured: Measurement[]; skipped: Skip[]; dimmed: Dimmed[]; countMismatch: string | null };
 
 /** A short, stable name for a surface, for the report rather than for matching. */
 function describe(el: Element, pseudo?: string): string {
@@ -358,12 +410,22 @@ function measurePage(): Pass {
   };
 
   const all: Element[] = [document.body, ...document.body.querySelectorAll("*")];
+  let byQuery = 0;
   for (const el of all) {
-    if (paintsOwnText(el)) consider(el);
+    if (paintsOwnText(el)) {
+      byQuery++;
+      consider(el);
+    }
     for (const pseudo of ["::before", "::after"]) {
       if (paintsPseudoText(el, pseudo)) consider(el, pseudo);
     }
   }
+
+  const byWalker = textElementsByWalker();
+  const countMismatch =
+    byQuery === byWalker
+      ? null
+      : `walking elements found ${byQuery} text-bearing nodes, walking text found ${byWalker}`;
 
   // An endless animation has no resting state, so the surfaces it paints are
   // read again at three more points in its cycle and the worst reading is kept.
@@ -402,7 +464,7 @@ function measurePage(): Pass {
   }
 
   styleCache = null;
-  return { measured, skipped, dimmed };
+  return { measured, skipped, dimmed, countMismatch };
 }
 
 /**
@@ -462,7 +524,7 @@ function required(el: Element, pseudo?: string): number {
 // can compare it against the assertions that actually executed, and read out of
 // this file by verify.mjs so CI notices a change even though CI cannot run the
 // suite itself. Changing an assertion means changing this number.
-const EXPECTED_ASSERTIONS = 121;
+const EXPECTED_ASSERTIONS = 123;
 
 // The share of text-bearing nodes a run has to actually measure.
 //
@@ -576,6 +638,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   // Where dimming comes from, and the worst contrast anything under it reached.
   const dimTally = new Map<string, { worst: number; need: number; seen: number }>();
   let quietest = { id: "nothing measured", ratio: Infinity, where: "" };
+  const countMismatches: string[] = [];
   const measuredIn = new Set<string>();
   const missingStops: string[] = [];
 
@@ -604,6 +667,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     measuredCount += pass.measured.length;
     if (pass.measured.length > 0) measuredIn.add(`${theme}${where}`);
     for (const s of pass.skipped) skipTally.set(s.reason, (skipTally.get(s.reason) ?? 0) + 1);
+    if (pass.countMismatch) countMismatches.push(`${theme}${where}: ${pass.countMismatch}`);
     for (const d of pass.dimmed) {
       const held = dimTally.get(d.source);
       if (!held) dimTally.set(d.source, { worst: d.ratio, need: d.need, seen: 1 });
@@ -832,12 +896,16 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   ok(switches.length === 2, "two switches: caching and the pasted document", `${switches.length}`);
 
   const totalShown = () => text($$(".lsn-stat-v").at(0));
+  const staleReads: string[] = [];
   if (slider) {
+    const before5 = totalShown();
     setRange(slider, 5);
-    await settle(3);
+    const s1 = await waitForChange(totalShown, before5, "the total at 5 rounds");
+    if (s1) staleReads.push(s1);
     const at5 = totalShown();
     setRange(slider, MAX_ROUNDS);
-    await settle(3);
+    const s2 = await waitForChange(totalShown, at5, "the total at the last round");
+    if (s2) staleReads.push(s2);
     const at40 = totalShown();
     ok(at5 !== at40, "dragging the slider changes the rendered numbers", `${at5} → ${at40}`);
     ok(
@@ -1111,8 +1179,10 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
 
   const resetBtn = $<HTMLButtonElement>(".side-reset");
   ok(!!resetBtn && !resetBtn.disabled, "progress can be cleared");
+  const marksBefore = readMarks();
   resetBtn?.click();
-  await settle(3);
+  const cleared = await waitForChange(readMarks, marksBefore, "the count of read marks");
+  if (cleared) staleReads.push(cleared);
   ok(readMarks() === 0, "clearing removes every mark", `${readMarks()} left`);
   ok(
     !localStorage.getItem("agentlab-visited"),
@@ -1437,6 +1507,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
   );
   await settle(3);
+  for (let i = 0; i < 120 && !$(".cmdk-input"); i++) await frame();
   const palette = $<HTMLInputElement>(".cmdk-input");
   ok(!!palette, "the command palette opens");
   if (palette) {
@@ -1664,6 +1735,21 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
     undeclaredDim.length === 0,
     "every dimmed text surface comes from a declared dim step",
     undeclaredDim.join(", ") || dimReport.join("; ") || "nothing is dimmed",
+  );
+
+  ok(
+    countMismatches.length === 0,
+    "both ways of counting the text on the page agree",
+    countMismatches.slice(0, 3).join("; ") || `${measuredIn.size} passes, no disagreement`,
+  );
+
+  // Every wait that watches the value the next line reads, rather than a number
+  // of frames. A reading taken too early looks like a pass with the wrong number
+  // in it, so the wait failing is reported as its own assertion.
+  ok(
+    staleReads.length === 0,
+    "every reading waited for the value it was about to read",
+    staleReads.join("; ") || "no wait timed out",
   );
 
   const unmatched = STATE_SELECTORS.filter((name) => !stateSeen.has(name));
