@@ -75,7 +75,12 @@
   --code-bg: #0f131b;
   --code-text: #dfe3ee;
   --code-ln: rgba(220, 224, 238, 0.62);
-  --code-dim: 0.75;
+  /* The only dim step in the application. Code lines that are not the step being
+     explained are dimmed to 0.75; measured worst case 5.70:1 against a 4.5
+     requirement. Every other use of opacity on text was removed rather than
+     given a number, because nine of the fourteen contrast defects found in
+     round five came from exactly this mechanism used without one. */
+  --dim-unfocused: 0.75;
   --code-hl: rgba(138, 124, 246, 0.14);
   --code-hl-bar: #8a7cf6;
 }
@@ -133,7 +138,12 @@
   --code-bg: #14151f;
   --code-text: #dcdcea;
   --code-ln: rgba(220, 220, 234, 0.7);
-  --code-dim: 0.75;
+  /* The only dim step in the application. Code lines that are not the step being
+     explained are dimmed to 0.75; measured worst case 5.70:1 against a 4.5
+     requirement. Every other use of opacity on text was removed rather than
+     given a number, because nine of the fourteen contrast defects found in
+     round five came from exactly this mechanism used without one. */
+  --dim-unfocused: 0.75;
   --code-hl: rgba(101, 91, 212, 0.13);
   --code-hl-bar: #655bd4;
 }
@@ -399,7 +409,6 @@ body::after {
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: opacity 0.15s ease;
 }
 
 .faq summary::-webkit-details-marker {
@@ -418,7 +427,10 @@ body::after {
 }
 
 .faq summary:hover {
-  opacity: 0.8;
+  /* This dimmed the summary to 0.8 on hover. Nothing measures a hover state, so
+     that number was never computed in either theme. An underline says the same
+     thing and costs no contrast. */
+  text-decoration: underline;
 }
 
 .faq p {
@@ -1008,7 +1020,7 @@ body::after {
 }
 
 .cl .ct {
-  opacity: var(--code-dim);
+  opacity: var(--dim-unfocused);
   transition: opacity 0.4s ease;
 }
 
@@ -2271,7 +2283,8 @@ html[data-sidebar="collapsed"] .sidebar {
   width: 18px;
   text-align: center;
   font-size: 14px;
-  opacity: 0.85;
+  /* Dimmed to 0.85 until it was measured at 4.52:1, two hundredths above the
+     requirement. The dimming was not visible enough to be worth that. */
 }
 
 .side-link.active {

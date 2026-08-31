@@ -32,17 +32,17 @@ const CACHE = join(ROOT, "node_modules", ".cache", "agentlab-verify");
 // change then appears in the diff, where a reviewer can see it.
 const EXPECTED = {
   // Counted as they run, so a check nobody calls lowers this.
-  checks: 21,
+  checks: 22,
   // Counted out of this file's own source, so an assertion appended after the
   // exit below raises this even though it never executes. This went from 137 to
   // 150 without an assertion being added: the tokenizer used to lose sync on a
   // regular expression containing a quote and stopped counting from there. The
   // guard was under-counting itself.
-  failSites: 154,
+  failSites: 158,
   // The same two ideas for the in-page suite, which CI cannot run. Its source is
   // read as text here; its own copy of the total is compared at run time.
-  suiteOkSites: 112,
-  suiteAssertions: 119,
+  suiteOkSites: 113,
+  suiteAssertions: 120,
 };
 
 // Count call sites of a named function, ignoring comments, string literals and
@@ -1296,7 +1296,85 @@ check("the contrast check is not fed by a list of selectors again", () => {
   }
 });
 
-// 8. The counters themselves --------------------------------------------------
+// 8. Opacity is not a brightness knob ------------------------------------------
+// Nine of the fourteen contrast defects found in round five had one cause:
+// opacity applied on top of a colour token that was already at the palest end of
+// the ramp. --text-3 times 0.9, times 0.55, times 0.45, times 0.8, inheriting
+// 0.85. Each looked like a small adjustment on its own, which is why there were
+// nine of them.
+//
+// The mechanism is the defect. A token has a contrast somebody chose. The same
+// token at 45 per cent has a contrast nobody computed, and a reviewer reading
+// the rule cannot see it either.
+//
+// So every opacity in the stylesheet is either declared here with a reason, or a
+// failure. The strongest form — opacity beside color in the same rule — cannot be
+// declared at all, because that is the exact shape of all nine.
+const OPACITY_ALLOWED = {
+  ".grain": "a noise texture over the background; it paints no text",
+  ".cl .ct": "the only dim step on text: code lines that are not the step being explained, measured at 5.70:1",
+  ".cl.on .ct": "undoes the line above for the focused line",
+  ".btn:disabled": "a disabled control, exempt under WCAG 1.4.3",
+  ".side-reset:disabled": "a disabled control, exempt under WCAG 1.4.3",
+  ".sc-fly": "the starting state of an entrance animation, at zero",
+  ".scrim": "the closed state of the mobile overlay, at zero; it paints no text",
+  ".scrim.open": "the open state of the same overlay",
+  ".chart-linear": "an SVG path on the cost chart; it paints no text",
+};
+
+check("opacity is declared wherever it is used, and never beside a colour", () => {
+  const css = readFileSync(join(ROOT, "app", "globals.css"), "utf8");
+
+  // Rules only. A keyframe changing opacity over time is an animation, and the
+  // suite measures animated surfaces at four phases rather than trusting them.
+  const withoutKeyframes = css.replace(/@keyframes[\s\S]*?\n}/g, "");
+
+  for (const rule of withoutKeyframes.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selector = rule[1].trim().split("\n").pop().trim();
+    const body = rule[2];
+    if (!/(^|[\s;]) *opacity:/.test(body)) continue;
+
+    if (/(^|[\s;]) *color:/.test(body)) {
+      fail(
+        "app/globals.css",
+        `"${selector}" sets both color and opacity. That is the shape of all nine ` +
+          `defects: a token with a known contrast, multiplied by a number nobody ` +
+          `measured. Pick a colour that is already the colour you want.`,
+      );
+      continue;
+    }
+
+    if (!(selector in OPACITY_ALLOWED)) {
+      fail(
+        "app/globals.css",
+        `"${selector}" dims with opacity and is not declared in OPACITY_ALLOWED ` +
+          `in verify.mjs. Add it with a reason and a measured contrast, or use a ` +
+          `colour instead. The in-page suite will also refuse it unless the ` +
+          `element is listed in DIM_SOURCES.`,
+      );
+    }
+  }
+
+  // The two files have to agree about what is allowed to dim text.
+  const suite = readFileSync(join(ROOT, "app", "selftest-suite.ts"), "utf8");
+  const declared = suite.match(/const DIM_SOURCES = \[([^\]]*)\]/);
+  if (!declared) {
+    fail("app/selftest-suite.ts", "DIM_SOURCES is gone; nothing checks inherited dimming");
+  } else {
+    const names = [...declared[1].matchAll(/["'`](\.[\w-]+)["'`]/g)].map((m) => m[1]);
+    for (const name of names) {
+      if (!Object.keys(OPACITY_ALLOWED).some((sel) => sel.includes(name))) {
+        fail(
+          "app/selftest-suite.ts",
+          `DIM_SOURCES allows "${name}" to dim text, but no rule in ` +
+            `OPACITY_ALLOWED corresponds to it. One of the two lists is stale.`,
+        );
+      }
+    }
+  }
+});
+
+// 9. The counters themselves --------------------------------------------------
 // Everything above trusts that it ran. This does not. It reads both assertion
 // files as text and compares what they contain against the numbers declared at
 // the top, which is the only way to notice an assertion that was added, deleted,
