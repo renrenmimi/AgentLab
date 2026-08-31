@@ -462,7 +462,7 @@ function required(el: Element, pseudo?: string): number {
 // can compare it against the assertions that actually executed, and read out of
 // this file by verify.mjs so CI notices a change even though CI cannot run the
 // suite itself. Changing an assertion means changing this number.
-const EXPECTED_ASSERTIONS = 120;
+const EXPECTED_ASSERTIONS = 121;
 
 // The share of text-bearing nodes a run has to actually measure.
 //
@@ -571,6 +571,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   const skipTally = new Map<string, number>();
   // Where dimming comes from, and the worst contrast anything under it reached.
   const dimTally = new Map<string, { worst: number; need: number; seen: number }>();
+  let quietest = { id: "nothing measured", ratio: Infinity, where: "" };
   const measuredIn = new Set<string>();
   const missingStops: string[] = [];
 
@@ -611,6 +612,7 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
       }
     }
     for (const m of pass.measured) {
+      if (m.ratio < quietest.ratio) quietest = { id: m.id, ratio: m.ratio, where: `${theme}${where}` };
       if (m.ratio < m.need) {
         lowContrast.push({ id: m.id, where: `${theme}${where}`, ratio: m.ratio, need: m.need });
       }
@@ -1635,6 +1637,19 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   // Dimming, which is the mechanism behind nine of the fourteen defects found
   // last round. The list is short on purpose: a dim step that is not declared is
   // a contrast nobody computed.
+  // The quietest thing measured anywhere, reported whether or not it fails.
+  // The audit that produced this line went looking for dimming that fights what a
+  // stop is teaching, and the useful question turned out to be simply: what is
+  // the least readable text on this page, and is it something the reader needs?
+  // On every stop the answer is now a breadcrumb separator or a standing note.
+  // If it ever becomes something else, this line says so before anybody has to
+  // read the stylesheet.
+  ok(
+    quietest.ratio >= 4.5,
+    "the quietest text in the course is still chrome rather than content",
+    `${quietest.id} ${quietest.ratio.toFixed(2)}:1 at ${quietest.where}`,
+  );
+
   const dimReport = [...dimTally.entries()]
     .sort((a, b) => a[1].worst - b[1].worst)
     .map(([source, v]) => `${source} worst ${v.worst.toFixed(2)}:1 (needs ${v.need})`);

@@ -1045,6 +1045,9 @@ body::after {
   white-space: pre;
 }
 
+/* Audited and kept. This is dimming that agrees with the lesson: the stop is
+   showing which line runs next, and the lines that are not it recede. Every
+   other dim step in the course was removed. */
 .cl .ct {
   opacity: var(--dim-unfocused);
   transition: opacity 0.4s ease;
@@ -1822,6 +1825,12 @@ a.btn {
   box-shadow: 0 0 0 1.5px var(--code-hl-bar);
 }
 
+/* Audited: the caret is right here, because .blank-live echoes what is being
+   typed into the answer field, so it marks where the reader's own text is
+   landing rather than pretending the code is editable. What was wrong was that
+   its contrast depended on which phase of the blink it was read in. The suite
+   samples endless animations at four points now, so this one is measured rather
+   than assumed. */
 .blank-live::after {
   content: "▎";
   /* The code window is dark in both themes, so this cannot use a token that
@@ -2837,6 +2846,11 @@ html[data-sidebar="collapsed"] .sidebar {
 }
 
 /* 选中项除了配色，前面还加一个记号，不只靠颜色区分 */
+/* The button also carries aria-pressed, so this mark is the visual half of the
+   same statement rather than the only copy of it. Audited after round five moved
+   it off --accent, where it was 4.35:1: an affordance that exists so state is not
+   carried by colour alone is worse than absent when it cannot be read, because it
+   satisfies the reviewer. */
 .lsn-choice.on .lsn-choice-name::before {
   content: "✓ ";
   /* This mark exists so selection is not carried by colour alone, and it was
@@ -3234,15 +3248,36 @@ html[data-sidebar="collapsed"] .sidebar {
 }
 
 /* 被丢掉的消息：划掉 + 变淡，两个信号 */
+/* Discarded messages. This stop exists so a reader can see what truncation threw
+   away, which makes every signal used to mark them a decision about legibility.
+   The fade went in round five: it put them at 1.9:1, the least readable text on a
+   page whose whole point is reading it. The line ran through the message bodies
+   as well, so it went the same way — a rule crossing three lines of prose the
+   reader is being asked to compare is the same mistake at a different layer.
+   What is left marks the row without touching the sentences: the role is struck
+   through, the border is dashed, and the word is written out. */
 .ctx-dropped {
-  /* This stop exists so a reader can see what truncation threw away, and the
-     dimming put the discarded messages at 1.9:1 — the least readable text on a
-     page whose whole point is reading it. The strike-through and the dashed
-     border are the two signals; the fade was a third one that cost more than it
-     carried. */
+  border-style: dashed;
+}
+
+.ctx-dropped .ctx-role {
   text-decoration: line-through;
   text-decoration-color: var(--risk);
-  border-style: dashed;
+}
+
+.ctx-drop-tag {
+  display: inline-block;
+  margin-left: 6px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--err);
+  background: var(--err-bg);
+  border-radius: 999px;
+  padding: 1px 6px;
+  vertical-align: middle;
+  text-decoration: none;
 }
 
 .ctx-new {
@@ -3915,7 +3950,12 @@ html[data-sidebar="collapsed"] .sidebar {
   background: var(--panel);
 }
 
-/* 被拿掉的工具：划掉 + 写出「已移除」，不只靠颜色 */
+/* 被拿掉的工具：划掉 + 写出「已移除」，不只靠颜色。
+   Audited against .ctx-dropped and kept. The difference is what the reader is
+   asked to do: there they have to read the discarded messages, here they only
+   have to see which tool is absent, and the name stays at --text-3, which is
+   4.7:1. The strike-through crosses one identifier rather than three lines of
+   prose, and the word is written out beside it. */
 .in-gone {
   color: var(--text-3);
   text-decoration: line-through;
