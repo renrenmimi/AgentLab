@@ -289,6 +289,58 @@ share of them it reached.
 - **The prose itself.** No checker can tell whether an explanation lands. The group checks are
   the closest thing here, and they test the reader rather than the text.
 
+## Where this stops
+
+The course is finished. Fourteen stops in six groups, in two languages.
+
+The numbers behind it, gathered in one place — what runs each of them is in
+[What is verified by what](#what-is-verified-by-what) above. **24 checks** over
+the content on every push, including that nothing is used before the stop that
+teaches it. **123 assertions** in a real browser on every push, at three widths
+in both themes across all fourteen stops, measuring about **11,300 text
+surfaces** per run at **91.6% / 90.4% / 89.7%** coverage, with the floors
+asserted from the workflow rather than only by the suite. **Three shipped
+contrast defects** put back on `main` after every merge, to check the detector
+still detects. **Five ways of breaking the counts**, run by hand, to check the
+guards still fire.
+
+**What is not verified, and cannot be from here.** Screen-reader output: what is
+checked is the semantics a screen reader reads, not what NVDA or VoiceOver
+announces, which needs those programs and somebody who uses them daily. Real
+touch devices: the narrow checks run in a desktop browser at 390 px, so tap
+targets, momentum scrolling and the on-screen keyboard covering an input are not
+measured. Engines other than Chromium: Firefox and WebKit are not exercised. And
+whether an explanation lands, which no checker can tell you.
+
+### Three findings worth keeping
+
+They are the reason to trust the rest of it.
+
+**A perfect score that was measuring 72% of the surfaces.** The contrast check
+reported 110/110 while seventeen of the sixty selectors it was built from matched
+no element at all. A list does not go red when it goes stale; a selector that
+matches nothing is skipped rather than reported. Three published defects were
+sitting in the gap. It is a traversal now, and it asserts its own coverage.
+
+**Fourteen defects, ten of them from two mechanisms.** `opacity` used as a
+brightness knob on top of a token already at the palest end of the ramp — nine
+times, each one looking like a small adjustment on its own. And white text on the
+accent gradient, found three separate times with identical numbers, 2.36:1 and
+3.34:1, because the first fix repaired one element and left the gradient where
+the next author would reach for it. Removing the two mechanisms was worth more
+than fixing the fourteen instances.
+
+**`settleAnimations()` swallowed the exception that infinite animations throw,
+and then measured while they ran.** `finish()` cannot finish an endless
+animation. The `catch` was empty, the animation kept going, and any surface under
+a `pulse` or a `shimmer` was read at whatever phase the clock happened to be in.
+A caret cycling between opacity 1 and 0.4 returned a different number on every
+run. Some earlier numbers were phase-dependent and nobody could have known.
+Endless animations are paused and sampled at four points now.
+
+The habit those three add up to: a check that cannot fail is not a check, and the
+way to find out which kind you have is to break it on purpose and watch.
+
 ## Structure
 
 Next.js 15 (App Router) + TypeScript + React 19, plain CSS. No API routes, so the site
