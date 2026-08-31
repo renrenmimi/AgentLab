@@ -53,7 +53,7 @@ const WIDTHS = [
 // ---------------------------------------------------------------- arguments
 
 function parseArgs(argv) {
-  const args = { url: null, widths: WIDTHS, port: 3210, keep: false, inject: null, injectJs: null };
+  const args = { url: null, widths: WIDTHS, port: 3210, keep: false, inject: null, injectJs: null, expect: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--url") args.url = argv[++i];
@@ -64,12 +64,15 @@ function parseArgs(argv) {
       args.widths = [known ?? { width: w, height: 900 }];
     } else if (a === "--inject") args.inject = readFileSync(argv[++i], "utf8");
     else if (a === "--inject-js") args.injectJs = readFileSync(argv[++i], "utf8");
+    else if (a === "--expect-assertions") args.expect = { ...(args.expect ?? {}), assertions: Number(argv[++i]) };
+    else if (a === "--expect-coverage") args.expect = { ...(args.expect ?? {}), coverage: Number(argv[++i]) };
     else if (a === "--keep-open") args.keep = true;
     else if (a === "--help" || a === "-h") {
       console.log(
         "usage: node scripts/drive-selftest.mjs [--url URL] [--width 1440|768|390]\n" +
           "                                       [--port N] [--inject FILE.css]\n" +
-          "                                       [--inject-js FILE.js]",
+          "                                       [--inject-js FILE.js]\n" +
+          "                                       [--expect-assertions N] [--expect-coverage F]",
       );
       process.exit(0);
     }
@@ -296,6 +299,16 @@ async function serve(port) {
 
 // ---------------------------------------------------------------- one run
 
+// What the suite last finished, for a run that produced no report. A timeout
+// that says only "no report" is the same as no signal: a runner's own limit
+// kills the browser and nobody learns which block was running.
+async function lastBlock(send) {
+  const at = await evaluate(send, "document.documentElement.dataset.selftestAt").catch(() => null);
+  const stop = await evaluate(send, "document.body.dataset.stop").catch(() => null);
+  if (!at) return `The suite published no progress at all, so it stopped before its first assertion${stop ? ` (on ${stop})` : ""}.`;
+  return `Last completed assertion — ${at}${stop ? `, while on ${stop}` : ""}.`;
+}
+
 async function runAt(chrome, url, { width, height }, keepOpen, injectCss, injectJs) {
   const profile = mkdtempSync(join(tmpdir(), "agentlab-selftest-"));
   const port = 9200 + Math.floor(Math.random() * 700);
@@ -352,7 +365,21 @@ async function runAt(chrome, url, { width, height }, keepOpen, injectCss, inject
     // matches and every focus-ring assertion would pass vacuously — or fail,
     // depending on how it is written. Round two found this the hard way. Do not
     // remove: without it the accessibility half of the suite means nothing.
-    await send("Emulation.setFocusEmulationEnabled", { enabled: true }).catch(() => {});
+    //
+    // And do not put the catch back. This used to swallow its own failure, which
+    // on a laptop means somebody eventually notices the focus rings are wrong
+    // and on a runner means nobody ever does: the assertions go green because
+    // there is nothing to fail against. A browser that cannot emulate focus is a
+    // browser this suite cannot be trusted in.
+    try {
+      await send("Emulation.setFocusEmulationEnabled", { enabled: true });
+    } catch (err) {
+      fail(
+        `this Chrome would not enable focus emulation (${err.message}). Every ` +
+          `focus assertion would pass without testing anything, so the run is ` +
+          `stopping instead.`,
+      );
+    }
 
     // Override the metrics rather than resizing a window, so a result does not
     // depend on the host's screen or window chrome.
@@ -432,15 +459,15 @@ async function runAt(chrome, url, { width, height }, keepOpen, injectCss, inject
       ).catch(() => null);
       if (report) break;
       if (giveUpAt && Date.now() > giveUpAt) {
-        const stop = await evaluate(send, "document.body.dataset.stop").catch(() => "?");
-        return { width, threw: `${pageError}\n  (no report in the minute after; last stop: ${stop})` };
+        const at = await lastBlock(send);
+        return { width, threw: `${pageError}\n  (no report in the minute after. ${at})` };
       }
       await sleep(250);
     }
 
     if (!report) {
-      const stop = await evaluate(send, "document.body.dataset.stop").catch(() => "?");
-      return { width, threw: `no report after 10 minutes (last stop: ${stop})` };
+      const at = await lastBlock(send);
+      return { width, threw: `no report after 10 minutes. ${at}` };
     }
     return { width, ...JSON.parse(report), pageError };
   } finally {
@@ -474,15 +501,17 @@ console.log("");
 const runs = [];
 try {
   for (const size of args.widths) {
+    const began = Date.now();
     const run = await runAt(chrome, url, size, args.keep, args.inject, args.injectJs);
+    run.seconds = Math.round((Date.now() - began) / 1000);
     runs.push(run);
     if (run.threw) {
-      console.log(`${run.width}px — the suite threw before reporting`);
+      console.log(`${run.width}px — the suite threw before reporting, after ${run.seconds}s`);
       // The whole thing, not the first line. A stack trace cut to one line is
       // how the last one of these went unexplained.
       for (const line of String(run.threw).split("\n")) console.log(`  ${line}`);
     } else {
-      console.log(`${run.width}px — ${run.pass}/${run.total} passed`);
+      console.log(`${run.width}px — ${run.pass}/${run.total} passed in ${run.seconds}s`);
       // The coverage numbers, printed whether or not they failed. They are the
       // point of the rewrite and a number nobody sees is not a signal — the
       // previous mechanism reported a perfect score while measuring 72 per cent
@@ -518,6 +547,40 @@ for (const run of runs) {
   console.log(`| ${label} | ${run.threw ? "threw" : `**${run.pass} / ${run.total}**`} |`);
 }
 
+// The declared totals, checked against what actually ran.
+//
+// The suite already compares its own assertion count against its own constant,
+// and verify.mjs compares that constant against the suite's source. Both of
+// those move together if somebody edits both. This is the third opinion, and it
+// lives in the workflow file, where lowering it is a line in a diff about CI
+// rather than a line in a diff about a test. Zero failures is not the assertion:
+// coverage quietly dropping is what the coverage floor exists to catch, and a
+// run that measures less can still report every assertion it did make as green.
+const expectationFailures = [];
+if (args.expect) {
+  for (const run of runs) {
+    if (run.threw) continue;
+    if (args.expect.assertions != null && run.total !== args.expect.assertions) {
+      expectationFailures.push(
+        `${run.width}px ran ${run.total} assertions, and ${args.expect.assertions} were expected. ` +
+          `Either a block stopped running or the count was changed without changing the workflow.`,
+      );
+    }
+    if (args.expect.coverage != null) {
+      const note = (run.results ?? []).find((r) => /^the traversal measured/.test(r.label))?.note ?? "";
+      const share = Number((note.match(/\(([\d.]+)%\)/) ?? [])[1]);
+      if (!Number.isFinite(share)) {
+        expectationFailures.push(`${run.width}px reported no coverage figure to check`);
+      } else if (share / 100 < args.expect.coverage) {
+        expectationFailures.push(
+          `${run.width}px measured ${share}% of the text on the page, below the ` +
+            `${(args.expect.coverage * 100).toFixed(0)}% this run was told to expect.`,
+        );
+      }
+    }
+  }
+}
+
 const failures = runs.flatMap((run) =>
   run.threw
     ? [{ width: run.width, label: "the suite threw", note: run.threw.split("\n")[0] }]
@@ -533,4 +596,15 @@ if (failures.length) {
   console.log("```");
 }
 
-process.exit(failures.length ? 1 : 0);
+if (expectationFailures.length) {
+  console.log("");
+  console.log("the run did not match what it was told to expect:");
+  for (const line of expectationFailures) console.log(`  ${line}`);
+}
+
+const wall = runs.reduce((sum, run) => sum + (run.seconds ?? 0), 0);
+console.log("");
+console.log(`wall time: ${wall}s across ${runs.length} viewport${runs.length === 1 ? "" : "s"}` +
+  ` (${runs.map((r) => `${r.width}px ${r.seconds}s`).join(", ")})`);
+
+process.exit(failures.length || expectationFailures.length ? 1 : 0);
