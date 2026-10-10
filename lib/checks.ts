@@ -63,12 +63,12 @@ export const checks: GroupCheck[] = [
             text: { zh: '"tool"', en: '"tool"' },
             correction: {
               zh:
-                "最常见的猜测，也是最值得记住的一个错。Claude API 的数组里只有 user 和 assistant 两种角色，没有 tool。" +
-                "判断标准是「这条消息是发给模型看的，还是模型自己生成的」——工具结果是前者。",
+                "最常见的猜测，也是最值得记住的一个错。这个循环里的数组只用 user 和 assistant 两种角色，Claude API 也没有 tool 这个角色。" +
+                "判断标准是「这条消息是不是模型自己生成的」——工具结果不是，所以是 user。",
               en:
-                "The most common guess and the most useful mistake to have made. The array carries only user " +
-                "and assistant; there is no tool role. The test is whether a message is shown to the model or " +
-                "produced by it, and a tool result is the first.",
+                "The most common guess and the most useful mistake to have made. The array in this loop uses only " +
+                "user and assistant, and the Claude API has no tool role. The test is whether the model itself " +
+                "produced the message; a tool result was not produced by the model, so it is user.",
             },
           },
           { id: "user", text: { zh: '"user"', en: '"user"' }, correct: true },
@@ -84,14 +84,14 @@ export const checks: GroupCheck[] = [
             id: "system",
             text: { zh: '"system"', en: '"system"' },
             correction: {
-              zh: "system 是 create 调用的一个单独参数，根本不进这个数组，所以它不可能是数组里某条消息的 role。",
-              en: "system is a separate parameter of the create call and never enters this array, so it cannot be the role of a message in it.",
+              zh: "system 提示词是 create 调用的一个单独参数，不在这个数组里；何况这条消息装的是你的代码跑出来的结果，不是给模型的指令。",
+              en: "The system prompt is a separate parameter of the create call, not part of this array — and this message carries what your code produced, not an instruction for the model.",
             },
           },
         ],
         afterward: {
-          zh: "凡是发给模型看的都是 user：你打的字是，工具结果也是。这一条在后面每一站都还会用到。",
-          en: "Everything shown to the model is user: the words you type, and tool results alike. This one recurs at every later stop.",
+          zh: "只有模型自己生成的才是 assistant，其余的都是 user：你打的字是，工具结果也是。这一条在后面每一站都还会用到。",
+          en: "Only what the model itself produced is assistant; everything else is user — the words you type, and tool results alike. This one recurs at every later stop.",
         },
       },
       {
@@ -164,8 +164,8 @@ export const checks: GroupCheck[] = [
           },
         ],
         afterward: {
-          zh: "循环的出口只有一个：stop_reason 不是 tool_use。别的信号都不算。",
-          en: "The loop has one exit: stop_reason is not tool_use. No other signal counts.",
+          zh: "判断模型说没说完，只看 stop_reason：它不是 tool_use，就跳出循环；回复里有没有文字不算数。（真实的代码还会把 max_tokens——回复写到一半被截断——单独处理。）",
+          en: "To tell whether the model has finished, read stop_reason: if it is not tool_use, leave the loop. Whether the reply contains prose does not count. (Real code also handles max_tokens — a reply cut off part-way — as a case of its own.)",
         },
       },
     ],

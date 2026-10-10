@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { codeTemplate, blanks, runScript, normalize } from "@/lib/build";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
+import { STOPS } from "@/lib/stops";
 import { RichText } from "@/lib/glossary";
 import { useStopHeading } from "@/app/lesson";
 import GroupCheck from "@/app/group-check";
@@ -85,7 +86,13 @@ export default function BuildChapter() {
     if (got === "") return;
 
     if (current.answers.map(normalize).includes(got)) {
-      setFeedback({ kind: "right", msg: t(current.explain, lang) });
+      // 不带引号的 user、tool_use 也算对，但 JavaScript 会把它们当成变量名，
+      // 所以要当场说一句，而不是悄悄把引号补上。
+      const unquoted = current.display.startsWith('"') && !got.startsWith('"');
+      const note = unquoted
+        ? `${lang === "zh" ? "" : " "}${t(ui.build.needsQuotes, lang).replace("{answer}", current.display)}`
+        : "";
+      setFeedback({ kind: "right", msg: `${t(current.explain, lang)}${note}` });
       scheduleAdvance(1400);
       return;
     }
@@ -110,9 +117,14 @@ export default function BuildChapter() {
   const reveal = () => {
     if (advanceTimer.current) return;
     if (!current) return;
+    // 看答案的人没有答对，所以不接解释开头那句「对。」
+    const why = t(current.explain, lang)
+      .replace(/^(对|完全正确)。/, "")
+      .replace(/^(Correct|Exactly right)\.\s*/, "");
+    const stop = lang === "zh" ? "。" : ". ";
     setFeedback({
       kind: "right",
-      msg: `${t(ui.build.answerIs, lang)} ${current.display}. ${t(current.explain, lang)}`,
+      msg: `${t(ui.build.answerIs, lang)} ${current.display}${stop}${why}`,
     });
     scheduleAdvance(1800);
   };
@@ -129,6 +141,9 @@ export default function BuildChapter() {
     setPhase("write");
     setRunCount(0);
   };
+
+  // 下一站取自站点清单，而不是写死：这一站之后插进来的站曾让这个按钮跳过了四站。
+  const nextStop = STOPS[STOPS.findIndex((s) => s.href === "/build") + 1];
 
   // 找到当前空所在的行（用于点亮）
   const activeLine = template.findIndex((l) => l.includes(`{{${solved}}}`));
@@ -257,8 +272,8 @@ export default function BuildChapter() {
             <p>
               回顾一下你亲手填的三个核心：记忆是一个<b>数组</b>（[ ] 和两次
               role: &quot;user&quot;）、节奏是一个<b>循环</b>（while (true) 和
-              break）、每一轮都把<b>整个 messages</b> 全量重发。 Claude Code
-              这类工具的内核就是这三件事，区别只在于工具更多、循环的调度更复杂。
+              break）、每一轮都把<b>整个 messages</b> 全量重发。Claude Code
+              这类工具的内核就是这三件事，区别主要在于工具更多、循环外面的设施更完备——后面各站讲的就是这些设施。
             </p>
           ) : (
             <p>
@@ -266,8 +281,9 @@ export default function BuildChapter() {
               ([ ] and role: &quot;user&quot; twice). The rhythm is a{" "}
               <b>loop</b> (while (true) and break). Every round resends the{" "}
               <b>whole messages</b> array. Tools like Claude Code are built on
-              these same three things, with more tools available and a more
-              careful loop around them.
+              these same three things, with more tools available and more
+              machinery around the loop — the machinery the rest of the course is
+              about.
             </p>
           )}
           <p className="win-more">{t(ui.build.halfway, lang)}</p>
@@ -278,9 +294,13 @@ export default function BuildChapter() {
             <Link className="btn" href="/loop">
               {t(ui.build.backLoop, lang)}
             </Link>
-            <Link className="btn btn-primary" href="/cost">
-              {t(ui.build.toCost, lang)}
-            </Link>
+            {nextStop && (
+              <Link className="btn btn-primary" href={nextStop.href}>
+                {t(ui.lesson.next, lang)}
+                {lang === "zh" ? "：" : ": "}
+                {t(nextStop.label, lang)} →
+              </Link>
+            )}
           </div>
         </section>
       )}
