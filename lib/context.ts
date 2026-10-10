@@ -94,16 +94,6 @@ export const conversation: Msg[] = [
     },
     tokens: 400,
   },
-  {
-    id: 8,
-    role: "assistant",
-    label: { zh: "我大概明白了", en: "I think I have it" },
-    detail: {
-      zh: "正要给出结论，这一轮的请求得先发出去。",
-      en: "About to conclude — but this round has to be sent first.",
-    },
-    tokens: 60,
-  },
 ];
 
 export type Row = { label: L; parent: L; actual: L; parentBad?: boolean };
@@ -216,6 +206,8 @@ export function apply(strategy: Strategy, msgs: Msg[], limit: number): Outcome {
   }
 
   // 摘要：把早期那一段压成一条短消息，保留最近的原文。
+  // 留下的必须是成对的：最近一条 tool_result 连同请求它的那条 tool_use 一起留，
+  // 否则就剩下一条「没人要过的答案」，请求本身也不合法。
   const head = msgs.filter((m) => m.role === "system");
   const rest = msgs.filter((m) => m.role !== "system");
   const tail = rest.slice(-2); // 最近两条留原文
@@ -245,8 +237,8 @@ export function apply(strategy: Strategy, msgs: Msg[], limit: number): Outcome {
 export const meta: LessonMeta = {
   title: { zh: "装不下的时候", en: "When it will not fit" },
   subtitle: {
-    zh: "上下文窗口是一个硬上限。到顶之后有四条路，四条都要丢东西。",
-    en: "The context window is a hard ceiling. There are four ways past it, and all four lose something.",
+    zh: "上下文窗口是一个硬上限。应对它有四条路——到顶之后的三种处理，加上事先不把内容放进来——四条都要丢东西。",
+    en: "The context window is a hard ceiling. There are four ways to deal with it — three once it is full, and one that keeps material out in the first place — and all four lose something.",
   },
   takeaway: {
     zh:
@@ -270,13 +262,14 @@ export const blocks: Block[] = [
           "模型不是按字符也不是按单词计量文本的，而是按 [[token:token]]。" +
           "把一句话切成模型实际看到的样子，大概是这样：" +
           "「找出 / 订单 / 统计 / 对不 / 上 / 的 / 原因」——常见词是一整块，生僻词会被拆开，" +
-          "标点和空格也各占位置。英文里一个 token 大约四个字符，中文一个字往往就要一到两个 token。",
+          "标点和空格也各占位置。英文里一个 token 大约四个字符；中文的比例取决于分词器，常见词一两个字就是一个 token，生僻字一个字可能就要好几个。",
         en:
           "A model does not measure text in characters or in words but in [[token:token]]s. Split a sentence " +
           "the way a model actually sees it and you get something like: \"Find / out / why / the / order / " +
           "tot / als / are / wrong\" — common words are one piece, unusual ones get broken up, and punctuation " +
-          "and spaces take up room too. In English a token is roughly four characters; in Chinese a single " +
-          "character often costs one or two on its own.",
+          "and spaces take up room too. In English a token is roughly four characters; in Chinese the ratio " +
+          "depends on the tokenizer — a common word of one or two characters may be a single token, while a rare " +
+          "character can take several.",
       },
       {
         zh:
@@ -314,10 +307,10 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "上面这段对话已经跑了四轮，加起来 1,210 个 token，而这个例子里的窗口是 1,000。" +
+          "上面这段对话已经跑了三轮，加起来 1,150 个 token，而这个例子里的窗口是 1,000。" +
           "下一轮发不出去了。此刻能做的只有三件事，用上面的按钮各试一次：",
         en:
-          "The conversation above has run four rounds and comes to 1,210 tokens, against a window of 1,000 in " +
+          "The conversation above has run three rounds and comes to 1,150 tokens, against a window of 1,000 in " +
           "this example. The next round cannot be sent. There are exactly three things to do about it; try " +
           "each with the buttons above:",
       },
@@ -326,18 +319,20 @@ export const blocks: Block[] = [
           "**拒绝**最诚实，也最没用：告诉用户放不下了，然后什么都不做。" +
           "在很多产品里这其实是对的——与其给一个基于残缺历史的答案，不如说清楚。" +
           "**截断**最常见，也最容易出隐蔽的错：从最老的消息开始丢。" +
-          "试一下就会看到，被丢掉的第一条正是任务本身，模型接下来在回答一个它已经不知道的问题。" +
+          "试一下就会看到，被丢掉的第一条正是任务本身，模型接下来在回答一个它已经不知道的问题；" +
+          "而且剩下的历史以一条 assistant 消息开头，很多 API 并不接受这样的数组——真实的截断还要保证第一条仍是 user 消息。" +
           "**摘要**最贵也最有用：花一次额外的模型调用，把早期那一段压成一小段文字放回去。" +
-          "它保住了「要做什么」，代价是细节不可逆地没了——你没法从摘要里再读出那句 DECIMAL 改 FLOAT。",
+          "它保住了「要做什么」，代价是细节不可逆地没了——你没法从摘要里再读出 config.json 规定的小数位数是 2，也读不出 total 原来是 DECIMAL(10,2)。",
         en:
           "**Refusing** is the most honest and the least useful: tell the user it does not fit and stop. In " +
           "many products that is the right call — better than an answer built on a mutilated history. " +
           "**Truncating** is the most common and the easiest way to fail quietly: drop from the oldest end. " +
           "Try it and watch what goes first — the task itself, after which the model is answering a question " +
-          "it can no longer read. **Summarising** costs the most and helps the most: spend an extra model call " +
+          "it can no longer read. What is left also starts with an assistant message, which many APIs refuse; " +
+          "real truncation has to keep a user message first. **Summarising** costs the most and helps the most: spend an extra model call " +
           "folding the early stretch into a short passage and put that back. It keeps what the job was, at the " +
-          "price of detail that is gone for good — you cannot recover \"DECIMAL became FLOAT\" from a summary " +
-          "that no longer mentions it.",
+          "price of detail that is gone for good — the summary no longer says that config.json sets two " +
+          "decimal places, or that total used to be DECIMAL(10,2), and nothing can recover either.",
       },
     ],
     faq: {
@@ -476,8 +471,8 @@ export const bench = {
     en: "Nothing is sent. The user gets \"this conversation is too long\" instead of an unreliable answer.",
   },
   summaryNote: {
-    zh: "多花一次模型调用换来的：任务留住了，最近两条留了原文，中间四条被压成一句话。",
-    en: "Bought with one extra model call: the task survives, the last two messages stay verbatim, and the four in between become one sentence.",
+    zh: "多花一次模型调用换来的：任务留住了（写进了摘要），最近两条——一对 tool_use 和 tool_result——留了原文，更早的五条被压成一句话。",
+    en: "Bought with one extra model call: the task survives inside the summary, the last two messages — a tool_use and its tool_result — stay verbatim, and the five before them become one sentence.",
   },
   options: {
     refuse: { zh: "拒绝", en: "Refuse" },

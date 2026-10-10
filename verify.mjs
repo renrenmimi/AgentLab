@@ -1037,10 +1037,10 @@ check("every figure quoted in prose is the figure the page computes", () => {
       ["cost document, zh", paste.zh, [money(plain), money(doc), money(doc - plain)]],
       ["cost document, en", paste.en, [money(plain), money(doc), money(doc - plain)]],
     );
-    // The "about four and a half times" claim, checked as a ratio.
+    // The "about 4.6 times" claim, checked as a ratio.
     const ratio = plain / cached;
     if (!(ratio > 4.3 && ratio < 4.8)) {
-      fail("cost", `caching saves ${ratio.toFixed(2)}x; the prose says about four and a half`);
+      fail("cost", `caching saves ${ratio.toFixed(2)}x; the prose says about 4.6`);
     }
     if (Math.abs(docAlone - 0.06) > 0.005) {
       fail("cost", `the document costs ${docAlone.toFixed(3)} once; the prose says six cents`);

@@ -174,6 +174,15 @@ function CostChart({
 
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => f * ceiling);
 
+  // 图下那句结论说的是图上此刻画着的东西：当前的轮数，以及当前开关下
+  // 实际曲线是直线参照的几倍。写死成「第 40 轮、6.2 倍」的话，一拖滑块或者
+  // 贴进那份文档，句子就和画面对不上了。
+  const end = Math.max(0, rounds - 1);
+  const vsLine = (linear[end] ?? 0) > 0 ? (plain[end] ?? 0) / linear[end] : 1;
+  const says = t(bench.chartSays, lang)
+    .replace("{n}", String(rounds))
+    .replace("{x}", vsLine.toFixed(1));
+
   return (
     <figure className="chart">
       <figcaption className="chart-cap">
@@ -192,10 +201,9 @@ function CostChart({
         viewBox={`0 0 ${W} ${H}`}
         className="chart-svg"
         role="img"
-        aria-label={`${t(bench.chartTitle, lang)}. ${t(bench.chartAlt, lang)} ${t(
-          bench.chartSays,
-          lang,
-        )}${showCache ? " " + t(bench.chartCached, lang) : ""} ${rounds} ${t(
+        aria-label={`${t(bench.chartTitle, lang)}. ${t(bench.chartAlt, lang)} ${says}${
+          showCache ? " " + t(bench.chartCached, lang) : ""
+        } ${rounds} ${t(
           bench.axisRounds,
           lang,
         )}: ${money((showCache ? cache : plain)[rounds - 1] ?? 0)}.`}
@@ -232,7 +240,7 @@ function CostChart({
         />
       </svg>
       <p className="chart-conclusion">
-        {t(bench.chartSays, lang)}
+        {says}
         {showCache ? " " + t(bench.chartCached, lang) : ""}
       </p>
     </figure>

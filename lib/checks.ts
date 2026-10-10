@@ -514,8 +514,8 @@ export const checks: GroupCheck[] = [
             id: "depends",
             text: { zh: "取决于模型有没有真的用到它。", en: "It depends on whether the model actually used it." },
             correction: {
-              zh: "计费按发出去的 token 算，跟模型有没有引用它没有关系。没被用到的那二十份，钱一样付。",
-              en: "Billing counts the tokens you sent, not the ones the model referred to. The nineteen unused copies cost the same.",
+              zh: "计费按发出去的 token 算，跟模型有没有引用它没有关系。那二十份里，模型一次都没用上的，钱也一样付。",
+              en: "Billing counts the tokens you sent, not the ones the model referred to. Of the twenty copies, the ones it never used cost exactly the same.",
             },
           },
         ],
@@ -537,8 +537,8 @@ export const checks: GroupCheck[] = [
             id: "system",
             text: { zh: "system 提示词，因为它排在最前面。", en: "The system prompt, because it is at the very front." },
             correction: {
-              zh: "丢不到它——system 是 create 的单独参数，根本不在这个数组里。这也是它每一轮都稳定存在的原因。",
-              en: "It cannot be dropped: system is a separate parameter of the create call and is not in this array at all. That is also why it is reliably present every round.",
+              zh: "丢不到它——system 提示词是 create 的单独参数，不在这个数组里。这也是它每一轮都稳定存在的原因。",
+              en: "It cannot be dropped: the system prompt is a separate parameter of the create call, not part of this array. That is also why it is reliably present every round.",
             },
           },
           {
@@ -561,8 +561,8 @@ export const checks: GroupCheck[] = [
             id: "auto",
             text: { zh: "由 API 决定丢哪条。", en: "The API decides what to drop." },
             correction: {
-              zh: "API 不会替你丢任何东西。超出上限它只会拒绝整个请求，丢什么必须由你的代码回答。",
-              en: "The API drops nothing on your behalf. Over the limit it refuses the whole request, and what to drop is a question your code has to answer.",
+              zh: "默认情况下，API 不会替你丢任何东西：输入超出上限，它会拒绝整个请求，丢什么必须由你的代码回答。（有的平台提供可选的自动压缩，那也是你自己选择打开的一种摘要。）",
+              en: "By default the API drops nothing on your behalf: over the limit it refuses the whole request, and what to drop is a question your code has to answer. (Some platforms offer automatic compaction as an option; that is a summary you chose to switch on.)",
             },
           },
         ],
