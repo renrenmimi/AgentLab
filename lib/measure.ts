@@ -62,12 +62,12 @@ export const tasks: Task[] = [
     v2: false,
     why: {
       zh:
-        "v2 要求每个结论都带文件和行号，模型于是只报了它能精确定位的那一处，" +
-        "另外三处因为在同一个文件的不同分支里没有一起给出。要求更严，答案反而更少了。",
+        "v2 要求每个结论都带文件和行号，模型于是只报了它能精确定位的那一处；" +
+        "另外三处是通过一个包装函数间接调用的，没法逐一给出行号，它就干脆没有列。要求更严，答案反而更少了。",
       en:
         "v2 demands a file and a line for every claim, so the model reported only the one it could pin down " +
-        "exactly and left out the other three, which sit in different branches of the same file. A stricter " +
-        "requirement produced a less complete answer.",
+        "exactly; the other three go through a wrapper, could not be given a line each, and were left out. A " +
+        "stricter requirement produced a less complete answer.",
     },
   },
   {
@@ -288,13 +288,17 @@ export const blocks: Block[] = [
           "「每个结论都要给出文件和行号」这个要求，让模型不再愿意给出那些它无法逐条定位的结论，" +
           "于是完整的清单变成了不完整的清单。净结果是 5 → 6，一次改动只赚了一分。" +
           "这一分该不该要，是可以讨论的；但没有这张表，你连有这个讨论的机会都没有——" +
-          "你会以为自己赚了三分。",
+          "你会以为自己赚了三分。" +
+          "还要记住：表里每个任务只跑了一次，净多的这一分本身也可能只是采样的波动（[[stop:/chance]]）——" +
+          "这正是前面说同一个任务要跑三次的理由。",
         en:
           "But rows 2 and 9 got worse, both for the same reason: the requirement to cite a file and a line for " +
           "every claim made the model unwilling to state conclusions it could not pin down item by item, and " +
           "a complete list became an incomplete one. The net result is 5 to 6: one point for the change. " +
           "Whether that point is worth it is a fair discussion to have. Without this table you do not get to " +
-          "have it — you believe you gained three.",
+          "have it — you believe you gained three. And each task in the table ran once: a net gain of one may " +
+          "itself be sampling noise ([[stop:/chance]]), which is the reason, given above, for running each task " +
+          "three times.",
       },
     ],
   },

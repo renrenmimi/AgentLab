@@ -846,11 +846,11 @@ export const checks: GroupCheck[] = [
             correction: {
               zh:
                 "你改的是全局，验的是局部。那句话会出现在此后每一个任务的每一轮里，" +
-                "而你只看了其中一个。真实的例子：一次「每个结论都要给出文件和行号」的改动" +
+                "而你只看了其中一个。这一站的例子：一次「每个结论都要给出文件和行号」的改动" +
                 "修好了三条用例，同时悄悄弄坏了两条——因为模型不再愿意给出它无法逐条定位的结论。",
               en:
                 "The change is global and the check was local. That sentence now appears in every round of " +
-                "every task, and you looked at one of them. A real example: requiring a file and a line for " +
+                "every task, and you looked at one of them. The example on this stop: requiring a file and a line for " +
                 "every claim fixed three cases and quietly broke two, because the model stopped stating " +
                 "conclusions it could not pin down item by item.",
             },
