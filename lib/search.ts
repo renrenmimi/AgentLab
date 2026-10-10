@@ -4,9 +4,11 @@
 // 没有依赖，也不发任何请求——十四站的双语正文压进去大约几万字符，
 // 直接线性扫一遍就够快，为它引入一个搜索库是不划算的。
 //
-// 索引在第一次用到时才建（命令面板打开时），因此不影响任何一页的加载。
+// 这个模块连同它导入的全部正文，在命令面板第一次打开时才加载（见 app/command-palette.tsx），
+// 索引在第一次搜索时才建；所以它不进任何一页的首屏 JS。
 
 import { COURSE, CHECK_SECTIONS } from "@/lib/course";
+import { stopWord } from "@/lib/glossary";
 import type { Lang, L } from "@/lib/i18n";
 
 export type Hit = {
@@ -49,7 +51,7 @@ function build(): Record<Lang, Entry[]> {
         heading,
         headingText: heading[lang],
         // 标记对读者不可见，索引里也不该有
-        body: paras.map((p) => strip(p[lang])).join(" "),
+        body: paras.map((p) => strip(p[lang], lang)).join(" "),
       });
     }
   };
@@ -66,10 +68,10 @@ function build(): Record<Lang, Entry[]> {
   return out;
 }
 
-/** 去掉正文里的标记，只留读者看得见的字。 */
-export function strip(text: string): string {
+/** 去掉正文里的标记，只留读者看得见的字。站点引用换成页面上显示的「第 8 站 / stop 8」。 */
+export function strip(text: string, lang: Lang): string {
   return text
-    .replace(/\[\[(?:stop|ahead):([^\]]+)\]\]/g, "")
+    .replace(/\[\[(?:stop|ahead):([^\]]+)\]\]/g, (_, href: string) => stopWord(href, lang))
     .replace(/\[\[\w+:([^\]]+)\]\]/g, "$1")
     .replace(/\*\*([^*]+)\*\*/g, "$1");
 }
