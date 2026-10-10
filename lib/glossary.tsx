@@ -105,8 +105,8 @@ export const glossary: Record<
     firstAt: "/chance",
     word: { zh: "采样", en: "sampling" },
     def: {
-      zh: "模型算出的是「下一个 token 各有多大概率」的一张表，从表里挑一个出来的那一步就叫采样。它不是模型的一部分，是调用方的一段代码。",
-      en: "The model produces a table of how likely each possible next token is; picking one out of that table is sampling. It is not part of the model but a piece of code on the calling side.",
+      zh: "模型算出的是「下一个 token 各有多大概率」的一张表，从表里挑一个出来的那一步就叫采样。它不是神经网络本身，而是推理服务在模型之后执行的一步；用 API 时它发生在服务端。",
+      en: "The model produces a table of how likely each possible next token is; picking one out of that table is sampling. It is not the network itself but a step the inference service runs after it; through an API it happens on the server.",
     },
   },
   temperature: {

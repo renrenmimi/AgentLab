@@ -149,26 +149,30 @@ export const blocks: Block[] = [
         zh:
           "模型不会「想出」下一个词。它算出的是一整张表：" +
           "在当前这段文字后面，每一个可能的 [[token:token]] 各有多大概率。" +
-          "这张表出来之后，还需要有人从里面挑一个——挑的那一步叫[[sampling:采样]]（sampling），" +
-          "它不是模型的一部分，是调用方的一段代码。",
+          "这张表出来之后，还需要有人从里面挑一个——挑的那一步叫[[sampling:采样]]（sampling）。" +
+          "它不是神经网络本身，而是推理服务在模型算完之后执行的一步；用 API 时它发生在服务端，" +
+          "你的代码只能通过参数去影响它。",
         en:
           "A model does not think of the next word. What it computes is a table: for every possible " +
           "[[token:token]] that could come next, how likely it is. Something then has to pick one out of that " +
-          "table. That step is called [[sampling:sampling]], and it is not part of the model — it is a piece of code on the " +
-          "calling side.",
+          "table. That step is called [[sampling:sampling]]. It is not the network itself but a step the inference service " +
+          "runs after it; through an API it happens on the server, and your code can only influence it through " +
+          "parameters.",
       },
       {
         zh:
           "[[temperature:温度]]（temperature）是这一步的旋钮。它不改变模型算出来的表，只改变挑的方式：" +
           "温度低，概率最高的那个几乎总是被选中；温度高，排在后面的选项也有机会。" +
           "把上面的温度拉到 0 再按几次，你会看到它每次都走同一条路；" +
-          "拉到 1，那条「不查就报数」的路也会偶尔出现。",
+          "拉到 1，那条「不查就报数」的路也会偶尔出现。" +
+          "（滑块演示的是原理。有些模型的 API 已经不再开放温度参数，这时变化只能靠提示词和工具结果去收窄。）",
         en:
           "[[temperature:Temperature]] is the knob on that step. It does not change the table the model produced; it changes " +
           "how the pick is made. Low temperature and the most likely token is chosen nearly every time; high " +
           "temperature and the ones further down get a turn. Drag the temperature to 0 above and press again a " +
           "few times: the same path every time. Drag it to 1 and the path that answers without looking starts " +
-          "to appear.",
+          "to appear. (The slider shows the principle. Some models' APIs no longer expose temperature at all, " +
+          "and then the variation can only be narrowed through the prompt and the tool results.)",
       },
       {
         zh:
@@ -208,11 +212,12 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "这是这一站真正要留下的东西。函数的性质是同样的输入给同样的输出——" +
+          "这是这一站真正要留下的东西。数学意义上的函数（编程里叫纯函数，pure function）有一个性质：同样的输入给同样的输出——" +
           "你测一次通过了，就知道它以后都通过。agent 没有这个性质。" +
           "同样的输入可能走出不同的路径，所以**「我试过，能用」不是证据，它是一次采样。**",
         en:
-          "This is the thing to carry away. A function has the property that the same input gives the same " +
+          "This is the thing to carry away. A function in the mathematical sense — a pure function, in " +
+          "programming — has the property that the same input gives the same " +
           "output: test it once and you know how it behaves. An agent does not have that property. The same " +
           "input can take a different path, which makes **\"it worked when I tried it\" not evidence but one " +
           "sample.**",
