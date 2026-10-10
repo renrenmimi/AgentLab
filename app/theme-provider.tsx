@@ -2,8 +2,8 @@
 
 // App-level client providers (ported from the SYSDesigner "Research OS" shell).
 //  - ThemeProvider: mirrors data-theme ("dark" | "light") onto <html>, persisted
-//    in localStorage. A tiny inline script (themeScript) runs before first paint
-//    so there is no flash of the wrong theme.
+//    in localStorage. A tiny inline script (themeScript) at the top of <body>
+//    runs before first paint so there is no flash of the wrong theme.
 //  - ShellProvider: holds the workbench UI state shared by the sidebar drawer,
 //    the toolbar, the scrim and the command palette.
 
@@ -23,7 +23,7 @@ export type Theme = "dark" | "light";
 const THEME_KEY = "agentlab-theme";
 const SIDEBAR_KEY = "agentlab-sidebar";
 
-// Runs in <head> before paint: read the saved theme + sidebar state and set them
+// Runs at the top of <body> before paint: read the saved theme + sidebar state and set them
 // on <html> so the first frame already matches (no flash of wrong theme, and no
 // flash of an expanded rail when the user had it collapsed).
 // Defaults: theme "dark", sidebar "expanded".
@@ -44,15 +44,23 @@ const ThemeContext = createContext<ThemeCtx>({
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, set] = useState<Theme>("dark");
 
-  // Sync React state with whatever the no-flash script already applied.
+  // Sync React state with the saved theme, and write it back onto <html>.
+  // The write is not redundant: if React ever re-renders the document on the
+  // client (a failed hydration does exactly that), the attribute the no-flash
+  // script set is gone, and the page falls back to the dark tokens while this
+  // state still says light. Storage can also refuse to be read at all (site
+  // data blocked), which must not take the page down with it.
   useEffect(() => {
-    const saved = window.localStorage.getItem(THEME_KEY);
-    if (saved === "light" || saved === "dark") {
-      set(saved);
-      return;
+    const d = document.documentElement;
+    let next: Theme = d.dataset.theme === "light" ? "light" : "dark";
+    try {
+      const saved = window.localStorage.getItem(THEME_KEY);
+      if (saved === "light" || saved === "dark") next = saved;
+    } catch {
+      /* keep what the script applied */
     }
-    const current = document.documentElement.dataset.theme;
-    if (current === "light" || current === "dark") set(current);
+    set(next);
+    d.dataset.theme = next;
   }, []);
 
   const setTheme = useCallback((t: Theme) => {
@@ -114,9 +122,19 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   const [cmdkOpen, setCmdkOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Adopt whatever the no-flash script already wrote onto <html data-sidebar>.
+  // Adopt the saved rail state and write it back onto <html data-sidebar>, for
+  // the same reason as the theme above: a client re-render clears the attribute.
   useEffect(() => {
-    setSidebarCollapsed(document.documentElement.dataset.sidebar === "collapsed");
+    const d = document.documentElement;
+    let collapsed = d.dataset.sidebar === "collapsed";
+    try {
+      const saved = window.localStorage.getItem(SIDEBAR_KEY);
+      if (saved === "collapsed" || saved === "expanded") collapsed = saved === "collapsed";
+    } catch {
+      /* keep what the script applied */
+    }
+    setSidebarCollapsed(collapsed);
+    d.dataset.sidebar = collapsed ? "collapsed" : "expanded";
   }, []);
 
   const toggleSidebarCollapsed = useCallback(() => {

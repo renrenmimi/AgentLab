@@ -4,6 +4,7 @@ import { useState } from "react";
 import { bench, blocks, meta, setups, systemBill, task } from "@/lib/instructions";
 import { money } from "@/lib/cost";
 import { useLang, t } from "@/lib/i18n";
+import { grouped } from "@/lib/format";
 import { RichText } from "@/lib/glossary";
 import {
   Choices,
@@ -86,7 +87,7 @@ export default function InstructionsStop() {
         <div className="lsn-readout">
           <div className="lsn-stat">
             <span className="lsn-stat-k">{t(bench.billTokens, lang)}</span>
-            <span className="lsn-stat-v">{bill.tokens.toLocaleString()}</span>
+            <span className="lsn-stat-v">{grouped(bill.tokens)}</span>
             <span className="lsn-stat-sub">tokens</span>
           </div>
           <div className="lsn-stat">

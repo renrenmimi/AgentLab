@@ -40,13 +40,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        {/* No-flash theme: set data-theme before first paint. */}
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        {/* No-flash language: set data-lang + <html lang> before first paint. */}
-        <script dangerouslySetInnerHTML={{ __html: langScript }} />
-      </head>
       <body>
+        {/* The pre-paint scripts: data-theme, data-sidebar, data-lang and
+            <html lang>, set before the first paint. They are the first thing
+            the parser meets in <body> rather than sitting in <head>: React
+            matches hand-written <head> nodes one by one while the webpack
+            runtime removes the chunk <script> tags it has finished loading from
+            that same <head>, and on a cold load the two interleaved often
+            enough that hydration failed (React error #418) on about one load in
+            five. The providers write the attributes back after mounting, so a
+            client re-render for any other reason cannot lose them either. */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: langScript }} />
         <LangProvider>
           <ThemeProvider>
             <ShellProvider>
