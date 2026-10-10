@@ -142,7 +142,7 @@ async function connect(port) {
     }
     await sleep(100);
   }
-  if (!targets?.length) fail("Chrome did not open a debugging port in 15 seconds");
+  if (!targets?.length) fail("Chrome opened a debugging port but listed no page in 15 seconds");
 
   const target = targets.find((t) => t.type === "page") ?? targets[0];
   const ws = new WebSocket(target.webSocketDebuggerUrl);
@@ -222,6 +222,33 @@ async function evaluate(send, expression) {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * The port Chrome is listening on, read from the profile it was started with.
+ *
+ * Chrome is told to pick a free port itself (--remote-debugging-port=0) and
+ * writes the one it chose to DevToolsActivePort in the profile directory once
+ * it is listening. The driver used to choose a random port and give Chrome
+ * fifteen seconds to open it. Twice in one day a runner failed the job that
+ * way, with no assertion run at all: a random port can already be taken, and a
+ * cold runner can take longer than fifteen seconds to start a browser. Reading
+ * the file removes the first and waiting sixty seconds covers the second.
+ * Returns null if Chrome exits first or the minute runs out.
+ */
+async function devtoolsPort(profile, proc) {
+  const file = join(profile, "DevToolsActivePort");
+  for (let i = 0; i < 600; i++) {
+    if (proc.exitCode !== null || proc.signalCode !== null) return null;
+    try {
+      const port = Number(readFileSync(file, "utf8").split("\n")[0]);
+      if (port > 0) return port;
+    } catch {
+      /* not written yet */
+    }
+    await sleep(100);
+  }
+  return null;
+}
 
 // ---------------------------------------------------------------- serving
 
@@ -311,7 +338,6 @@ async function lastBlock(send) {
 
 async function runAt(chrome, url, { width, height }, keepOpen, injectCss, injectJs) {
   const profile = mkdtempSync(join(tmpdir(), "agentlab-selftest-"));
-  const port = 9200 + Math.floor(Math.random() * 700);
   // Detached, and killed as a group. Chrome used to be a plain child cleaned up
   // in a finally, which is skipped when this process is killed rather than
   // returning — and a headless Chrome with nine helpers left running competes
@@ -321,7 +347,7 @@ async function runAt(chrome, url, { width, height }, keepOpen, injectCss, inject
     chrome,
     [
       keepOpen ? "--headless=new" : "--headless=new",
-      `--remote-debugging-port=${port}`,
+      "--remote-debugging-port=0",
       `--user-data-dir=${profile}`,
       "--no-first-run",
       "--no-default-browser-check",
@@ -355,6 +381,11 @@ async function runAt(chrome, url, { width, height }, keepOpen, injectCss, inject
 
   let socket;
   try {
+    const port = await devtoolsPort(profile, proc);
+    if (!port) {
+      killChrome();
+      fail("Chrome did not open a debugging port in 60 seconds");
+    }
     const { ws, send } = await connect(port);
     socket = ws;
 
