@@ -306,7 +306,7 @@ body::after {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
   padding: 8px 6px;
 }
 
@@ -322,32 +322,46 @@ body::after {
   border-radius: 2px;
 }
 
+/* 点本身 9px，可点的区域 24px（WCAG 2.5.8 的最小目标）：点由 ::before 画出，
+   按钮本身透明。相邻两点的圆心因此相距 24px。 */
 .pdot {
   position: relative;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pdot::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 9px;
   height: 9px;
-  padding: 0;
+  margin: -4.5px 0 0 -4.5px;
   border-radius: 50%;
-  border: none;
   background: var(--text-3);
   box-shadow: 0 0 0 3px var(--bg);
-  cursor: pointer;
   transition:
     transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
     background 0.25s ease,
     box-shadow 0.25s ease;
 }
 
-.pdot:hover {
+.pdot:hover::before {
   transform: scale(1.4);
   background: var(--accent-2);
 }
 
-.pdot.done {
+.pdot.done::before {
   background: var(--accent);
 }
 
-.pdot.cur {
+.pdot.cur::before {
   background: var(--accent);
   transform: scale(1.45);
   box-shadow: 0 0 0 5px var(--accent-bg);
@@ -427,6 +441,7 @@ body::after {
 }
 
 .faq summary {
+  min-height: 24px;
   cursor: pointer;
   list-style: none;
   color: var(--accent-text);
@@ -1979,8 +1994,9 @@ a.btn {
   border-bottom: 1.5px dashed var(--accent);
 }
 
-.term::after {
-  content: "?";
+/* The "?" is a real span with aria-hidden rather than ::after content, which
+   would have been read as part of the term's name ("arrays?"). */
+.term-q {
   font-size: 0.62em;
   vertical-align: super;
   /* 4.0:1 on the tinted cards in the light theme. */
@@ -2161,6 +2177,11 @@ a.btn {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  /* A jump from the contents of /all is often ten thousand pixels. */
+  html {
+    scroll-behavior: auto;
   }
 }
 
@@ -2928,7 +2949,7 @@ html[data-sidebar="collapsed"] .sidebar {
 .lsn-slider input[type="range"] {
   flex: 1 1 220px;
   accent-color: var(--accent);
-  height: 22px;
+  height: 24px;
 }
 
 .lsn-slider-v {
@@ -4149,6 +4170,8 @@ html[data-sidebar="collapsed"] .sidebar {
 }
 
 .nx-name a {
+  display: inline-block;
+  padding: 3px 0;
   font-size: 12.5px;
   font-weight: 500;
   color: var(--accent-text);
@@ -4486,6 +4509,9 @@ html[data-sidebar="collapsed"] .sidebar {
 
 .all-open {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   font-size: 12px;
   font-weight: 500;
   color: var(--accent-text);

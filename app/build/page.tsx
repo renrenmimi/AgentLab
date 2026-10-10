@@ -158,10 +158,11 @@ export default function BuildChapter() {
           <h1 className="page-title">{useStopHeading(ui.build.title, lang)}</h1>
           <p className="subtitle">{t(ui.build.subtitle, lang)}</p>
         </div>
-        <div className="progress" aria-label={t(ui.a11y.progress, lang)}>
+        <div className="progress" role="group" aria-label={t(ui.a11y.progress, lang)}>
           {blanks.map((b, i) => (
             <span
               key={i}
+              aria-current={i === solved && phase === "write" ? "step" : undefined}
               className={`pdot ${i < solved ? "done" : ""} ${
                 i === solved && phase === "write" ? "cur" : ""
               }`}
@@ -212,7 +213,7 @@ export default function BuildChapter() {
             )}
           </form>
           {feedback.msg && (
-            <p className={`q-feedback q-${feedback.kind}`} key={feedback.msg}>
+            <p className={`q-feedback q-${feedback.kind}`} key={feedback.msg} role="status">
               {feedback.kind === "right"
                 ? "✓ "
                 : feedback.kind === "wrong"

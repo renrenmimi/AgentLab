@@ -90,6 +90,7 @@ export default function Sidebar() {
           <div
             className="progress"
             role="progressbar"
+            aria-label={t(ui.a11y.progress, lang)}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={progress}

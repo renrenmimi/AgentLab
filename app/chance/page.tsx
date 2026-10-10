@@ -65,6 +65,8 @@ export default function ChanceStop() {
             max={TEMPS.length - 1}
             step={1}
             value={TEMPS.indexOf(temp as (typeof TEMPS)[number])}
+            // The slider moves along positions 0–3; what it sets is the temperature.
+            aria-valuetext={temp.toFixed(1)}
             onChange={(e) => {
               setTemp(TEMPS[Number(e.target.value)]);
               setTally({});
