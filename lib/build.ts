@@ -144,8 +144,8 @@ export const blanks: Blank[] = [
     answers: ['"user"', 'user'],
     display: '"user"',
     hint: {
-      zh: '会进数组的角色只有两种：user（发给模型看的）和 assistant（模型生成的）。任务是你说的。',
-      en: 'Only two roles go into the array: user, for anything shown to the model, and assistant, for anything the model produced. The task comes from you.',
+      zh: '会进数组的角色只有两种：assistant（模型自己生成的）和 user（其余的一切）。任务是你说的。',
+      en: 'Only two roles go into the array: assistant, for what the model itself produced, and user, for everything else. The task comes from you.',
     },
     explain: {
       zh: '对。你说的话 role 都是 "user"。记住这个词，最后一个空还会考它。',
@@ -155,8 +155,8 @@ export const blanks: Blank[] = [
       {
         test: /system/,
         hint: {
-          zh: 'system 是“岗位说明书”，而且它是 create 的单独参数，根本不进数组。你布置的任务，角色是 user。',
-          en: 'system is the job description, and it is a separate parameter of create — it never enters the array. The task you write has the role user.',
+          zh: 'system 提示词是“岗位说明书”，在这个循环里它是 create 的单独参数，不进数组。你布置的任务，角色是 user。',
+          en: 'The system prompt is the job description, and in this loop it is a separate parameter of create rather than part of the array. The task you write has the role user.',
         },
       },
       {
@@ -167,7 +167,7 @@ export const blanks: Blank[] = [
         },
       },
       {
-        test: /human|me|我/,
+        test: /^"?(human|me|我|用户)"?$/,
         hint: {
           zh: '意思对了。API 规定的取值写作 user。',
           en: 'Right idea. The value the API expects is spelled user.',
@@ -214,15 +214,15 @@ export const blanks: Blank[] = [
   },
   {
     lesson: {
-      zh: '变量（variable）＝给东西起的名字。第 5 行我们把那个数组命名为 messages；之后在任何地方写 messages，指的都是同一个数组。',
-      en: 'A variable = a name you give something. On line 5 the array was named messages, so writing messages anywhere after that refers to the same array.',
+      zh: '变量（variable）＝给东西起的名字。第 5 行我们把那个数组命名为 messages；之后在任何地方写 messages，指的都是同一个数组。这一空只写一个名字就够了：参数名和变量名相同时，messages: messages 可以简写成 messages，上面那行 tools 也是这样写的。',
+      en: 'A variable = a name you give something. On line 5 the array was named messages, so writing messages anywhere after that refers to the same array. The name alone is enough here: when a parameter and a variable share a name, messages: messages can be shortened to messages, which is also how the tools line above is written.',
     },
     q: {
       zh: 'create 的参数里最关键的一个：每一轮要把什么发给模型？',
       en: 'The most important parameter of create: what do you send the model every round?',
     },
     placeholder: { zh: '一个变量名', en: 'a variable name' },
-    answers: ['messages'],
+    answers: ['messages', 'messages:messages'],
     display: 'messages',
     hint: {
       zh: '就是第 5 行定义的那个数组的名字。每轮发的都是它的全部内容。',
@@ -273,7 +273,7 @@ export const blanks: Blank[] = [
       en: 'Use a dot to take the content field out of res: res.content.',
     },
     explain: {
-      zh: '对。res 里还有 stop_reason 等元数据，进数组的只有内容本身。',
+      zh: '对。res 里还有 stop_reason、token 用量等元数据，进数组的只有内容本身。',
       en: 'Correct. res also carries metadata such as stop_reason and token usage. Only the content itself goes into the array.',
     },
     wrong: [
@@ -339,8 +339,8 @@ export const blanks: Blank[] = [
   },
   {
     lesson: {
-      zh: 'break ＝ 立刻跳出循环：剩下的圈全都不转了，程序接着往循环外面走。它是 while (true) 这种“无限循环”唯一的出口。',
-      en: 'break = leave the loop immediately. No more rounds run, and the program continues after the loop. It is the only exit from a while (true) loop.',
+      zh: 'break ＝ 立刻跳出循环：剩下的圈全都不转了，程序接着往循环外面走。它是 while (true) 这种“无限循环”唯一的正常出口。',
+      en: 'break = leave the loop immediately. No more rounds run, and the program continues after the loop. It is the only normal way out of a while (true) loop.',
     },
     q: {
       zh: '条件成立（回复里没有再要工具）时，用哪个关键字跳出循环？',
@@ -354,8 +354,8 @@ export const blanks: Blank[] = [
       en: 'The JavaScript keyword for leaving a loop. Five letters.',
     },
     explain: {
-      zh: '对。break 是这个无限循环唯一的出口。',
-      en: 'Correct. break is the only way out of this infinite loop.',
+      zh: '对。break 是这个无限循环唯一的正常出口。',
+      en: 'Correct. break is the only normal way out of this infinite loop.',
     },
     wrong: [
       {
@@ -394,33 +394,33 @@ export const blanks: Blank[] = [
     answers: ['"user"', 'user'],
     display: '"user"',
     hint: {
-      zh: '判断标准只有一条：这条消息是“发给模型看的”，还是“模型生成的”？',
-      en: 'One rule: was this message shown to the model, or produced by the model?',
+      zh: '判断标准只有一条：这条消息是不是模型自己生成的？',
+      en: 'One rule: did the model itself produce this message?',
     },
     explain: {
-      zh: '完全正确。凡是发给模型看的都是 user——你打的字是，工具结果也是。到这里，要点你已经全部掌握了。',
-      en: 'Exactly right. Anything shown to the model is user: your own words, and tool results too. You now know every key point.',
+      zh: '完全正确。只有模型自己生成的才是 assistant，其余的都是 user——你打的字是，你的代码跑出来的工具结果也是。到这里，要点你已经全部掌握了。',
+      en: 'Exactly right. Only what the model itself produced is assistant; everything else is user: your own words, and the tool results your code produced. You now know every key point.',
     },
     wrong: [
       {
         test: /tool/,
         hint: {
-          zh: '这是最经典的一个错误。Claude API 里没有 tool 这个角色。判断标准：凡是“发给模型看的”都是 user——你打的字是，工具结果也是。',
-          en: 'This is the most common mistake. The Claude API has no tool role. The rule: anything shown to the model is user, your own words and tool results alike.',
+          zh: '这是最经典的一个错误。Claude API 里没有 tool 这个角色。判断标准：只有模型自己生成的才是 assistant，其余的都是 user——你打的字是，工具结果也是。',
+          en: 'This is the most common mistake. The Claude API has no tool role. The rule: only what the model itself produced is assistant, and everything else is user, your own words and tool results alike.',
         },
       },
       {
         test: /assistant/,
         hint: {
-          zh: 'assistant 只用于模型自己生成的内容。工具结果是你替它跑出来、发回去给它看的——发给模型看的都是 user。',
-          en: 'assistant is only for what the model itself produced. You ran this tool and are showing it the result, and anything shown to the model is user.',
+          zh: 'assistant 只用于模型自己生成的内容。工具结果是你的代码替它跑出来的，不是它说的——所以是 user。',
+          en: 'assistant is only for what the model itself produced. Your code ran this tool and produced the result; the model did not say it, so it is user.',
         },
       },
       {
         test: /system|result|function/,
         hint: {
-          zh: '数组里只有 user 和 assistant 两种角色。这条消息是发给模型看的，所以是……',
-          en: 'Only user and assistant appear in this array. This message is shown to the model, so it is…',
+          zh: '这个数组里只用 user 和 assistant 两种角色。这条消息不是模型自己生成的，所以是……',
+          en: 'This array uses only user and assistant. The model did not produce this message, so it is…',
         },
       },
     ],

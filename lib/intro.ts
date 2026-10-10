@@ -12,23 +12,23 @@ export type Scene = {
 export const scenes: Scene[] = [
   {
     title: {
-      zh: "你已经具备了理解本站所需的全部基础",
+      zh: "开始之前，你需要的已经都有了",
       en: "You already have everything you need to start",
     },
     text: {
       zh:
-        "只要你写过一次 print(\"hello world\")，你就已经知道编程的全部本质：程序就是写给电脑的指令清单，" +
+        "只要你写过一次 print(\"hello world\")，你就已经知道程序是什么了：程序就是写给电脑的指令清单，" +
         "电脑一行一行照着做，仅此而已。接下来用到的每一个新概念——[[array:数组]]、[[loop:循环]]、[[api:API]]——" +
         "都会在用到的那一刻现场教给你；" +
         "正文里带虚线下划线的词，点一下就有解释。除了那一行 print，不需要提前会写代码——" +
-        "另有十几个编程里的常见词会直接用，不再单独解释，README 里列了完整的一份。",
+        "另有十几个编程里的常见词会直接用，不再单独解释，课程的 GitHub 仓库首页（README）列了完整的一份。",
       en:
         "If you have written print(\"hello world\") once, you already know what a program is: a list of " +
         "instructions for the computer, followed one line at a time. That is all. Every new idea used here — " +
         "[[array:arrays]], [[loop:loops]], [[api:APIs]] — is explained at the moment you need it, and any word " +
         "with a dotted underline can be clicked for " +
         "a plain explanation. Beyond that one line of print, you do not need to be able to write code — " +
-        "though a dozen or so ordinary programming words are used without a definition, and the README lists them.",
+        "though a dozen or so ordinary programming words are used without a definition, and the README on the course's GitHub page lists them.",
     },
   },
   {
@@ -55,12 +55,14 @@ export const scenes: Scene[] = [
       zh:
         "一旦你让它做点实事——读你电脑上的文件、查个网页、跑条命令——这个局限就暴露了。" +
         "模型运行在别人的服务器上，你的电脑它一根手指都碰不到：读不了文件、上不了网、敲不了命令。" +
-        "只会生成文字的模型，替你干不了活。这就是“聊天机器人”和“agent”的分水岭。",
+        "只会生成文字的模型，替你干不了活。这就是“聊天机器人”和“agent”的分水岭。" +
+        "（你用过的会联网搜索、会读文件的聊天产品，正是产品方给模型接上了下一幕要讲的东西。）",
       en:
         "The moment you ask it to do something real — read a file on your computer, fetch a web page, run a command — " +
         "the limit shows. The model runs on someone else's server and cannot touch your computer at all: no files, " +
         "no network, no keyboard. A model that only produces text cannot do the work for you. " +
-        "This is the line between a chatbot and an agent.",
+        "This is the line between a chatbot and an agent. (The chat products you have seen search the web or read " +
+        "files are doing exactly what the next scene describes.)",
     },
   },
   {
@@ -90,13 +92,13 @@ export const scenes: Scene[] = [
     },
     text: {
       zh:
-        "把刚才的过程包进一个循环：把数组发给模型 → 回复里要工具就执行、结果追加进数组 → 再发一次……" +
+        "把刚才的过程包进一个循环：把数组发给模型 → 模型的回复追加进数组 → 回复里要工具就执行、结果也追加进数组 → 再发一次……" +
         "一圈一圈转，直到某一次回复里不再有工具请求为止。你不用事先规定转几圈：只要回复还在要工具，循环就继续。" +
         "这样一个程序——一个循环、一个不断变长的数组、由你的代码执行的工具——就是所谓的 agent。" +
         "看下面的动画转两轮，节奏就是这四步。",
       en:
-        "Wrap that exchange in a loop: send the array to the model, run any tool the reply asks for, append the result, " +
-        "then send the array again. The loop repeats until a reply comes back with no tool request in it. You never set " +
+        "Wrap that exchange in a loop: send the array to the model, append its reply to the array, run any tool the " +
+        "reply asks for and append the result too, then send the array again. The loop repeats until a reply comes back with no tool request in it. You never set " +
         "the number of rounds in advance — the loop keeps going as long as the replies keep asking for tools. " +
         "A program built this way is what people call an agent. Watch two rounds go by below; the rhythm is these four steps.",
     },
@@ -109,14 +111,14 @@ export const scenes: Scene[] = [
     },
     text: {
       zh:
-        "所有对话历史（你的话、模型的回复、工具结果）都存在一个[[array:数组]]里；一个循环不停地重复“发数组 → 执行工具 → 追加结果”。" +
+        "所有对话历史（你的话、模型的回复、工具结果）都存在一个[[array:数组]]里；一个循环不停地重复“发数组 → 追加回复 → 执行工具 → 追加结果”。" +
         "Claude Code、Cursor 这类工具看起来复杂，内核都是这个东西的放大版。" +
         "接下来两站：先去看它慢动作跑一遍（每一步都透视给你看），然后你亲手把它写出来。",
       en:
         "The whole conversation history — your words, the model's replies, the tool results — lives in one " +
-        "[[array:array]]. One loop keeps repeating the same three moves: send the array, run any requested tool, append " +
-        "the result. Claude Code and Cursor look complicated, but at the core they are larger versions of exactly this. " +
-        "Two stops left: first watch it run in slow motion, then write it yourself.",
+        "[[array:array]]. One loop keeps repeating the same four moves: send the array, append the reply, run any " +
+        "requested tool, append the result. Claude Code and Cursor look complicated, but at the core they are larger versions of exactly this. " +
+        "The next two stops: first watch it run in slow motion, then write it yourself.",
     },
   },
 ];
@@ -154,13 +156,13 @@ export const stage = {
   actor2: { zh: "你的代码", en: "your code" },
   actor2sub: { zh: "负责执行", en: "runs it" },
   s3cap: {
-    zh: "模型在回复里提出请求 → 你的代码执行 → 结果作为新消息发回去。就这两步。",
-    en: "The model asks in its reply → your code runs the tool → the result goes back as a new message. Two steps.",
+    zh: "模型在回复里提出请求 → 你的代码执行 → 结果作为新消息发回去。提请求的是模型，动手的是你的代码。",
+    en: "The model asks in its reply → your code runs the tool → the result goes back as a new message. Asking is the model's job; acting is your code's.",
   },
   n1: { zh: "① 把整个数组发给模型", en: "① Send the whole array to the model" },
-  n2: { zh: "② 模型回复", en: "② The model replies" },
-  n3: { zh: "③ 你执行工具", en: "③ You run the tool" },
-  n4: { zh: "④ 结果追加到数组", en: "④ Append the result to the array" },
+  n2: { zh: "② 回复追加进数组", en: "② Append the reply" },
+  n3: { zh: "③ 要工具就执行", en: "③ Run any tool it asks for" },
+  n4: { zh: "④ 结果追加进数组", en: "④ Append the result" },
   exit: {
     zh: "回复里没有工具请求？→ ✓ 结束",
     en: "No tool request in the reply? → ✓ done",

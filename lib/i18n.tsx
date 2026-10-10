@@ -293,16 +293,20 @@ export const ui = {
     backIntro: { zh: "回到开头", en: "Back to the start" },
     halfway: {
       zh:
-        "会写它，和能把它写好，是两件事。后面六站讲的都是第二件：" +
-        "它为什么这么贵、装不下的时候怎么办、工具该怎么描述、" +
-        "工具结果为什么不能全信、什么时候该交给另一个 agent、以及怎么知道你的改动真的让它变好了。",
+        "会写它，和能把它写好，是两件事。后面各站讲的都是第二件：先认识模型的脾气（每次不一样、会编），" +
+        "再看你写的那些文本（system 提示词、工具描述），然后是它的代价（花费、上下文上限）、" +
+        "出问题的时候（不可信的工具结果、权限、失败与重试），最后是怎么知道你的改动真的让它变好了。",
       en:
-        "Being able to write it and being able to write it well are different things. The remaining six stops " +
-        "are about the second: why it costs what it costs, what to do when the history will not fit, how to " +
-        "describe a tool, why tool output cannot be trusted, when to hand work to another agent, and how to " +
-        "know that a change actually improved anything.",
+        "Being able to write it and being able to write it well are different things. The rest of the " +
+        "course is about the second: first what the model is like (it varies, and it invents), then the text " +
+        "you write (the system prompt, the tool descriptions), then what it costs (money and the context " +
+        "ceiling), then what happens when things go wrong (untrustworthy tool output, permission, failure and " +
+        "retries), and finally how to know that a change actually improved anything.",
     },
-    toCost: { zh: "下一站：它为什么这么贵 →", en: "Next stop: why it costs that →" },
+    needsQuotes: {
+      zh: "不过要带上引号写成 {answer}：不带引号的话，JavaScript 会把它当成一个变量名。",
+      en: "One thing: write it with its quotes, {answer}. Without them JavaScript reads it as the name of a variable.",
+    },
     codeTitle: {
       zh: "agent.js —— 你正在写的文件",
       en: "agent.js — the file you are writing",
