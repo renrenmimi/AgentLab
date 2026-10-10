@@ -8,6 +8,7 @@ import Toolbar from "./toolbar";
 import CommandPalette from "./command-palette";
 import SelfTest from "./selftest";
 import { ProgressProvider } from "./progress";
+import { NavProvider } from "./nav-provider";
 
 export const metadata: Metadata = {
   // 分享一条链接时，别人看到的就是这几行。绝对地址由 metadataBase 补全，
@@ -56,15 +57,17 @@ export default function RootLayout({
           <ThemeProvider>
             <ShellProvider>
               <ProgressProvider>
-                <div className="app-shell">
-                  <Sidebar />
-                  <div className="main-col">
-                    <Toolbar />
-                    <div className="workspace">{children}</div>
+                <NavProvider>
+                  <div className="app-shell">
+                    <Sidebar />
+                    <div className="main-col">
+                      <Toolbar />
+                      <div className="workspace">{children}</div>
+                    </div>
                   </div>
-                </div>
-                <CommandPalette />
-                <SelfTest />
+                  <CommandPalette />
+                  <SelfTest />
+                </NavProvider>
               </ProgressProvider>
             </ShellProvider>
           </ThemeProvider>
