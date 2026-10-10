@@ -3,6 +3,12 @@
 // Global command palette (ported from SYSDesigner). Open with ⌘K / Ctrl+K
 // (or the toolbar trigger). Type to filter every stop in both languages,
 // ↑/↓ to move, Enter to navigate, Esc / overlay click to close. Rendered in a portal.
+//
+// The prose index is the whole course in both languages, so it is loaded the
+// first time the palette opens rather than with the page: the palette sits in
+// the root layout, and a static import put every stop's text into every page's
+// first load. Focus stays inside the dialog while it is open and goes back to
+// where it came from when it closes.
 
 import {
   useCallback,
@@ -13,10 +19,18 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { ui, useLang, t, type L } from "@/lib/i18n";
+import { ui, useLang, t, type L, type Lang } from "@/lib/i18n";
 import { useShell } from "./theme-provider";
 import { STOPS, VIEWS } from "@/lib/stops";
-import { search, type Hit } from "@/lib/search";
+import type { Hit } from "@/lib/search";
+
+type SearchModule = typeof import("@/lib/search");
+let searchModule: Promise<SearchModule> | null = null;
+const loadSearch = () => (searchModule ??= import("@/lib/search"));
+
+// A query written in Chinese is looked up in the Chinese text whatever the
+// interface language is; anything else is looked up in the current language.
+const HAN = /[\u3400-\u9fff]/;
 
 type Dest = { href: string; label: L };
 
@@ -28,8 +42,11 @@ export default function CommandPalette() {
   const { cmdkOpen, setCmdkOpen } = useShell();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const [engine, setEngine] = useState<SearchModule | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  // Where focus was before the palette opened, so closing can put it back.
+  const returnTo = useRef<HTMLElement | null>(null);
 
   // Global ⌘K / Ctrl+K toggle + Esc to close.
   useEffect(() => {
@@ -45,13 +62,24 @@ export default function CommandPalette() {
     return () => window.removeEventListener("keydown", onKey);
   }, [setCmdkOpen]);
 
-  // Reset + focus when opened.
+  // Reset + focus when opened; load the index; give focus back when closed.
   useEffect(() => {
     if (!cmdkOpen) return;
     setQuery("");
     setActive(0);
+    const before = document.activeElement;
+    returnTo.current = before instanceof HTMLElement && before !== document.body ? before : null;
+    let alive = true;
+    loadSearch().then((m) => {
+      if (alive) setEngine(m);
+    });
     const id = requestAnimationFrame(() => inputRef.current?.focus());
-    return () => cancelAnimationFrame(id);
+    return () => {
+      alive = false;
+      cancelAnimationFrame(id);
+      const back = returnTo.current;
+      if (back && back.isConnected) back.focus({ preventScroll: true });
+    };
   }, [cmdkOpen]);
 
   // 站点名先匹配，再搜正文。索引在第一次搜索时才建，不影响任何一页的加载。
@@ -67,16 +95,20 @@ export default function CommandPalette() {
     );
   }, [query]);
 
+  const searchLang: Lang = HAN.test(query) ? "zh" : lang;
   const proseHits = useMemo<Hit[]>(
-    () => (query.trim().length >= 2 ? search(query, lang) : []),
-    [query, lang],
+    () => (engine && query.trim().length >= 2 ? engine.search(query, searchLang) : []),
+    [engine, query, searchLang],
   );
 
   // 两组结果拼成一个可以上下走的列表。
   const results = useMemo(
     () => [
       ...stopHits.map((d) => ({ kind: "stop" as const, href: d.href, label: d.label })),
-      ...proseHits.map((h) => ({ kind: "prose" as const, href: `${h.href}#${h.anchor}`, hit: h })),
+      // Section anchors exist on the one-page view only: a stop renders one step,
+      // one blank or one scene at a time, so most of its sections have no element
+      // to land on there.
+      ...proseHits.map((h) => ({ kind: "prose" as const, href: `/all#${h.anchor}`, hit: h })),
     ],
     [stopHits, proseHits],
   );
@@ -117,6 +149,10 @@ export default function CommandPalette() {
     } else if (e.key === "Escape") {
       e.preventDefault();
       setCmdkOpen(false);
+    } else if (e.key === "Tab") {
+      // The field is the only stop in the dialog; Tab must not walk out of it
+      // into the page behind the overlay.
+      e.preventDefault();
     }
   };
 
@@ -142,16 +178,32 @@ export default function CommandPalette() {
           value={query}
           placeholder={t(ui.cmdk.placeholder, lang)}
           aria-label={t(ui.cmdk.placeholder, lang)}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={results.length > 0}
+          aria-controls="cmdk-list"
+          aria-activedescendant={results.length > 0 ? `cmdk-opt-${active}` : undefined}
           autoComplete="off"
           spellCheck={false}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            // A new query is a new list; the highlight starts again at its top.
+            setActive(0);
+          }}
           onKeyDown={onInputKey}
         />
 
         {results.length === 0 ? (
           <div className="cmdk-empty">{t(ui.cmdk.empty, lang)}</div>
         ) : (
-          <ul className="cmdk-list" role="listbox" ref={listRef}>
+          <ul
+            className="cmdk-list"
+            id="cmdk-list"
+            role="listbox"
+            aria-label={t(ui.cmdk.placeholder, lang)}
+            tabIndex={-1}
+            ref={listRef}
+          >
             {results.map((r, i) => {
               const firstProse =
                 r.kind === "prose" && results.findIndex((x) => x.kind === "prose") === i;
@@ -160,6 +212,7 @@ export default function CommandPalette() {
               return (
                 <li
                   key={`${r.kind}-${r.href}-${i}`}
+                  id={`cmdk-opt-${i}`}
                   role="option"
                   aria-selected={i === active}
                   className={`cmdk-item${i === active ? " active" : ""}${
@@ -178,8 +231,8 @@ export default function CommandPalette() {
                   ) : (
                     <>
                       <span className="cmdk-item-title">
-                        {t(r.hit.heading, lang)}
-                        <span className="cmdk-where">{t(r.hit.stop, lang)}</span>
+                        {t(r.hit.heading, searchLang)}
+                        <span className="cmdk-where">{t(r.hit.stop, searchLang)}</span>
                       </span>
                       <span className="cmdk-snippet">
                         {r.hit.snippet.slice(0, r.hit.at[0])}
