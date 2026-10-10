@@ -15,6 +15,7 @@ import {
   type Strategy,
 } from "@/lib/context";
 import { useLang, t, type Lang } from "@/lib/i18n";
+import { grouped } from "@/lib/format";
 import {
   Choices,
   LessonHeader,
@@ -60,8 +61,8 @@ export default function ContextStop() {
             <div className="lsn-col-h">
               {t(bench.before, lang)}
               <span className="ctx-sum">
-                {before.toLocaleString()} / {LIMIT.toLocaleString()} ·{" "}
-                {t(bench.overBy, lang)} {(before - LIMIT).toLocaleString()}
+                {grouped(before)} / {grouped(LIMIT)} ·{" "}
+                {t(bench.overBy, lang)} {grouped(before - LIMIT)}
               </span>
             </div>
             <ul className="ctx-list">
@@ -80,7 +81,7 @@ export default function ContextStop() {
             <div className="lsn-col-h">
               {t(bench.after, lang)}
               <span className="ctx-sum">
-                {outcome.total.toLocaleString()} / {LIMIT.toLocaleString()}
+                {grouped(outcome.total)} / {grouped(LIMIT)}
                 {outcome.kept.length > 0 && ` · ${t(bench.fitsNow, lang)}`}
               </span>
             </div>

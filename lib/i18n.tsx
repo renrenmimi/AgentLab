@@ -21,8 +21,9 @@ export const t = (l: L, lang: Lang) => l[lang];
 
 const KEY = "agentlab-lang";
 
-// 在 <head> 里、首帧之前运行：把存下来的语言写到 <html> 上，
-// 这样首次绘制就已经是正确的语言，不会闪一下中文。默认 "en"。
+// 在 <body> 开头、首帧之前运行：把存下来的语言写到 <html> 上（data-lang 与 lang）。
+// 正文由 React 渲染，服务端出的是英文，所以中文读者在 hydration 之前仍会短暂看到英文；
+// 这是已接受的行为。默认 "en"。
 export const langScript = `(function(){var d=document.documentElement;var l="en";try{if(localStorage.getItem("${KEY}")==="zh")l="zh";}catch(e){}d.dataset.lang=l;d.lang=l==="zh"?"zh-CN":"en";})();`;
 
 type Ctx = { lang: Lang; setLang: (l: Lang) => void };
@@ -31,19 +32,21 @@ const LangContext = createContext<Ctx>({ lang: "en", setLang: () => {} });
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, set] = useState<Lang>("en");
 
-  // 跟无闪脚本已经写好的值对齐（脚本没跑成功时回退读 localStorage）。
+  // 跟存下来的语言对齐，并把它写回 <html>。写回不是多余的：
+  // 客户端一旦重渲染整个文档（hydration 失败时就会这样），无闪脚本写的
+  // data-lang 和 lang 都会被清掉，<html lang> 回到 en，读屏会用英文读中文。
   useEffect(() => {
-    const applied = document.documentElement.dataset.lang;
-    if (applied === "zh" || applied === "en") {
-      set(applied);
-      return;
-    }
+    const d = document.documentElement;
+    let next: Lang = d.dataset.lang === "zh" ? "zh" : "en";
     try {
       const saved = window.localStorage.getItem(KEY);
-      if (saved === "zh" || saved === "en") set(saved);
+      if (saved === "zh" || saved === "en") next = saved;
     } catch {
-      /* ignore read failures (private mode, etc.) */
+      /* 读不了就沿用脚本写下的值 */
     }
+    set(next);
+    d.dataset.lang = next;
+    d.lang = next === "zh" ? "zh-CN" : "en";
   }, []);
 
   const setLang = useCallback((l: Lang) => {

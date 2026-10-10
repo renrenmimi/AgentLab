@@ -13,6 +13,7 @@ import {
   runCost,
 } from "@/lib/cost";
 import { useLang, t } from "@/lib/i18n";
+import { grouped } from "@/lib/format";
 import {
   LessonHeader,
   Prose,
@@ -107,14 +108,14 @@ export default function CostStop() {
             <span className="lsn-stat-k">{t(bench.statFirstRound, lang)}</span>
             <span className="lsn-stat-v">{money(first)}</span>
             <span className="lsn-stat-sub">
-              {promptTokens(ASSUMPTIONS, 1, extra).toLocaleString()} tokens
+              {grouped(promptTokens(ASSUMPTIONS, 1, extra))} tokens
             </span>
           </div>
           <div className={`lsn-stat${ratio >= 4 ? " lsn-stat-bad" : ""}`}>
             <span className="lsn-stat-k">{t(bench.statLast, lang)}</span>
             <span className="lsn-stat-v">{money(last)}</span>
             <span className="lsn-stat-sub">
-              {promptTokens(ASSUMPTIONS, rounds, extra).toLocaleString()} tokens
+              {grouped(promptTokens(ASSUMPTIONS, rounds, extra))} tokens
             </span>
           </div>
           <div className={`lsn-stat${ratio >= 4 ? " lsn-stat-bad" : ""}`}>
@@ -124,7 +125,7 @@ export default function CostStop() {
           <div className="lsn-stat">
             <span className="lsn-stat-k">{t(bench.statTokens, lang)}</span>
             <span className="lsn-stat-v">
-              {Math.round(shown.inputTokens / 1000).toLocaleString()}k
+              {grouped(Math.round(shown.inputTokens / 1000))}k
             </span>
           </div>
         </div>

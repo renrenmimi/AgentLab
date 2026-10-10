@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { scenarios, stateAt, type ChatItem, type Meter } from "@/lib/scenarios";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
+import { grouped } from "@/lib/format";
 import { RichText, plainText } from "@/lib/glossary";
 import { useStopHeading } from "@/app/lesson";
 
@@ -262,7 +263,7 @@ export default function LoopChapter() {
               stop_reason: {state.stopReason ?? "—"}
             </span>
             <span className="chip">
-              {t(ui.loop.tokensSent, lang).replace("{n}", tokens.toLocaleString())}
+              {t(ui.loop.tokensSent, lang).replace("{n}", grouped(tokens))}
             </span>
           </div>
         </section>
@@ -359,7 +360,7 @@ function MeterBar({ meter, lang }: { meter: Meter; lang: Lang }) {
       <div className="meter-head">
         <span>{t(meter.label, lang)}</span>
         <span className="meter-num">
-          {meter.used.toLocaleString()} / {meter.limit.toLocaleString()}
+          {grouped(meter.used)} / {grouped(meter.limit)}
           {unit}
           {over && <b> · {t(ui.loop.meterOver, lang)}</b>}
         </span>
