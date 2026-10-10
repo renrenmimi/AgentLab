@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { createContext, useContext } from "react";
 import { t, type L, type Lang } from "@/lib/i18n";
 import { STOPS } from "@/lib/stops";
 
@@ -214,11 +215,28 @@ export function stopWord(href: string, lang: Lang): string {
   return lang === "zh" ? `第 ${n} 站` : `stop ${n}`;
 }
 
+// How a cross-reference navigates. A plain <a> reloaded the whole document on
+// every "stop 8", re-running every script, while the sidebar navigates in place.
+// The app's router is handed in from app/nav-provider.tsx rather than imported
+// here, because verify.mjs loads this module in plain Node, where next/* does
+// not resolve.
+export const NavContext = createContext<((href: string) => void) | null>(null);
+
 function StopRef({ href, lang }: { href: string; lang: Lang }) {
+  const nav = useContext(NavContext);
   const n = stopNumber(href);
   if (n === 0) return <>{href}</>;
   return (
-    <a className="stop-ref" href={href}>
+    <a
+      className="stop-ref"
+      href={href}
+      onClick={(e) => {
+        // A modified click (new tab, new window) is the browser's to handle.
+        if (!nav || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        nav(href);
+      }}
+    >
       {stopWord(href, lang)}
     </a>
   );

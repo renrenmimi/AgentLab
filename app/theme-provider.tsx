@@ -73,18 +73,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // The side effects stay out of the state updater: React may call an updater
+  // twice (it does in StrictMode), and the DOM and storage writes belong to the
+  // click, not to the computation of the next value.
   const toggleTheme = useCallback(() => {
-    set((prev) => {
-      const next: Theme = prev === "light" ? "dark" : "light";
-      document.documentElement.dataset.theme = next;
-      try {
-        window.localStorage.setItem(THEME_KEY, next);
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  }, []);
+    setTheme(theme === "light" ? "dark" : "light");
+  }, [theme, setTheme]);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
@@ -138,17 +132,15 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleSidebarCollapsed = useCallback(() => {
-    setSidebarCollapsed((prev) => {
-      const next = !prev;
-      document.documentElement.dataset.sidebar = next ? "collapsed" : "expanded";
-      try {
-        window.localStorage.setItem(SIDEBAR_KEY, next ? "collapsed" : "expanded");
-      } catch {
-        /* ignore write failures (private mode, etc.) */
-      }
-      return next;
-    });
-  }, []);
+    const next = !sidebarCollapsed;
+    setSidebarCollapsed(next);
+    document.documentElement.dataset.sidebar = next ? "collapsed" : "expanded";
+    try {
+      window.localStorage.setItem(SIDEBAR_KEY, next ? "collapsed" : "expanded");
+    } catch {
+      /* ignore write failures (private mode, etc.) */
+    }
+  }, [sidebarCollapsed]);
 
   return (
     <ShellContext.Provider

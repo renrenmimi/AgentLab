@@ -116,7 +116,10 @@ export default function Sidebar() {
               <p className="side-group-why">{t(group.why, lang)}</p>
               {STOPS.filter((s) => s.group === gi).map((s) => {
                 const active = s.href === path;
-                const read = visited.has(s.href) && !active;
+                // The same set the progress card counts: a stop reached for the
+                // first time counts once the reader leaves it, and a stop read
+                // before is marked even while it is the current one.
+                const read = visited.has(s.href);
                 return (
                   <Link
                     key={s.href}

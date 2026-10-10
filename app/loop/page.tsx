@@ -32,10 +32,8 @@ export default function LoopChapter() {
   const arrayLen = state.msgs
     .filter((m) => !m.sys)
     .reduce((n, m) => n + (m.count ?? 1), 0);
-  const tokens = useCountUp(state.tokens);
 
-  // 语法高亮只跟场景和语言有关。tokens 滚动动画每帧都会重渲染本组件，
-  // 不缓存的话这些行会被重新 tokenize 几十次。
+  // 语法高亮只跟场景和语言有关，缓存起来，推进一步时不必把代码重新 tokenize 一遍。
   const codeLines = useMemo(() => code.map((line) => tokenize(line)), [code]);
 
   const advance = () => setCursor((c) => Math.min(c + 1, steps.length - 1));
@@ -263,9 +261,7 @@ export default function LoopChapter() {
             <span className={`chip ${chipClass(state.stopReason, state.stopTone)}`}>
               stop_reason: {state.stopReason ?? "—"}
             </span>
-            <span className="chip">
-              {t(ui.loop.tokensSent, lang).replace("{n}", grouped(tokens))}
-            </span>
+            <TokensChip target={state.tokens} lang={lang} />
           </div>
         </section>
       </div>
@@ -442,15 +438,29 @@ function ChatRow({
   }
 }
 
+// 状态栏里的 token 数。滚动动画的 state 只在这个小组件里：放在整页组件里时，
+// 每推进一步就要把整页重渲染约 40 次。
+function TokensChip({ target, lang }: { target: number; lang: Lang }) {
+  const tokens = useCountUp(target);
+  return (
+    <span className="chip">{t(ui.loop.tokensSent, lang).replace("{n}", grouped(tokens))}</span>
+  );
+}
+
 // tokens 数字滚动动画
 // 从「屏幕上当前显示的数字」起算（而不是上一个目标值），
-// 这样连点时不会从中途跳回上一个目标再滚动。
+// 这样连点时不会从中途跳回上一个目标再滚动。减少动态效果时直接显示目标值。
 function useCountUp(target: number, ms = 700) {
   const [val, setVal] = useState(target);
   const shown = useRef(target);
   useEffect(() => {
     const from = shown.current;
     if (from === target) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      shown.current = target;
+      setVal(target);
+      return;
+    }
     let raf = 0;
     const t0 = performance.now();
     const tick = (now: number) => {

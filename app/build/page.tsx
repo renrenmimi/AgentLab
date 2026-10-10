@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import Link from "next/link";
-import { codeTemplate, blanks, runScript, normalize } from "@/lib/build";
+import { codeTemplate, blanks, runScript, normalize, type Blank } from "@/lib/build";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { STOPS } from "@/lib/stops";
 import { RichText } from "@/lib/glossary";
@@ -21,9 +21,12 @@ type Phase = "write" | "ready" | "running" | "done";
 export default function BuildChapter() {
   const [solved, setSolved] = useState(0); // 已填对的空数
   const [value, setValue] = useState("");
+  // msg is the text in the language it was shown in; src is what it says, so
+  // that switching language can say it again instead of leaving the old one up.
   const [feedback, setFeedback] = useState<{
     kind: "idle" | "wrong" | "right" | "hint";
     msg: string;
+    src?: Said;
   }>({ kind: "idle", msg: "" });
   const [attempts, setAttempts] = useState(0);
   const [phase, setPhase] = useState<Phase>("write");
@@ -110,43 +113,38 @@ export default function BuildChapter() {
       // 不带引号的 user、tool_use 也算对，但 JavaScript 会把它们当成变量名，
       // 所以要当场说一句，而不是悄悄把引号补上。
       const unquoted = current.display.startsWith('"') && !got.startsWith('"');
-      const note = unquoted
-        ? `${lang === "zh" ? "" : " "}${t(ui.build.needsQuotes, lang).replace("{answer}", current.display)}`
-        : "";
-      setFeedback({ kind: "right", msg: `${t(current.explain, lang)}${note}` });
+      tell("right", { what: "right", unquoted });
       scheduleAdvance(1400);
       return;
     }
 
     setAttempts((n) => n + 1);
-    const targeted = current.wrong?.find((w) => w.test.test(got));
-    const fallback = `${t(ui.build.notQuite, lang)}${t(current.hint, lang)}`;
-    setFeedback({
-      kind: "wrong",
-      msg: targeted ? t(targeted.hint, lang) : fallback,
-    });
+    tell("wrong", { what: "wrong", targeted: current.wrong?.findIndex((w) => w.test.test(got)) ?? -1 });
     inputRef.current?.select();
   };
+
+  const tell = (kind: "wrong" | "right" | "hint", src: Said) => {
+    if (current) setFeedback({ kind, src, msg: say(src, current, lang) });
+  };
+
+  // Switching language while a verdict is up says it again in the new language.
+  useEffect(() => {
+    setFeedback((f) => (f.src && current ? { ...f, msg: say(f.src, current, lang) } : f));
+    // Only on a language change: the blank and the verdict change together elsewhere.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   const showHint = () => {
     if (advanceTimer.current) return;
     if (!current) return;
-    setFeedback({ kind: "hint", msg: t(current.hint, lang) });
+    tell("hint", { what: "hint" });
     inputRef.current?.focus();
   };
 
   const reveal = () => {
     if (advanceTimer.current) return;
     if (!current) return;
-    // 看答案的人没有答对，所以不接解释开头那句「对。」
-    const why = t(current.explain, lang)
-      .replace(/^(对|完全正确)。/, "")
-      .replace(/^(Correct|Exactly right)\.\s*/, "");
-    const stop = lang === "zh" ? "。" : ". ";
-    setFeedback({
-      kind: "right",
-      msg: `${t(ui.build.answerIs, lang)} ${current.display}${stop}${why}`,
-    });
+    tell("right", { what: "reveal" });
     scheduleAdvance(1800);
   };
 
@@ -367,6 +365,40 @@ export default function BuildChapter() {
       <GroupCheck href="/build" lang={lang} />
     </main>
   );
+}
+
+// 判题反馈说的是什么，与它用哪种语言说分开记：切换语言时据此重说一遍。
+type Said =
+  | { what: "right"; unquoted: boolean }
+  | { what: "wrong"; targeted: number }
+  | { what: "hint" }
+  | { what: "reveal" };
+
+function say(src: Said, blank: Blank, lang: Lang): string {
+  switch (src.what) {
+    case "right": {
+      // 不带引号的 user、tool_use 也算对，但 JavaScript 会把它们当成变量名，
+      // 所以要当场说一句，而不是悄悄把引号补上。
+      const note = src.unquoted
+        ? `${lang === "zh" ? "" : " "}${t(ui.build.needsQuotes, lang).replace("{answer}", blank.display)}`
+        : "";
+      return `${t(blank.explain, lang)}${note}`;
+    }
+    case "wrong": {
+      const targeted = src.targeted >= 0 ? blank.wrong?.[src.targeted] : undefined;
+      return targeted ? t(targeted.hint, lang) : `${t(ui.build.notQuite, lang)}${t(blank.hint, lang)}`;
+    }
+    case "hint":
+      return t(blank.hint, lang);
+    case "reveal": {
+      // 看答案的人没有答对，所以不接解释开头那句「对。」
+      const why = t(blank.explain, lang)
+        .replace(/^(对|完全正确)。/, "")
+        .replace(/^(Correct|Exactly right)\.\s*/, "");
+      const stop = lang === "zh" ? "。" : ". ";
+      return `${t(ui.build.answerIs, lang)} ${blank.display}${stop}${why}`;
+    }
+  }
 }
 
 // 把模板行渲染成：已填的空（绿色）/ 当前空（实时镜像输入）/ 未到的空（____）
