@@ -190,11 +190,12 @@ export const blocks: Block[] = [
       {
         zh:
           "这些站之间不是并列的知识点，它们共用同一个结构：" +
-          "凡是模型知道的，都在那个数组里；凡是它能做的，都在那份工具列表里。" +
+          "凡是模型对这个任务知道的，都在那次请求里——数组、system 提示词和工具说明；凡是它能做的，都在那份工具列表里。" +
           "遇到一个没见过的行为时，先问这两句，通常就已经定位到了。",
         en:
-          "These are not parallel facts; they share one structure. Everything the model knows is in that " +
-          "array, and everything it can do is in that tool list. Faced with behaviour you have not seen " +
+          "These are not parallel facts; they share one structure. Everything the model knows about the task " +
+          "is in the request — the array, the system prompt and the tool descriptions — and everything it can do " +
+          "is in that tool list. Faced with behaviour you have not seen " +
           "before, asking those two questions usually locates it.",
       },
     ],
