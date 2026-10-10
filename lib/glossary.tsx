@@ -4,6 +4,7 @@
 // 带虚线下划线的可点击术语，点开是一段“小朋友也能懂”的解释。
 
 import {
+  useId,
   useState,
   useRef,
   useEffect,
@@ -244,6 +245,7 @@ function Term({
   } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLSpanElement>(null);
+  const popId = useId();
   const entry = glossary[termKey];
 
   // 打开后测量并定位：优先放术语下方，空间不足则放上方；两轴都夹进视口。
@@ -312,14 +314,25 @@ function Term({
         className={`term ${open ? "term-on" : ""}`}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
+        aria-describedby={open ? popId : undefined}
       >
         {display}
+        <span className="term-q" aria-hidden>
+          ?
+        </span>
       </button>
+      {/* The popup is portalled to the end of <body> to escape clipping, which
+          is the last place a screen reader would look. This region sits where
+          the word is, and says the definition when it opens. */}
+      <span className="sr-only" aria-live="polite">
+        {open ? `${t(entry.word, lang)}: ${t(entry.def, lang)}` : ""}
+      </span>
       {open &&
         typeof document !== "undefined" &&
         createPortal(
           <span
             ref={popRef}
+            id={popId}
             className={`term-pop term-pop-fixed${pos ? ` term-pop-${pos.place}` : ""}`}
             role="tooltip"
             style={{

@@ -58,10 +58,11 @@ export default function IntroPage() {
           <h1 className="page-title">{useStopHeading(ui.intro.title, lang)}</h1>
           <p className="subtitle">{t(ui.intro.subtitle, lang)}</p>
         </div>
-        <div className="progress" aria-label={t(ui.a11y.progress, lang)}>
+        <div className="progress" role="group" aria-label={t(ui.a11y.progress, lang)}>
           {scenes.map((s, i) => (
             <button
               key={i}
+              aria-current={i === cursor ? "step" : undefined}
               className={`pdot ${i < cursor ? "done" : ""} ${i === cursor ? "cur" : ""}`}
               onClick={() => {
                 setCursor(i);
