@@ -73,8 +73,8 @@ export const glossary: Record<
     firstAt: "/loop",
     word: { zh: "无状态", en: "stateless" },
     def: {
-      zh: "每次请求处理完就不保留任何状态。上一次调用的内容 API 一点都不留，所以每次都要把完整历史重新发一遍。",
-      en: "No state is kept between requests. The API holds nothing from the previous call, so you resend the full history every time.",
+      zh: "每次请求处理完就不保留任何状态。上一次调用的内容，模型一点都记不住，所以每次都要把完整历史重新发一遍。（提示词缓存只影响计费和速度，不会让模型记住上一轮。）",
+      en: "No state is kept between requests. The model remembers nothing from the previous call, so you resend the full history every time. (Prompt caching changes the bill and the speed; it does not make the model remember.)",
     },
   },
   stopreason: {

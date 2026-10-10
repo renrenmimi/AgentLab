@@ -138,12 +138,12 @@ export const blocks: Block[] = [
         zh:
           "重点在第二步：你付的不是最后一轮的钱，是每一轮的总和。" +
           "一个每轮多出六百个 [[token:token]] 的运行，跑到第 40 轮时，那一轮要发大约两万五千个 token；" +
-          "而从第 1 轮累加到第 40 轮，一共发出去的接近五十万个。" +
+          "而从第 1 轮累加到第 40 轮，一共发出去的有五十多万个。" +
           "线性增长的是「这一轮多大」，二次增长的是「一共发了多少」。账单看的是后者。",
         en:
           "The second step is the one that matters: you do not pay for the last round, you pay for the sum of " +
           "all of them. In a run that adds six hundred [[token:token]]s per round, round 40 sends about " +
-          "twenty-five thousand tokens — but rounds 1 through 40 together send close to half a million. What " +
+          "twenty-five thousand tokens — but rounds 1 through 40 together send over half a million. What " +
           "grows linearly is the size of one round. What grows quadratically is the total. The bill is the " +
           "total.",
       },
@@ -171,27 +171,27 @@ export const blocks: Block[] = [
         zh:
           "每一轮发出去的内容，绝大部分和上一轮一模一样——只有末尾多了一小段。" +
           "提示词缓存（prompt caching）就是针对这件事：如果这一轮的开头和上一轮完全一致，" +
-          "那一段可以按远低于原价的价钱重新读一遍，只有新增的部分按原价算。" +
+          "那一段可以按远低于原价的价钱重新读一遍，只有新增的部分要另外付钱写进缓存（按原价的 1.25 倍）。" +
           "把上面的开关打开，看第二条曲线。",
         en:
           "Almost everything sent on a round is identical to the previous round; only a short piece at the end " +
           "is new. Prompt caching exists for exactly this: if a round begins with the same content as the last " +
-          "one, that prefix can be re-read at a fraction of the normal price, and only the new part is charged " +
-          "in full. Turn the switch on above and watch the second curve.",
+          "one, that prefix can be re-read at a fraction of the normal price, and only the new part is paid " +
+          "for in full, plus a little more to write it into the cache. Turn the switch on above and watch the second curve.",
       },
       {
         zh:
           "值得看清楚的是：缓存那条线依然是弯的。被重复读的那一段按十分之一计价，" +
           "但它依然要按轮数付一次，所以曲线依然是二次的，只是系数小得多。" +
           "按这一页的假设跑四十轮，总价从 $1.68 降到 $0.36，大约四点六倍——" +
-          "不是十倍，因为输出 token 和每轮新增的那一段仍然按原价算。" +
+          "不是十倍，因为输出 token 仍然按原价算，每轮新增的那一段还要按写入价（原价的 1.25 倍）算。" +
           "缓存是打折，不是免单：一个跑五百轮的 agent，加不加缓存都贵，加了只是没那么贵。",
         en:
           "Look carefully at the shape: the cached line still bends. The re-read prefix is billed at a tenth, " +
           "but it is still billed once per round, so the curve is still quadratic with a much smaller " +
           "coefficient. Under the assumptions on this page, forty rounds fall from $1.68 to $0.36 — about " +
-          "four and a half times cheaper, not ten times, because output tokens and each round's new slice are " +
-          "still charged in full. Caching is a discount, not an exemption. An agent that runs five hundred " +
+          "4.6 times cheaper, not ten times, because output tokens are still charged in full and each round's " +
+          "new slice is charged at the cache-write rate, a quarter above it. Caching is a discount, not an exemption. An agent that runs five hundred " +
           "rounds is expensive either way; with caching it is less expensive.",
       },
     ],
@@ -269,8 +269,9 @@ export const bench = {
     en: "A line chart: rounds along the bottom, cumulative spend up the side.",
   },
   chartSays: {
-    zh: "曲线一路偏离那条虚线——虚线是「每轮都和第 1 轮一样贵」的样子。跑到第 40 轮，实际花费是那条直线的 6.2 倍。",
-    en: "The curve pulls away from the dashed line, which is what it would look like if every round cost what round 1 cost. By round 40 the real total is 6.2 times that straight line.",
+    // {n} 和 {x} 由页面按当前的轮数和开关算出来填进去：这句话要说的是图上此刻画着的东西。
+    zh: "曲线一路偏离那条虚线——虚线是「每轮都和第 1 轮一样贵」的样子。跑到第 {n} 轮，实际花费是那条直线的 {x} 倍。",
+    en: "The curve pulls away from the dashed line, which is what it would look like if every round cost what round 1 cost. By round {n} the real total is {x} times that straight line.",
   },
   chartCached: {
     zh: "打开缓存之后曲线压低了，但依然是弯的：被重复读的那一段仍然按轮数付一次。",
