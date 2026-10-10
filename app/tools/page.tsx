@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { bench, blocks, cases, meta, type Side } from "@/lib/tools";
 import { useLang, t, type Lang } from "@/lib/i18n";
+import { RichText } from "@/lib/glossary";
 import {
   Choices,
   LessonHeader,
@@ -82,7 +83,9 @@ function SideCol({ side, head, lang }: { side: Side; head: string; lang: Lang })
         <dd className="tl-answer">{t(side.answer, lang)}</dd>
       </dl>
 
-      <p className="tl-verdict">{t(side.verdict, lang)}</p>
+      <p className="tl-verdict">
+        <RichText text={t(side.verdict, lang)} lang={lang} />
+      </p>
     </div>
   );
 }

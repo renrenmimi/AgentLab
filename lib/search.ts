@@ -69,7 +69,7 @@ function build(): Record<Lang, Entry[]> {
 /** 去掉正文里的标记，只留读者看得见的字。 */
 export function strip(text: string): string {
   return text
-    .replace(/\[\[stop:([^\]]+)\]\]/g, "")
+    .replace(/\[\[(?:stop|ahead):([^\]]+)\]\]/g, "")
     .replace(/\[\[\w+:([^\]]+)\]\]/g, "$1")
     .replace(/\*\*([^*]+)\*\*/g, "$1");
 }
