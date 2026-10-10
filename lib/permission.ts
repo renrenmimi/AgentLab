@@ -104,9 +104,9 @@ export const branches: Branch[] = [
     ],
     verdict: {
       zh:
-        "最保守，也最烦人。一个要改十个文件的任务，会问你十次；" +
+        "最保守，也最耗人的注意力。一个要改十个文件的任务，会问你十次；" +
         "问到第七次的时候，你已经不再读参数了——这才是真正的风险。" +
-        "「每次都问」在纸面上最安全，在实践中会把人训练成无脑点允许。",
+        "「每次都问」在纸面上最安全，在实践中会把人训练成不看参数就点允许。",
       en:
         "The most conservative option and the most tiring one. A task that touches ten files asks ten times, " +
         "and by the seventh prompt you have stopped reading the arguments — which is the real risk. Asking " +
@@ -121,10 +121,10 @@ export const branches: Branch[] = [
     hint: { zh: "别再问了", en: "stop asking me" },
     commits: {
       zh:
-        "注意你承诺的是什么：几乎所有实现里，「总是」绑定的是工具，不是这一次的参数。" +
+        "注意你承诺的是什么：很多实现里，「总是」绑定的是工具，不是这一次的参数。" +
         "你说的是「以后 write_file 都不用问」，而不是「以后写 lib/cart.ts 都不用问」。",
       en:
-        "Notice what you approved: in almost every implementation, always binds to the tool, not to these " +
+        "Notice what you approved: in many implementations, always binds to the tool, not to these " +
         "arguments. You said write_file never has to ask again — not write_file for lib/cart.ts never has to " +
         "ask again.",
     },
@@ -171,8 +171,8 @@ export const branches: Branch[] = [
         who: "aside",
         label: { zh: "已经发生了", en: "already done" },
         body: {
-          zh: "你批准的是「写文件」这件事，不是「写这个文件」。第三次写入你没有看见。",
-          en: "You approved writing files, not writing that file. The third write happened without you.",
+          zh: "你批准的是「写文件」这件事，不是「写这个文件」。后两次写入都没有经过你，第三次改的还是 package.json。",
+          en: "You approved writing files, not writing that file. The last two writes happened without you, and the third rewrote package.json.",
         },
         bad: true,
       },
@@ -282,25 +282,29 @@ export const blocks: Block[] = [
           "这两个说法经常被混为一谈，但它们不一样。读一个文件可能非常危险——" +
           "读的是 .env，内容就进了[[array:数组]]，此后每一轮都会随请求发出去（[[stop:/cost]]）。" +
           "写一个文件可能毫无风险——往临时目录写一行日志。" +
-          "但「有没有副作用」这个问题，你的代码能自动回答；「危不危险」不能。" +
-          "边界画在能自动判断的那一侧，是工程上唯一可行的做法。",
+          "但「有没有副作用」可以在定义工具的时候就标好（read_file 没有，write_file 有）；" +
+          "「危不危险」却要看每一次的参数和场合，没法事先标。边界画在能事先回答的那一侧，才是做得出来的做法。",
         en:
           "The two get conflated, and they are not the same. Reading a file can be extremely dangerous: read " +
           ".env and its contents enter the [[array:array]], where they are resent with every later round " +
           "([[stop:/cost]]). Writing a file can carry no risk at all: a line appended to a log in a temporary " +
-          "directory. But whether an action has a side effect is a question your code can answer " +
-          "automatically, and whether it is dangerous is not. Drawing the boundary at the answerable question " +
-          "is the only version of this that can actually be built.",
+          "directory. But whether a tool has a side effect can be labelled when the tool is defined — read_file " +
+          "has none, write_file does — while whether a call is dangerous depends on its arguments and its " +
+          "moment and cannot be labelled in advance. Drawing the boundary at the question that can be answered " +
+          "beforehand is the version of this that can actually be built.",
       },
       {
         zh:
           "更实用的版本是问可逆性：**这一步如果做错了，我能不能撤回来。**" +
-          "读文件可逆——把消息从数组里删掉就是了（虽然钱已经花了）。" +
+          "读文件不改变外部世界，从这个意义上说它没有副作用；但读进来的内容已经发给了模型，收不回来——" +
+          "所以读取要用范围来管（见下面的问答）。" +
           "写文件在有版本控制时接近可逆，发一封邮件不可逆，转一笔账不可逆。" +
           "按可逆性排序，你会发现真正需要人点头的动作，比直觉上要少得多。",
         en:
           "The more useful version of the question is reversibility: **if this step were wrong, could I take " +
-          "it back?** Reading is reversible — delete the message from the array, though the money is spent. " +
+          "it back?** Reading changes nothing in the outside world, so in that sense it has no side effect; but " +
+          "what it read has already been sent to the model and cannot be taken back, which is why reads are " +
+          "governed by scope (see the question below). " +
           "Writing a file is nearly reversible under version control. Sending an email is not. Moving money is " +
           "not. Sort your tools by reversibility and the set that genuinely needs a human nod turns out to be " +
           "much smaller than instinct suggests.",
@@ -389,14 +393,14 @@ export const blocks: Block[] = [
       a: {
         zh:
           "关系很直接：审批之所以存在，是因为提出这个动作的那段文字，未必出自你。" +
-          "[[stop:/trust]]里那个网页可以让 agent 去请求一个动作，而 agent 分不出那句话是你说的还是页面说的。" +
+          "[[stop:/trust]]里那个网页可以让 agent 去请求一个动作，而 agent 未必分得清那句话是你说的还是页面说的。" +
           "审批是那一层分不清的最后一道补救——它不判断请求是谁提的，它只保证有副作用的动作要有人点头。" +
           "反过来说，这也解释了为什么「以后都允许」的范围要小：" +
           "你放宽的每一寸，都是注入能直接用上的那一寸。",
         en:
           "Directly: approval exists because the text asking for the action may not have come from you. The " +
-          "page at [[stop:/trust]] can make an agent request an action, and the agent cannot tell which sentence was " +
-          "yours. Approval is the remedy for exactly that confusion — it does not judge who asked, it only " +
+          "page at [[stop:/trust]] can make an agent request an action, and the agent cannot reliably tell which sentence " +
+          "was yours. Approval is the remedy for exactly that confusion — it does not judge who asked, it only " +
           "insists that something with a side effect gets a nod. Which is also the argument for keeping the " +
           "scope of an always small: every inch you widen is an inch an injection can use.",
       },

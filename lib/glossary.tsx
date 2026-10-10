@@ -129,8 +129,8 @@ export const glossary: Record<
     firstAt: "/trust",
     word: { zh: "提示注入", en: "prompt injection" },
     def: {
-      zh: "外部内容里夹带的一段文字，试图指挥读到它的模型。它之所以难防，是因为数组里没有字段区分「我的指令」和「外面来的数据」——两者都是文字。",
-      en: "A passage inside outside content that tries to direct the model reading it. It is hard to defend against because the array has no field separating your instructions from data that arrived from elsewhere: both are text.",
+      zh: "外部内容里夹带的一段文字，试图指挥读到它的模型。它之所以难防，是因为区分「我的指令」和「外面来的数据」的只有标签，而标签约束不了模型——到了它面前，两者都是文字。",
+      en: "A passage inside outside content that tries to direct the model reading it. It is hard to defend against because only a label separates your instructions from data that arrived from elsewhere, and a label does not bind the model: by the time they reach it, both are text.",
     },
   },
   backoff: {

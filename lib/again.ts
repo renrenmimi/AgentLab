@@ -18,19 +18,19 @@ export type Failure = {
 export const failures: Failure[] = [
   {
     id: "errored",
-    name: { zh: "报错了", en: "It errored" },
+    name: { zh: "被拒收了", en: "It was refused" },
     saw: {
       zh: "exit 1，stderr 里写着 connection refused。",
       en: "exit 1, and stderr says connection refused.",
     },
     knows: {
-      zh: "知道。请求根本没被受理，那一侧什么都没发生。",
-      en: "You do. The request was never accepted; nothing happened on the far side.",
+      zh: "知道。连接根本没建立，请求没被受理，那一侧什么都没发生。",
+      en: "You do. The connection was never made and the request never accepted; nothing happened on the far side.",
     },
     certain: true,
     safeToRetry: {
-      zh: "可以直接重试。这是三种里最省心的一种——虽然它看起来最吓人。",
-      en: "Retry it. This is the easiest of the three to handle, and it is the one that looks the most alarming.",
+      zh: "可以重试（仍按下一节的退避来）。这是三种里最省心的一种——虽然它看起来最吓人。",
+      en: "Retry it, with the backoff from the next section. This is the easiest of the three to handle, and it is the one that looks the most alarming.",
     },
     tone: "ok",
   },
@@ -128,8 +128,8 @@ export const tools: Tool[] = [
       en: "The recipient gets two. Lighter than a double charge, and just as impossible to take back.",
     },
     fix: {
-      zh: "同样用一个键去重，或者把「发送」拆成两步：先写进待发队列（可重复），再由一个单独的、只跑一次的流程发出去。",
-      en: "The same key, or split sending into two steps: write to an outbox, which repeats safely, and let a separate process that runs once do the sending.",
+      zh: "同样用一个键去重，或者把「发送」拆成两步：先以一个确定的消息 id 写进待发队列（同一个 id 写两次只算一条），再由一个单独的、只跑一次的流程发出去。",
+      en: "The same key, or split sending into two steps: write to an outbox under a fixed message id, so that writing it twice still leaves one entry, and let a separate process that runs once do the sending.",
     },
   },
 ];
@@ -153,8 +153,8 @@ export function totalWaitMs(attempts: number): number {
 export const meta: LessonMeta = {
   title: { zh: "工具失败之后", en: "When a tool fails" },
   subtitle: {
-    zh: "一次调用有三种失败方式，其中一种你不知道它到底做没做——而重试会把那件事再做一遍。",
-    en: "A call can fail in three ways, and in one of them you do not know whether the work happened — which is the one a retry does twice.",
+    zh: "一次调用有三种失败方式，其中两种你不知道它到底做没做——而重试可能会把那件事再做一遍。",
+    en: "A call can fail in three ways, and in two of them you do not know whether the work happened — which is when a retry can do it twice.",
   },
   takeaway: {
     zh:
@@ -184,14 +184,17 @@ export const blocks: Block[] = [
       {
         zh:
           "把上面三种各点开一次，看中间那一栏——「你知道那个动作有没有发生吗」。" +
-          "报错的那一种你知道：请求没被受理，对面什么都没做，重试是安全的。" +
+          "被拒收的那一种你知道：请求根本没进门，对面什么都没做，重试是安全的。" +
+          "注意这只对「请求没被受理」的报错成立：对方返回 500 这类服务端错误时，动作可能已经做了，" +
+          "要和后两种一样当成「不知道」。" +
           "后两种你不知道。**超时说明的是你没等到回音，不是对方没做。**" +
           "请求可能已经送到、已经执行完，只是回程丢了；" +
           "而你这边先崩了的那一种更糟，你连它有没有发出去都不确定。",
         en:
           "Open each of the three above and read the middle column — do you know whether the work happened? " +
-          "With an error you do: the request was refused, nothing ran, and retrying is safe. With the other " +
-          "two you do not. **A timeout says you stopped hearing, not that nothing happened.** The request may " +
+          "With a refusal you do: the request never got in, nothing ran, and retrying is safe. That holds only " +
+          "for errors that mean the request was not accepted — a server error such as a 500 can arrive after the " +
+          "work was done, and belongs with the other two. With the other two you do not. **A timeout says you stopped hearing, not that nothing happened.** The request may " +
           "have arrived and completed with only the reply lost. And the one where your own side died is worse " +
           "still: you may not even be sure it left.",
       },
@@ -199,7 +202,7 @@ export const blocks: Block[] = [
         zh:
           "这三种在日志里长得差不多，都是「这次调用没成功」，" +
           "所以最常见的处理方式是一视同仁地重试一次。" +
-          "对前两种里的第一种，这是对的；对后两种，这可能意味着那件事被做了两遍。",
+          "对第一种，这是对的；对后两种，这可能意味着那件事被做了两遍。",
         en:
           "All three look alike in a log — this call did not succeed — so the common treatment is to retry all " +
           "of them once. For the first that is right. For the other two it can mean the work was done twice.",
