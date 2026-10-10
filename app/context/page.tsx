@@ -132,7 +132,7 @@ export default function ContextStop() {
           <table className="lsn-table">
           <thead>
             <tr>
-              <th />
+              <td />
               <th>{t(bench.colParent, lang)}</th>
               <th>{t(bench.colActual, lang)}</th>
             </tr>
@@ -184,7 +184,7 @@ function MsgRow({
       <span className="ctx-body">
         <b>
           {t(m.label, lang)}
-          {m.isTask && <span className="ctx-task-tag">task</span>}
+          {m.isTask && <span className="ctx-task-tag">{lang === "zh" ? "任务" : "task"}</span>}
         </b>
         {t(m.detail, lang)}
       </span>

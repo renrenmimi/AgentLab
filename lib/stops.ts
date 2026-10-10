@@ -97,11 +97,11 @@ export const STOPS: SideStop[] = GROUPS.flatMap((g, gi) =>
   g.hrefs.map((href) => ({ href, label: LABELS[href], group: gi })),
 ).map((s, i) => ({ ...s, glyph: String(i + 1) }));
 
-// Which stop is active for a given path ("/loop/x" still counts as /loop).
+// Which stop is active for a given path ("/loop/x" still counts as /loop),
+// or -1 for a page that is not a stop (/all, or one that does not exist).
 export function activeStopIndex(path: string): number {
   if (path === "/") return 0;
-  const i = STOPS.findIndex(
+  return STOPS.findIndex(
     (s) => s.href !== "/" && (path === s.href || path.startsWith(s.href + "/")),
   );
-  return i === -1 ? 0 : i;
 }

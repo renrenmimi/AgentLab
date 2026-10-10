@@ -475,7 +475,7 @@ const steps: Scenario["steps"] = [
         },
       },
       { kind: "tool_call", name: "run_command", arg: 'grep -rn "TODO" .' },
-      { kind: "tool_output", text: "app/page.tsx:41:  // TODO: 处理空状态\nlib/build.ts:88:  // TODO: 补一个测试" },
+      { kind: "tool_output", text: "app/page.tsx:41:  // TODO: handle the empty state\nlib/build.ts:88:  // TODO: add a test" },
       {
         kind: "assistant",
         text: { zh: "还剩 2 个 TODO，分别在 app/page.tsx 和 lib/build.ts。", en: "Two TODOs are left, in app/page.tsx and lib/build.ts." },

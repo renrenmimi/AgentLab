@@ -39,7 +39,17 @@ export default function Toolbar() {
   } = useShell();
   const isDesktop = useIsDesktop();
 
-  const stop = STOPS[activeStopIndex(path)];
+  // The breadcrumb names the stop; /all has its own name, and any other page
+  // (a 404) shows only the course name rather than claiming to be stop 1.
+  const at = activeStopIndex(path);
+  const here = at >= 0 ? STOPS[at].label : path === "/all" ? ui.all.link : null;
+
+  // ⌘K is the Mac shortcut; everywhere else the same handler answers Ctrl+K.
+  // Known only after mounting, so the server and the first render agree.
+  const [shortcut, setShortcut] = useState("⌘K");
+  useEffect(() => {
+    if (!/Mac|iPhone|iPad/.test(navigator.platform)) setShortcut("Ctrl K");
+  }, []);
 
   // Desktop: is the rail currently showing? Mobile: is the drawer open?
   const navShown = isDesktop ? !sidebarCollapsed : sidebarOpen;
@@ -73,12 +83,18 @@ export default function Toolbar() {
         </svg>
       </button>
 
-      <div className="crumb" aria-live="polite">
+      {/* Not a live region: Next already announces the new page's title on
+          every navigation, and a second announcement only repeats it. */}
+      <div className={`crumb${here ? " crumb-has-stop" : ""}`}>
         <span className="crumb-chapter">{t(ui.brand.name, lang)}</span>
-        <span className="crumb-sep" aria-hidden>
-          /
-        </span>
-        <span className="crumb-stop">{t(stop.label, lang)}</span>
+        {here && (
+          <>
+            <span className="crumb-sep" aria-hidden>
+              /
+            </span>
+            <span className="crumb-stop">{t(here, lang)}</span>
+          </>
+        )}
       </div>
 
       <button
@@ -91,7 +107,7 @@ export default function Toolbar() {
           ⌕
         </span>
         <span className="cmdk-trigger-text">{t(ui.toolbar.search, lang)}</span>
-        <kbd>⌘K</kbd>
+        <kbd>{shortcut}</kbd>
       </button>
 
       <div className="toolbar-actions">

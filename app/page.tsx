@@ -168,7 +168,7 @@ function SceneVisual({ id, lang }: { id: number; lang: Lang }) {
           <div className="sc-row">
             <div className="sc-bubble sc-in">{t(stage.s1q, lang)}</div>
             <div className="sc-brain">
-              <span className="sc-brain-emoji">🧠</span>
+              <span className="sc-brain-emoji" aria-hidden>🧠</span>
               <span className="sc-brain-label">{t(stage.brain, lang)}</span>
             </div>
             <div className="sc-bubble sc-out">{t(stage.s1a, lang)}</div>
@@ -184,19 +184,20 @@ function SceneVisual({ id, lang }: { id: number; lang: Lang }) {
           <div className="sc-row">
             <div className="sc-bubble sc-in">{t(stage.s2q, lang)}</div>
             <div className="sc-brain sc-shake">
-              <span className="sc-brain-emoji">🧠</span>
+              <span className="sc-brain-emoji" aria-hidden>🧠</span>
               <span className="sc-brain-label">{t(stage.brain, lang)}</span>
             </div>
             <div className="sc-bubble sc-out sc-sad">{t(stage.s2a, lang)}</div>
           </div>
           <div className="sc-locks">
-            <span>
+            {/* Pictures of what the caption below says in words. */}
+            <span aria-hidden>
               📁<i>🔒</i>
             </span>
-            <span>
+            <span aria-hidden>
               🌐<i>🔒</i>
             </span>
-            <span>
+            <span aria-hidden>
               ⌨️<i>🔒</i>
             </span>
           </div>
@@ -210,7 +211,7 @@ function SceneVisual({ id, lang }: { id: number; lang: Lang }) {
         <div className="stage">
           <div className="sc-row sc-duo">
             <div className="sc-actor">
-              <span>🧠</span>
+              <span aria-hidden>🧠</span>
               {t(stage.actor1, lang)}
               <small>{t(stage.actor1sub, lang)}</small>
             </div>
@@ -223,7 +224,7 @@ function SceneVisual({ id, lang }: { id: number; lang: Lang }) {
               </div>
             </div>
             <div className="sc-actor">
-              <span>🛠️</span>
+              <span aria-hidden>🛠️</span>
               {t(stage.actor2, lang)}
               <small>{t(stage.actor2sub, lang)}</small>
             </div>
