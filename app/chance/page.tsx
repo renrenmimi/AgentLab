@@ -93,7 +93,9 @@ export default function ChanceStop() {
             {t(bench.clear, lang)}
           </button>
           <span className="hint">
-            {t(bench.runs, lang)}: <b className="ch-count">{total}</b>
+            {t(bench.runs, lang)}
+            {lang === "zh" ? "：" : ": "}
+            <b className="ch-count">{total}</b>
           </span>
         </div>
 

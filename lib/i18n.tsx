@@ -157,7 +157,7 @@ export const ui = {
   intro: {
     title: { zh: "什么是 Agent？", en: "What is an agent?" },
     subtitle: {
-      zh: "六幕小动画。只要你写过一次 print(\"hello world\")，就能看懂",
+      zh: "六幕小动画。只要你写过一次 print(\"hello world\")，就能看懂。",
       en: "Six short scenes. If you have written print(\"hello world\") once, you have enough background to follow them.",
     },
     toLoop: { zh: "下一站：看它怎么跑 →", en: "Next stop: watch it run →" },
@@ -171,7 +171,7 @@ export const ui = {
       en: "Watch it run, in slow motion",
     },
     subtitle: {
-      zh: "每按一次按钮，就推进真实流程中的一步——按钮上写的就是这一步做什么",
+      zh: "每按一次按钮，就推进真实流程中的一步——按钮上写的就是这一步做什么。",
       en: "Each press advances the real run by one step. The button label says what that step does.",
     },
     chatTitle: {
@@ -226,17 +226,19 @@ export const ui = {
     },
     openStop: { zh: "打开这一站", en: "Open this stop" },
     staticNote: {
-      zh: "原页面上这里是一块可以操作的东西，这份文本里只留了它的结论。",
-      en: "On the stop itself this is something you can operate; here only its conclusion is kept.",
+      zh: "原页面上这里是一块可以操作的东西，这份文本里只留了文字。",
+      en: "On the stop itself this is something you can operate; here only its text is kept.",
     },
     intro: {
       zh:
         "这一页是给回头查东西的人准备的：读过一遍之后，你多半只想找回其中一段，" +
-        "而不是重新点过十四站。互动的部分在这里只留结论，并且会标出来。",
+        "而不是重新点过十四站。各站可以动手操作的部分不在这一页上；" +
+        "「看它怎么跑」的另外四次运行和每组结尾的自我检验在这里只留文字，并且标了出来。",
       en:
         "This page is for coming back. Having read the course once, you usually want one paragraph " +
-        "again rather than fourteen stops. Where a stop has something to operate, only its conclusion " +
-        "is kept here, and it is marked.",
+        "again rather than fourteen stops. The parts of each stop you operate are not on this page; the " +
+        "other four runs in Watch it run and the check at the end of each group appear as text only, " +
+        "and are marked.",
     },
     toc: { zh: "目录", en: "Contents" },
     link: { zh: "一页读完", en: "Read on one page" },
@@ -271,7 +273,7 @@ export const ui = {
   build: {
     title: { zh: "亲手写一个", en: "Write one yourself" },
     subtitle: {
-      zh: "骨架已经搭好，8 个关键的空由你来填。每个空需要的新知识会先教给你，答错时会给出针对性的说明",
+      zh: "骨架已经搭好，8 个关键的空由你来填。每个空需要的新知识会先教给你，答错时会给出针对性的说明。",
       en: "The skeleton is ready. You fill in the 8 key blanks. Each blank teaches the concept it needs before it asks, and a wrong answer gets a specific explanation.",
     },
     lessonLabel: { zh: "新知识", en: "New concept" },

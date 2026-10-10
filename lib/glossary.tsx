@@ -118,7 +118,7 @@ export const glossary: Record<
     },
   },
   contextwindow: {
-    firstAt: "/context",
+    firstAt: "/loop",
     word: { zh: "上下文窗口", en: "context window" },
     def: {
       zh: "模型一次能读进去多少 token 的硬上限。数组、system 提示词、工具说明书都要装进去，这一轮的回复也在同一个窗口里生成。输入超了，请求会被直接拒绝。",

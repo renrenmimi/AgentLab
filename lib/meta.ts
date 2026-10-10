@@ -26,8 +26,8 @@ export const SEO: Record<string, StopSeo> = {
   "/": {
     title: { zh: "什么是 Agent", en: "What is an agent" },
     description: {
-      zh: "从「模型只会把文字变成文字」讲到「一个会调用工具的循环」，六幕动画，一行代码都不用看。",
-      en: "From a model that only turns text into text to a program that loops and calls tools. Six animated scenes, not a line of code.",
+      zh: "从「模型只会把文字变成文字」讲到「一个会调用工具的循环」，六幕动画，除了一行 print，不用读代码。",
+      en: "From a model that only turns text into text to a program that loops and calls tools. Six animated scenes, and no code to read beyond a single print.",
     },
   },
   "/loop": {
@@ -40,8 +40,8 @@ export const SEO: Record<string, StopSeo> = {
   "/build": {
     title: { zh: "亲手写一个 agent", en: "Write an agent yourself" },
     description: {
-      zh: "在一份三十行的骨架里填八个空。每个空先教会你它需要的概念，答错时告诉你错在哪个念头上。",
-      en: "Fill in eight blanks in a thirty-line skeleton. Each blank teaches the concept it needs before it asks, and every wrong answer names the idea it came from.",
+      zh: "在一份三十来行的骨架里填八个空。每个空先教会你它需要的概念，常见的错误答案会告诉你错在哪个念头上。",
+      en: "Fill in eight blanks in a skeleton of thirty-odd lines. Each blank teaches the concept it needs before it asks, and the common wrong answers name the idea they came from.",
     },
   },
   "/chance": {
@@ -54,15 +54,15 @@ export const SEO: Record<string, StopSeo> = {
   "/invent": {
     title: { zh: "它为什么会编", en: "Why an AI makes things up" },
     description: {
-      zh: "一句流利的错话和一句流利的对话，在模型内部是同一种东西。三个问题在「有工具」和「没工具」两种条件下的对照——这正是工具存在的理由。",
-      en: "A fluent wrong answer and a fluent right one are the same kind of object inside the model. Three questions asked with and without tools, which is what tools are for.",
+      zh: "一句流利的错话和一句流利的真话，是用同一个过程生成的。三个问题在「有工具」和「没工具」两种条件下的对照——这正是工具存在的理由。",
+      en: "A fluent wrong answer and a fluent right one are produced by the same process. Three questions asked with and without tools, which is what tools are for.",
     },
   },
   "/instructions": {
     title: { zh: "system 提示词能做什么，不能做什么", en: "What a system prompt can and cannot do" },
     description: {
-      zh: "它在 messages 之外，却每一轮都重发一次，也每一轮计一次费。同一个任务三种条件：什么都不说、加一句叮嘱、把那个工具删掉。",
-      en: "It sits outside messages and is re-sent, and re-paid for, every round. The same task under three conditions: say nothing, add a sentence, or remove the tool.",
+      zh: "它在 messages 之外，却每一轮都重发一次，也每一轮计一次费。同一个任务三种条件：什么都不说、加一句叮嘱、把能外发的工具都删掉。",
+      en: "It sits outside messages and is re-sent, and re-paid for, every round. The same task under three conditions: say nothing, add a sentence, or remove every tool that can send.",
     },
   },
   "/tools": {
@@ -82,8 +82,8 @@ export const SEO: Record<string, StopSeo> = {
   "/context": {
     title: { zh: "上下文装不下的时候", en: "When the context window will not fit" },
     description: {
-      zh: "token 是什么、上下文窗口是什么，以及到顶之后的四条路：拒绝、截断、摘要、交给另一个 agent。四条都在同一段对话上演一遍，看各自丢了什么。",
-      en: "What a token is, what a context window is, and the four ways past a full one: refuse, truncate, summarise, or hand the work to another agent — all four applied to the same conversation.",
+      zh: "token 是什么、上下文窗口是什么，以及应对上限的四条路：拒绝、截断、摘要在同一段对话上各演一遍，再看交给另一个 agent 时丢的是什么。",
+      en: "What a token is, what a context window is, and four ways to deal with a full one: refuse, truncate and summarise, applied to the same conversation, and handing the work to another agent, with what each one loses.",
     },
   },
   "/trust": {
@@ -103,8 +103,8 @@ export const SEO: Record<string, StopSeo> = {
   "/again": {
     title: { zh: "工具调用失败之后该不该重试", en: "When a tool call fails, should you retry" },
     description: {
-      zh: "失败有三种，其中一种你不知道那件事到底做没做——而重试会把它再做一遍。退避、次数上限，以及幂等：一次搜索和一次扣款的区别。",
-      en: "A call fails three ways, and in one of them you do not know whether the work happened, which is the one a retry does twice. Backoff, attempt limits, and idempotency through a search and a payment.",
+      zh: "失败有三种，其中两种你不知道那件事到底做没做——而重试可能会把它再做一遍。退避、次数上限，以及幂等：一次搜索和一次扣款的区别。",
+      en: "A call fails three ways, and in two of them you do not know whether the work happened, which is when a retry can do it twice. Backoff, attempt limits, and idempotency through a search and a payment.",
     },
   },
   "/measure": {

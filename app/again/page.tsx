@@ -115,7 +115,10 @@ export default function AgainStop() {
                   <RichText text={t(tool.twice, lang)} lang={lang} />
                   {tool.fix && (
                     <span className="ag-fix">
-                      <b>{t(bench.fixWord, lang)}: </b>
+                      <b>
+                        {t(bench.fixWord, lang)}
+                        {lang === "zh" ? "：" : ": "}
+                      </b>
                       <RichText text={t(tool.fix, lang)} lang={lang} />
                     </span>
                   )}

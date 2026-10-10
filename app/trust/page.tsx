@@ -30,7 +30,11 @@ export default function TrustStop() {
 
       <Workbench title={bench.title} note={bench.note} lang={lang}>
         <p className="lsn-note">
-          <b>{t(bench.taskWord, lang)}:</b> {t(bench.task, lang)}
+          <b>
+            {t(bench.taskWord, lang)}
+            {lang === "zh" ? "：" : ": "}
+          </b>
+          {t(bench.task, lang)}
         </p>
 
         <Choices

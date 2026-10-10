@@ -37,7 +37,11 @@ export default function ToolsStop() {
         />
 
         <p className="lsn-note">
-          <b>{t(bench.flawWord, lang)}:</b> {t(active.flaw, lang)}
+          <b>
+            {t(bench.flawWord, lang)}
+            {lang === "zh" ? "：" : ": "}
+          </b>
+          {t(active.flaw, lang)}
         </p>
 
         <div className="lsn-two">

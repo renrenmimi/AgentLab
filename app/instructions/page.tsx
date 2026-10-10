@@ -29,7 +29,11 @@ export default function InstructionsStop() {
 
       <Workbench title={bench.title} note={bench.note} lang={lang}>
         <p className="lsn-note">
-          <b>{t(bench.taskWord, lang)}:</b> {t(task, lang)}
+          <b>
+            {t(bench.taskWord, lang)}
+            {lang === "zh" ? "：" : ": "}
+          </b>
+          {t(task, lang)}
         </p>
 
         <Choices
