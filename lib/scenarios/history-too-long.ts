@@ -64,13 +64,13 @@ const steps: Scenario["steps"] = [
     title: { zh: "上下文窗口是一个硬预算", en: "The context window is a hard budget" },
     narration: {
       zh:
-        "第 3 行的 CONTEXT_LIMIT 是上下文窗口的一个例子：模型一次最多能读进去多少 [[token:token]]。" +
+        "第 3 行的 CONTEXT_LIMIT 是[[contextwindow:上下文窗口]]的一个例子：模型一次最多能读进去多少 [[token:token]]。" +
         "这里取 20 万，真实的数字因模型而异。它不是建议，是硬性上限：[[array:数组]]、system 提示词、" +
         "工具说明书都要装进去，这一轮的回复也在同一个窗口里生成。输入本身超了，请求直接被拒绝。" +
         "再看第 21 到 23 行：readFile 拿到什么就返回什么，文件多大它就返回多大。" +
         "这两处之间没有任何东西在把关，而这次的日志文件有 12 MB。",
       en:
-        "CONTEXT_LIMIT on line 3 is an example of a context window: the most a model can read in one request, " +
+        "CONTEXT_LIMIT on line 3 is an example of a [[contextwindow:context window]]: the most a model can read in one request, " +
         "measured in [[token:token]]s. Here it is 200,000; the real figure depends on the model. It is not a " +
         "guideline but a ceiling: the [[array:array]], the system prompt and the tool list all have to fit, " +
         "and this round's reply is generated inside the same window. If the input alone is over, the request " +

@@ -1220,6 +1220,37 @@ check("every group check is answerable and every wrong answer says why", () => {
   }
 });
 
+// What a reader reads at each stop. The course view (lib/course.ts) is what /all
+// and search show, and the two checks below used to read only that. But at the
+// stop itself a reader also meets the other four recorded runs at /loop, every
+// interactive panel from stop 4 on, the build blanks and the whole group check.
+// A word that arrived early in a recorded run or a verdict went unnoticed — the
+// wrong-tool run said "adjust the temperature" two stops before temperature was
+// taught. Code is left out: a snippet's identifiers are not words being taught.
+function readerText() {
+  const byStop = new Map(modules.course.COURSE.map((s) => [s.href, []]));
+  const add = (href, value) => {
+    const list = byStop.get(href);
+    if (!list) return;
+    walk(value, href, (v, path) => {
+      if (typeof v !== "string") return;
+      if (/\.code\.(zh|en)\[\d+\]$/.test(path)) return;
+      list.push(v);
+    });
+  };
+  for (const stop of modules.course.COURSE) add(stop.href, stop.sections);
+  add("/", modules.intro.stage);
+  add("/loop", modules.scenarios.scenarios);
+  add("/build", modules.build.blanks);
+  for (const name of LESSON_STOPS) {
+    for (const [key, value] of Object.entries(modules[name])) {
+      if (typeof value !== "function") add(`/${name}`, value);
+    }
+  }
+  for (const c of modules.checks.checks) add(c.on, c);
+  return byStop;
+}
+
 // 5h. The glossary keeps up with the course -----------------------------------
 // A glossary is easy to leave behind: the course grows, the dictionary does not.
 // Each entry declares the stop where its term first appears, and this check
@@ -1229,7 +1260,7 @@ check("every glossary term is marked where it first appears", () => {
   const { glossary } = modules.glossary;
   const order = modules.stops.STOPS.map((s) => s.href);
 
-  // Which stops mark which terms, taken from the same course view /all uses.
+  // Which stops mark which terms, over everything a reader reads at each stop.
   const marks = new Map();
   const record = (href, text) => {
     for (const m of String(text).matchAll(/\[\[(\w+):/g)) {
@@ -1238,15 +1269,8 @@ check("every glossary term is marked where it first appears", () => {
       marks.get(m[1]).add(href);
     }
   };
-  for (const stop of modules.course.COURSE) {
-    for (const section of stop.sections) {
-      for (const para of section.paras) {
-        record(stop.href, para.zh);
-        record(stop.href, para.en);
-      }
-      record(stop.href, section.heading.zh);
-      record(stop.href, section.heading.en);
-    }
+  for (const [href, texts] of readerText()) {
+    for (const text of texts) record(href, text);
   }
 
   for (const [key, entry] of Object.entries(glossary)) {
@@ -1287,21 +1311,21 @@ check("every glossary term is marked where it first appears", () => {
 // to be the measured one. A word joining it is a deliberate edit here: the
 // course's assumptions should change only on purpose.
 const ASSUMED = [
-  ["函数", "function", "/chance"],
-  ["变量", "variable", "/build"],
-  ["字符串", "string", "/build"],
-  ["JSON", "JSON", "/loop"],
+  ["函数", "function", "/loop"],
+  ["变量", "variable", "/loop"],
+  ["字符串", "string", "/loop"],
+  ["JSON", "JSON", "/tools"],
   ["布尔", "boolean", "/build"],
   ["服务器", "server", "/"],
   ["缓存", "cache", "/loop"],
-  ["超时", "timeout", "/again"],
+  ["超时", "timeout", "/loop"],
   ["重试", "retry", "/loop"],
   ["参数", "argument", "/"],
   ["提示词", "prompt", "/loop"],
   ["模型", "model", "/"],
   ["上下文", "context", "/loop"],
   ["副作用", "side effect", "/chance"],
-  ["栈", "stack", "/context"],
+  ["栈", "stack", "/loop"],
   ["接口", "interface", "/loop"],
   ["字段", "field", "/loop"],
 ];
@@ -1318,22 +1342,17 @@ check("nothing is used before the stop that teaches it", () => {
       .replace(/\[\[\w+:([^\]]*)\]\]/g, "$1")
       .replace(/\*\*/g, "");
 
+  const everything = readerText();
   const pageText = new Map();
-  for (const stop of modules.course.COURSE) {
-    const bits = [];
-    for (const section of stop.sections) {
-      bits.push(readable(section.heading.zh), readable(section.heading.en));
-      for (const para of section.paras) bits.push(readable(para.zh), readable(para.en));
-    }
-    pageText.set(stop.href, bits.join("\n"));
-  }
+  for (const [href, texts] of everything) pageText.set(href, texts.map(readable).join("\n"));
 
   // Chinese has no word boundaries, so a substring is the honest test there. In
-  // English a boundary is needed, or "token" matches inside "tokenizer".
+  // English a boundary is needed, or "token" matches inside "tokenizer" — and a
+  // dot before the word is not one, or "JSON" matches inside "package.json".
   const says = (text, word) => {
     if (/[一-鿿]/.test(word)) return text.includes(word);
     const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return new RegExp(`(^|[^\\w-])${escaped}(s|es)?($|[^\\w-])`, "i").test(text);
+    return new RegExp(`(^|[^\\w.-])${escaped}(s|es)?($|[^\\w-])`, "i").test(text);
   };
 
   // 1. A glossary term used before the stop that introduces it.
@@ -1365,13 +1384,7 @@ check("nothing is used before the stop that teaches it", () => {
   const signposts = [];
   for (const stop of modules.course.COURSE) {
     const from = place.get(stop.href);
-    const raw = stop.sections
-      .flatMap((section) => [
-        section.heading.zh,
-        section.heading.en,
-        ...section.paras.flatMap((para) => [para.zh, para.en]),
-      ])
-      .join("\n");
+    const raw = (everything.get(stop.href) ?? []).join("\n");
     for (const m of raw.matchAll(/\[\[(stop|ahead):([^\]]+)\]\]/g)) {
       const to = place.get(m[2]);
       if (to === undefined || from === undefined) continue;

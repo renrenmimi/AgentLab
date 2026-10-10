@@ -109,7 +109,11 @@ export default function MeasureStop() {
                     {t(task.task, lang)}
                     {flip && task.why && (
                       <span className="ms-why">
-                        <b>{t(bench.whyWord, lang)}:</b> {t(task.why, lang)}
+                        <b>
+                          {t(bench.whyWord, lang)}
+                          {lang === "zh" ? "：" : ": "}
+                        </b>
+                        {t(task.why, lang)}
                       </span>
                     )}
                   </td>

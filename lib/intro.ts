@@ -68,7 +68,7 @@ export const scenes: Scene[] = [
   {
     action: { zh: "给它一双手", en: "Give it hands" },
     title: {
-      zh: "解法：把“手”借给它 —— 工具",
+      zh: "解法：把“手”借给它——工具",
       en: "The fix: lend it your hands — tools",
     },
     text: {
