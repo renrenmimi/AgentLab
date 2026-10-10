@@ -167,7 +167,7 @@ export default function LoopChapter() {
       <section className="narration appear" key={`n-${scenario.id}-${cursor}-${lang}`}>
         <div className="n-head">
           <span className="n-step">
-            STEP {cursor + 1}
+            {lang === "zh" ? `第 ${cursor + 1} 步` : `STEP ${cursor + 1}`}
             <i>/{steps.length}</i>
           </span>
           <h2>{t(step.title, lang)}</h2>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ASSUMPTIONS,
   MAX_ROUNDS,
@@ -161,8 +161,23 @@ function CostChart({
   showCache: boolean;
   lang: ReturnType<typeof useLang>["lang"];
 }) {
-  const W = 640;
-  const H = 260;
+  // The viewBox follows the width the chart is drawn at (up to 640), keeping
+  // the same proportions. With a fixed 640-wide viewBox a phone drew it at
+  // 0.43 scale and the 10px axis labels came out about 5px tall. The first
+  // render is 640 wide, so the server markup is unchanged, and the height is
+  // always 260/640 of the width, so the switch moves nothing on the page.
+  const box = useRef<HTMLElement>(null);
+  const [W, setW] = useState(640);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setW(Math.min(640, Math.max(240, Math.round(entry.contentRect.width))));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const H = Math.round((W * 260) / 640);
   const PAD = { l: 52, r: 14, t: 14, b: 30 };
   const iw = W - PAD.l - PAD.r;
   const ih = H - PAD.t - PAD.b;
@@ -185,7 +200,7 @@ function CostChart({
     .replace("{x}", vsLine.toFixed(1));
 
   return (
-    <figure className="chart">
+    <figure className="chart" ref={box}>
       <figcaption className="chart-cap">
         {t(bench.chartTitle, lang)}
         <span className="chart-key">

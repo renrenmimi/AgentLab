@@ -16,6 +16,15 @@ const TEXT = "#f0f2f6";
 const MUTED = "#97a2b4";
 const ACCENT = "#8a7cf6";
 
+// Shorten to at most `max` characters at a word boundary. Cutting at a fixed
+// count left cards ending in "…names the idea it ca…".
+function clip(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max - 1);
+  const space = cut.lastIndexOf(" ");
+  return (space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s,;:—–-]+$/, "") + "…";
+}
+
 export function GET(request: Request) {
   const href = new URL(request.url).searchParams.get("s") ?? "/";
   const seo = SEO[href] ?? SEO["/"];
@@ -70,9 +79,7 @@ export function GET(request: Request) {
             {seo.title.en}
           </div>
           <div style={{ color: MUTED, fontSize: 28, lineHeight: 1.45, maxWidth: 940 }}>
-            {seo.description.en.length > 150
-              ? seo.description.en.slice(0, 147) + "…"
-              : seo.description.en}
+            {clip(seo.description.en, 150)}
           </div>
         </div>
 

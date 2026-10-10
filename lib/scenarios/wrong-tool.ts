@@ -106,7 +106,7 @@ const steps: Scenario["steps"] = [
         sys: true,
       },
       {
-        tag: "tools · 参数 / parameter",
+        tag: "tools",
         body: {
           zh: 'search：“搜索。” ／ search_web：“在互联网上搜索并返回结果。”',
           en: 'search: "Search." / search_web: "Search the internet and return results."',
@@ -341,7 +341,7 @@ const steps: Scenario["steps"] = [
     ],
     msgs: [
       {
-        tag: "tools · 参数 / parameter",
+        tag: "tools",
         body: {
           zh: "search：项目内全文搜索，代码库问题都用它 ／ search_web：公开网络，仅限项目里不可能有的信息",
           en: "search: full-text search inside the project, for codebase questions / search_web: public web, only for what cannot be in the project",
