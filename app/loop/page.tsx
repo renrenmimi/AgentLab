@@ -24,7 +24,10 @@ export default function LoopChapter() {
   // 面板状态由 lib/scenarios 里的纯函数算出来，verify.mjs 用的是同一个函数。
   const state = useMemo(() => stateAt(steps, cursor), [cursor, steps]);
 
-  const arrayLen = state.msgs.filter((m) => !m.sys).length;
+  // 一张卡可能代表好几个元素（快进的那几轮），长度按真实的元素个数算。
+  const arrayLen = state.msgs
+    .filter((m) => !m.sys)
+    .reduce((n, m) => n + (m.count ?? 1), 0);
   const tokens = useCountUp(state.tokens);
 
   // 语法高亮只跟场景和语言有关。tokens 滚动动画每帧都会重渲染本组件，
@@ -217,7 +220,8 @@ export default function LoopChapter() {
           </div>
           <div className="panel-body">
             {state.msgs.map((card, i) => {
-              if (!card.sys) msgIndex++;
+              const span = card.count ?? 1;
+              if (!card.sys) msgIndex += span;
               return (
                 <div
                   key={i}
@@ -229,7 +233,9 @@ export default function LoopChapter() {
                     <span className="card-idx">
                       {card.sys
                         ? t(ui.loop.sysIdx, lang)
-                        : `messages[${msgIndex}]`}
+                        : span > 1
+                          ? `messages[${msgIndex - span + 1}–${msgIndex}]`
+                          : `messages[${msgIndex}]`}
                     </span>
                     <span className="card-tag">{card.tag}</span>
                     {card.weight && (
@@ -255,7 +261,9 @@ export default function LoopChapter() {
             <span className={`chip ${chipClass(state.stopReason, state.stopTone)}`}>
               stop_reason: {state.stopReason ?? "—"}
             </span>
-            <span className="chip">≈ {tokens.toLocaleString()} tokens</span>
+            <span className="chip">
+              {t(ui.loop.tokensSent, lang).replace("{n}", tokens.toLocaleString())}
+            </span>
           </div>
         </section>
       </div>
