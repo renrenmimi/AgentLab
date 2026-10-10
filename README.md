@@ -43,22 +43,23 @@ be redrawn when the order changes.*
 The numbers come from position in `lib/order.ts`; nothing writes one down.
 
 1. **`/` — What an agent is.** From "a model only turns text into text" to "a program that
-   loops and calls tools", without a line of code.
+   loops and calls tools", with no code beyond one line of `print`.
 2. **`/loop` — Watch it run.** Five recorded runs: one clean, and four that go wrong — a
    loop that will not stop, a model that picks the wrong tool, a history that no longer
    fits, and a tool that fails. Each failing run ends by replaying itself with the mistake
    fixed.
 3. **`/build` — Write one yourself.** Eight blanks in a small agent skeleton. Each teaches
-   the concept before asking; every wrong answer gets a specific correction.
+   the concept before asking; the common wrong answers get a specific correction.
 4. **`/chance` — Why answers differ.** Sampling and temperature. Press *run again* and watch
    the same task take a different path. Then the consequence: an agent is not a function,
    so "it worked when I tried it" is one sample, not evidence.
 5. **`/invent` — Why it makes things up.** A fluent wrong answer and a fluent right one are
-   the same kind of object inside the model. Three questions, asked with and without tools —
-   including one about a function that does not exist.
+   produced by the same process. Three questions, asked with and without tools — including
+   one about a function that does not exist.
 6. **`/instructions` — The text outside the array.** The system prompt: where it sits, that
    it is re-sent and re-paid every round, and why "I told it to be careful" is an order of
-   magnitude weaker than not giving it the tool. The same task under three conditions.
+   magnitude weaker than not giving it any tool that can do the thing. The same task under
+   three conditions.
 7. **`/tools` — Describing a tool.** A description is a prompt, not documentation. Three
    tasks, three different omissions.
 8. **`/cost` — Why it costs that.** The array is resent every round, so spending grows with
@@ -70,8 +71,8 @@ The numbers come from position in `lib/order.ts`; nothing writes one down.
 10. **`/trust` — Tool output is not your friend.** Prompt injection, shown before it is
     named, then the mitigations and what each one does not stop.
 11. **`/permission` — Who says yes.** The loop stops before a write and you make the call.
-12. **`/again` — When a tool fails.** A call fails three ways, and in one of them you do not
-    know whether the work happened — which is the one a retry does twice. Backoff, attempt
+12. **`/again` — When a tool fails.** A call fails three ways, and in two of them you do not
+    know whether the work happened — which is when a retry can do it twice. Backoff, attempt
     limits, and idempotency through a concrete pair: a search and a payment.
 13. **`/measure` — How you know it got better.** Ten saved tasks and a pass count.
 14. **`/next` — What this course left out.** Where it stops, why, and where to go: real runs,
@@ -81,10 +82,10 @@ The numbers come from position in `lib/order.ts`; nothing writes one down.
 
 The course used to say that beyond one line of `print("hello world")`, nothing was assumed.
 That was written for a three-stop version and stopped being true a long time ago: `/build`
-asks you to read a thirty-one line skeleton, `/tools` shows a JSON tool description, `/loop`
+asks you to read a thirty-two line skeleton, `/tools` shows a JSON tool description, `/loop`
 runs a code panel beside the conversation, and `/again` is about idempotency.
 
-So here is the measured version instead. Fifteen terms have a glossary entry and are
+So here is the measured version instead. Sixteen terms have a glossary entry and are
 explained where they first appear — array, loop, API, token, object, push, stateless,
 `stop_reason`, `tool_result`, system prompt, sampling, temperature, context window, prompt
 injection, backoff, idempotent. **Seventeen more are used without one.** `verify.mjs` holds
@@ -93,14 +94,18 @@ deliberately.
 
 | | Words | First met at |
 |---|---|---|
-| **Programming vocabulary**, used as if known | 函数 / function, 变量 / variable, 字符串 / string, 布尔 / boolean, JSON, 参数 / argument, 字段 / field, 接口 / interface, 栈 / stack, 服务器 / server | `/`, `/loop`, `/build`, `/chance`, `/context` |
-| **Operational vocabulary** | 缓存 / cache, 超时 / timeout, 重试 / retry, 副作用 / side effect | `/loop`, `/chance`, `/again` |
+| **Programming vocabulary**, used as if known | 函数 / function, 变量 / variable, 字符串 / string, 布尔 / boolean, JSON, 参数 / argument, 字段 / field, 接口 / interface, 栈 / stack, 服务器 / server | `/`, `/loop`, `/build`, `/tools` |
+| **Operational vocabulary** | 缓存 / cache, 超时 / timeout, 重试 / retry, 副作用 / side effect | `/loop`, `/chance` |
 | **Domain vocabulary** the course develops by using it | 模型 / model, 提示词 / prompt, 上下文 / context | `/`, `/loop` |
 
 What that adds up to: you need to be able to **read** a short line of code, not write one. If
 you know what a function and a variable are and have seen a JSON object, nothing here will
-stop you. If you have not, the third group is the one to expect trouble from, and `/build`
-is where you would meet it.
+stop you. If you have not, the programming vocabulary is the row to expect trouble from: most
+of it first appears in the recorded runs at `/loop`, and `/build` is where you have to use it.
+
+The words are counted over everything a reader meets at a stop — the recorded runs, the
+interactive panels, the build blanks and the group checks — not only the prose that `/all`
+shows; code snippets are left out.
 
 Stating this is more useful than promising nothing. A course that names its prerequisites can
 be checked against them, and this one is: the list above comes out of the same run that
@@ -110,12 +115,12 @@ verifies the prose.
 
 - **[`/all`](https://agent-lab-blond.vercel.app/all) — the whole course on one page.** Every
   stop's prose in reading order, every heading anchored, so a link can point at a paragraph.
-  Where a stop has something to operate, only its conclusion is kept, and that is marked. It
-  prints, and it reads on a phone in one scroll.
+  The parts of a stop you operate are left out; the other recorded runs at `/loop` and the
+  group checks are kept as text, and marked. It prints, and it reads on a phone in one scroll.
 - **Search.** ⌘K searches the stop names and the prose of all fourteen stops in both
   languages, showing which stop and which section a hit came from. The index is the same
-  course view `/all` uses, flattened; it is built on the first search and there is no
-  dependency and no network request.
+  course view `/all` uses, flattened; the index and the text it is built from load the first
+  time the palette opens, as a script from the site itself, and there is no dependency.
 - **The glossary keeps up.** Sixteen terms now, each declaring the stop where it first appears.
   `verify.mjs` fails if a term is defined and never marked, or marked earlier than its entry
   claims.
@@ -161,14 +166,16 @@ npm run prove      # reverts three shipped contrast fixes; fails if the suite mi
 
 - **Simulated by default.** Every response comes from recorded data in `lib/scenarios/` —
   so it runs without an API key.
-- **Bilingual.** Every string is a `{ zh, en }` pair in `lib/i18n.tsx`.
+- **Bilingual.** Every string is a `{ zh, en }` pair: interface strings in `lib/i18n.tsx`,
+  course text in each stop's data file.
 - **A glossary built into the prose.** Writing `[[key:label]]` renders a clickable term that
   pops up a beginner-level explanation.
 - **Each group ends with a check.** Two or three questions that a reader who skimmed gets
   wrong, every wrong answer naming the misconception rather than saying "incorrect". No
   score, no progress percentage: the point is finding out something you thought you knew.
 - **Progress is remembered** in `localStorage` and shown in the sidebar, with a visible way to
-  clear it. No account, and nothing is sent anywhere.
+  clear it. A stop counts as read once you move on from your first visit, and several tabs
+  share one tally. No account, and nothing is sent anywhere.
 
 ## What is verified by what
 
@@ -177,7 +184,7 @@ which is which matters more than knowing what each one covers.
 
 | | What it checks | When it runs |
 |---|---|---|
-| `node verify.mjs` | the content: bilingual pairs, line ranges, blanks, glossary markers, stop numbers, figures quoted in prose | **automatically**, in CI, every push and pull request |
+| `node verify.mjs` | the content: bilingual pairs, line ranges, blanks, glossary markers, markers left in plain-text fields, stop numbers, figures quoted in prose, words used before they are taught | **automatically**, in CI, every push and pull request |
 | `?selftest=1`, via `npm run selftest` | the live page: roles and states, keyboard paths, contrast, headings, landmarks, the arithmetic each stop displays | **automatically**, in CI, every push and pull request |
 | `npm run prove` | that the contrast check still catches defects that have already shipped | **automatically**, in CI, on `main` after a merge |
 | `npm run counters` | that both files still contain the number of assertions they claim to, and that the traversal has not quietly stopped descending | by hand, or whenever either file is edited |
@@ -202,7 +209,7 @@ class names typed out by hand — and this is what it did:
 
 A selector that matches nothing is skipped rather than reported, so the list got
 quieter every time a class was renamed and never said so. Traversal measures
-about 207 surfaces per pass instead of 43, and roughly ten thousand across a run.
+about 190 surfaces per pass instead of 43, and over eleven thousand across a run.
 
 Traversal has the opposite failure: stepping over an element that is there. So
 the suite asserts its own coverage. Every skip has to give one of six declared
@@ -218,14 +225,14 @@ nodes skipped as well, and the ratio does not move.
 
 | Width | Measurements | Present | Coverage | Skipped, by reason |
 |---|---|---|---|---|
-| 1440 | 11,259 | 12,291 | 91.6% | clipped-to-nothing 871, fully-transparent 97, disabled 64 |
-| 768 | 11,111 | 12,291 | 90.4% | + not-rendered 148 |
-| 390 | 11,027 | 12,291 | 89.7% | + not-rendered 232 |
+| 1440 | 11,381 | 12,549 | 90.7% | clipped-to-nothing 931, fully-transparent 98, not-rendered 74, disabled 65 |
+| 768 | 11,159 | 12,549 | 88.9% | not-rendered 296, the rest as at 1440 |
+| 390 | 11,075 | 12,549 | 88.3% | not-rendered 380, the rest as at 1440 |
 
 `clipped-to-nothing` is the `.sr-only` pattern, `disabled` is the WCAG 1.4.3
 exemption, `fully-transparent` is mostly the scenes of the opening animation that
-are not the current one. The whole of the difference between 91.6% and 89.7% is
-`not-rendered`: the sidebar leaving the layout at narrow widths.
+are not the current one. The whole of the difference between 90.7% and 88.3% is
+`not-rendered`: the sidebar leaving the layout at narrower widths.
 
 `verify.mjs` fails if a list of appearance selectors reappears in the suite,
 by shape rather than by name. Two mechanisms mean the stale one keeps voting.
@@ -294,11 +301,11 @@ share of them it reached.
 The course is finished. Fourteen stops in six groups, in two languages.
 
 The numbers behind it, gathered in one place — what runs each of them is in
-[What is verified by what](#what-is-verified-by-what) above. **24 checks** over
+[What is verified by what](#what-is-verified-by-what) above. **25 checks** over
 the content on every push, including that nothing is used before the stop that
 teaches it. **123 assertions** in a real browser on every push, at three widths
-in both themes across all fourteen stops, measuring about **11,300 text
-surfaces** per run at **91.6% / 90.4% / 89.7%** coverage, with the floors
+in both themes across all fourteen stops, measuring about **11,100 to 11,400 text
+surfaces** per run at **90.7% / 88.9% / 88.3%** coverage, with the floors
 asserted from the workflow rather than only by the suite. **Three shipped
 contrast defects** put back on `main` after every merge, to check the detector
 still detects. **Five ways of breaking the counts**, run by hand, to check the
@@ -352,11 +359,10 @@ prerenders to static pages.
 | `lib/scenarios/` | Stop 2 — five recorded runs, frame by frame, one file each |
 | `lib/<stop>.ts` | One per stop from 4 onward: the model behind it, plus its prose |
 | `lib/lesson.ts` · `app/lesson.tsx` | The shared shape of a stop from 4 onward |
-| `lib/stops.ts` | The reading order; the number on a stop comes from its position |
+| `lib/stops.ts` | The stops and their groups, shared by sidebar, breadcrumb and ⌘K palette; the number on a stop comes from its position |
 | `lib/build.ts` | Stop 3 — the blanks, answers, and per-mistake corrections |
-| `lib/i18n.tsx` | Bilingual strings and the `useT()` hook |
-| `lib/glossary.tsx` | Term dictionary and the `[[key:label]]` renderer |
-| `lib/stops.ts` | The stop list shared by sidebar, breadcrumb, and ⌘K palette |
+| `lib/i18n.tsx` | Interface strings, `useLang()` and `t()` |
+| `lib/glossary.tsx` | Term dictionary, the `[[key:label]]` renderer `RichText`, and `plainText` for places a link cannot go |
 | `lib/checks.ts` · `app/group-check.tsx` | The check at the end of each of the six groups |
 | `lib/course.ts` | One shape for every stop's prose; `/all`, search and the checker share it |
 | `lib/search.ts` | The index and the query, built from `lib/course.ts` |
