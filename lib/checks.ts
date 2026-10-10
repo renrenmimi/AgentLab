@@ -714,12 +714,12 @@ export const checks: GroupCheck[] = [
             text: { zh: "注入问题解决了。", en: "Injection is now solved." },
             correction: {
               zh:
-                "它本身也只是数组里的另一段文字，和攻击者写的那段地位完全相同。" +
+                "它本身也只是一段文字。放在 system 里会让它比网页里的文字更受重视，但这只是倾向，不是边界。" +
                 "遇到更迂回的写法——伪装成上一轮的系统通知、或者换一种语言——它就不一定还管用。" +
                 "这是一道概率上的防线，不是一道边界。",
               en:
-                "It is itself just more text in the same array, with exactly the same standing as the " +
-                "attacker's. Against something less blunt — text disguised as a system notice, or written in " +
+                "It is itself just more text. Placed in the system prompt it carries more weight than the text on " +
+                "a web page, but that is a tendency, not a boundary. Against something less blunt — text disguised as a system notice, or written in " +
                 "another language — it may not hold. This is a probabilistic defence, not a boundary.",
             },
           },
@@ -744,11 +744,12 @@ export const checks: GroupCheck[] = [
             text: { zh: "它能挡住数据被带出去，但挡不住内容被污染。", en: "It stops data being carried out, but not content being corrupted." },
             correction: {
               zh:
-                "正好反过来。挡数据外泄的是结构手段——出站白名单，或者干脆不给能发送数据的工具；" +
+                "正好反过来。挡数据外泄的是结构手段——出站白名单、不给能发送数据的工具，以及不渲染、不预取模型输出里的链接；" +
                 "措辞这一类挡的是「听不听话」。",
               en:
                 "That is the wrong way round. What stops data leaving is structural — an allow-list on " +
-                "outbound requests, or no tool capable of sending anything. Wording addresses whether it obeys.",
+                "outbound requests, no tool capable of sending anything, and no rendering or prefetching of links " +
+                "in the model's output. Wording addresses whether it obeys.",
             },
           },
         ],
@@ -775,10 +776,10 @@ export const checks: GroupCheck[] = [
             text: { zh: "审批逻辑有 bug。", en: "The approval logic has a bug." },
             correction: {
               zh:
-                "它按写的方式工作了。几乎所有实现里，「总是」绑定的是**工具**，不是当时那一组参数——" +
+                "它按写的方式工作了。很多实现里，「总是」绑定的是**工具**，不是当时那一组参数——" +
                 "用户批准的是 write_file 这个动作，而不是「写 lib/cart.ts」。",
               en:
-                "It worked as written. In almost every implementation, always binds to the **tool** rather " +
+                "It worked as written. In many implementations, always binds to the **tool** rather " +
                 "than to the arguments in front of you: what was approved is write_file, not writing " +
                 "lib/cart.ts.",
             },

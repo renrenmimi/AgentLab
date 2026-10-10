@@ -89,18 +89,25 @@ export const mitigations: Mitigation[] = [
   },
   {
     id: "outbound",
-    name: { zh: "限制出站", en: "Restrict what it can reach" },
+    name: { zh: "限制出口", en: "Restrict the ways out" },
     what: {
       zh:
-        "不允许 agent 自由拼 URL 去请求任意地址：出站走白名单，" +
-        "或者干脆不给它任何能把数据发出去的工具。",
+        "管住数据离开的两条路。一条是 agent 自己发出去的请求：出站走白名单，" +
+        "或者干脆不给它任何能把数据发出去的工具。另一条是它写进输出里的链接：" +
+        "不渲染、不预取模型输出里的链接，或者只放行白名单域名的链接。",
       en:
-        "Do not let the agent assemble arbitrary URLs and fetch them: allow-list the destinations, or give it " +
-        "no tool capable of sending data outward at all.",
+        "Guard both ways data can leave. One is requests the agent makes itself: allow-list the destinations, " +
+        "or give it no tool capable of sending data outward at all. The other is links it writes into its " +
+        "output: do not render or prefetch links in model output, or allow only links to listed domains.",
     },
     stops: {
-      zh: "挡死了「把上下文里的东西带出去」这条路，也就是上面那个例子里最危险的一半。",
-      en: "Closes the route that carries context out of the system, which is the more dangerous half of the example above.",
+      zh:
+        "两条路都管住，才挡得住「把上下文里的东西带出去」，也就是上面那个例子里最危险的一半——" +
+        "那个例子走的是第二条：邮箱被拼进了回答里的一个链接。只管 agent 自己的请求，这一次照样会泄露。",
+      en:
+        "With both closed, context cannot be carried out, which is the more dangerous half of the example " +
+        "above. That example used the second way — the address was folded into a link in the answer — so " +
+        "restricting only the agent's own requests would not have stopped this one.",
     },
     doesNot: {
       zh:
@@ -188,8 +195,8 @@ export const mitigations: Mitigation[] = [
 export const meta: LessonMeta = {
   title: { zh: "工具结果不可信", en: "Tool output is not your friend" },
   subtitle: {
-    zh: "模型分不出「你的指令」和「工具结果里夹带的指令」，因为在数组里它们是同一种东西：文字。",
-    en: "A model cannot tell your instructions from instructions that arrived inside a tool result, because in the array they are the same thing: text.",
+    zh: "模型不能可靠地区分「你的指令」和「工具结果里夹带的指令」，因为到了它面前，两者都是文字。",
+    en: "A model cannot reliably tell your instructions from instructions that arrived inside a tool result, because by the time they reach it, both are text.",
   },
   takeaway: {
     zh:
@@ -238,16 +245,19 @@ export const blocks: Block[] = [
       {
         zh:
           "这件事叫[[injection:提示注入]]（prompt injection）。它之所以难，不是因为模型不够聪明，" +
-          "而是因为数组里根本没有一个字段用来区分「这是我的指令」和「这是外面来的数据」。" +
+          "而是因为区分「这是我的指令」和「这是外面来的数据」的，只有一个标签。" +
           "回想[[stop:/loop]]那条规则：能进数组的角色只有 user 和 assistant，" +
-          "而工具结果走的正是 user——和你亲手打的字用的是同一个 role。" +
-          "从模型的角度看，你的任务和那段藏起来的文字，是同一个人在同一个对话里说的两句话。",
+          "而工具结果走的正是 user——和你亲手打的字用的是同一个 role，只是装在一个 tool_result 块里。" +
+          "模型被训练成对这种块里的指令保持警惕，但这只是倾向：到了它面前，你的任务和那段藏起来的文字都是文字，" +
+          "一段写得足够像指令的话，仍然可能被当成指令。",
         en:
           "This is called [[injection:prompt injection]]. What makes it hard is not that the model is not clever enough; it " +
-          "is that the array has no field distinguishing \"this is my instruction\" from \"this is data from " +
-          "outside\". Recall the rule from [[stop:/loop]]: only user and assistant appear in the array, and tool " +
-          "results travel as user — the same role as the words you type yourself. From the model's position, " +
-          "your task and that hidden passage are two sentences from the same speaker in the same conversation.",
+          "is that the only thing separating \"this is my instruction\" from \"this is data from outside\" is a " +
+          "label. Recall the rule from [[stop:/loop]]: only user and assistant appear in the array, and tool " +
+          "results travel as user — the same role as the words you type yourself, only wrapped in a tool_result " +
+          "block. Models are trained to be wary of instructions inside such blocks, but that is a tendency: by " +
+          "the time they reach the model, your task and that hidden passage are both text, and a passage written " +
+          "convincingly enough as an instruction can still be taken as one.",
       },
       {
         zh:
@@ -270,14 +280,15 @@ export const blocks: Block[] = [
       },
       a: {
         zh:
-          "不能，虽然这个直觉很自然。有些 API 确实有单独的 tool 角色，但那只是一个标签，" +
-          "最终送进模型的仍然是一段连续的文字序列，模型仍然只能靠内容判断轻重。" +
+          "不能，虽然这个直觉很自然。有些 API 确实有单独的 tool 角色，Claude API 也用 tool_result 块标明了来源，" +
+          "但那都只是标签：最终送进模型的仍然是一段连续的文字序列，标签能让它更谨慎，却挡不住一段足够有说服力的文字。" +
           "角色标签能让「不要听信这一段」这句话更容易说清楚，" +
           "所以它有帮助——但它是提示层面的帮助，不是隔离。真正的隔离得靠这个 agent 能做什么来实现。",
         en:
-          "No, though the instinct is a reasonable one. Some APIs do have a separate tool role, but it is a " +
-          "label: what reaches the model is still one continuous sequence of text, and the model still weighs " +
-          "it by content. The label makes \"do not take orders from this part\" easier to state, so it helps — " +
+          "No, though the instinct is a reasonable one. Some APIs do have a separate tool role, and the Claude " +
+          "API marks tool output with a tool_result block, but these are labels: what reaches the model is still " +
+          "one continuous sequence of text, and a label makes the model more careful without stopping a " +
+          "persuasive enough passage. The label makes \"do not take orders from this part\" easier to state, so it helps — " +
           "but it helps at the level of prompting, not isolation. Isolation comes from what the agent is able " +
           "to do.",
       },
@@ -288,13 +299,13 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "上面每一条都点开看一遍。注意其中的分野：前面标着「措辞」的两条，" +
-          "本质上是在数组里多写几句话，希望模型听你的而不是听攻击者的——它们能降低概率，" +
+          "上面每一条都点开看一遍。注意其中的分野：标着「措辞」的两条，" +
+          "本质上都是再让一个模型读几句话、希望它听你的而不是听攻击者的——它们能降低概率，" +
           "但对手写的也是同一种东西，所以永远不是保证。" +
           "标着「结构」的三条改变的是别的东西：不是模型信谁，而是即使模型被说服了，它能碰到什么、能做成什么。",
         en:
-          "Open each of them above. Note the split: the two marked \"wording\" amount to putting more sentences " +
-          "into the array and hoping the model listens to you rather than to the attacker. They lower the " +
+          "Open each of them above. Note the split: the two marked \"wording\" both come down to having a model " +
+          "read a few more sentences and hoping it listens to you rather than to the attacker. They lower the " +
           "odds, but the attacker is writing the same kind of thing, so they are never a guarantee. The three " +
           "marked \"structural\" change something else: not who the model believes, but what it can reach and " +
           "what it can accomplish even after being persuaded.",
