@@ -1128,7 +1128,9 @@ export async function runSelfTest(nav: (href: string) => void): Promise<void> {
   ok($$(".in-gone").length === 0, "and the tool is still in the list, which is the point");
   setupBtns()[2]?.click();
   await settle(3);
-  ok($$(".in-gone").length === 1, "removing the tool shows it struck out of the list");
+  // Both tools that can send anything are removed: send_email, and run_command,
+  // which runs any command and could send it just as well.
+  ok($$(".in-gone").length === 2, "removing every tool that can send shows both struck out of the list");
   ok($$(".pm-bad").length === 0, "and the run cannot do it at all");
 
   // ---- /again: the three failures are not interchangeable ---------------

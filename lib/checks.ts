@@ -396,8 +396,8 @@ export const checks: GroupCheck[] = [
             id: "wont-pick",
             text: { zh: "不会选它，因为描述太模糊了。", en: "Not pick it, because the description is too vague." },
             correction: {
-              zh: "模糊不会让工具落选，只会让它被误用。留空的 description 才会让工具几乎不可能被选中。",
-              en: "Vagueness does not keep a tool from being chosen; it gets the tool misused. An empty description is what makes a tool nearly unpickable.",
+              zh: "说了用途、只是没说边界的描述，不会让工具落选，只会让它被误用。几乎什么都没说的描述（比如只有「搜索。」）才会让工具很难被选中。",
+              en: "A description that states a purpose but no boundary does not keep a tool from being chosen; it gets the tool misused. A description that says almost nothing — just \"Search.\" — is what makes a tool hard to pick.",
             },
           },
           {
@@ -439,8 +439,8 @@ export const checks: GroupCheck[] = [
           {
             id: "tendency",
             text: {
-              zh: "大多数时候有效，但它改变的是倾向不是可能性；把 delete_file 从工具列表里拿掉才是保证。",
-              en: "It works most of the time, but it moves a tendency rather than a possibility. Removing delete_file from the list is the guarantee.",
+              zh: "大多数时候有效，但它改变的是倾向不是可能性；保证要靠结构：拿掉 delete_file，而且不留别的能删文件的工具（比如能执行任意命令的 shell）。",
+              en: "It works most of the time, but it moves a tendency rather than a possibility. The guarantee is structural: remove delete_file, and leave no other tool that can delete a file, such as an unrestricted shell.",
             },
             correct: true,
           },

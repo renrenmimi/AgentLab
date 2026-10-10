@@ -27,8 +27,8 @@ export const setups: Setup[] = [
     name: { zh: "什么都没说", en: "Say nothing" },
     hint: { zh: "一句宽泛的岗位描述", en: "one broad job description" },
     system: {
-      zh: "你是一个运维助手，可以用工具帮用户处理服务器上的事情。",
-      en: "You are an operations assistant. You can use tools to help the user with things on the server.",
+      zh: "你是一个运维助手，可以用工具帮用户处理服务器上的事情。当前用户是 ada@example.com。",
+      en: "You are an operations assistant. You can use tools to help the user with things on the server. The current user is ada@example.com.",
     },
     tools: ["read_file", "run_command", "send_email"],
     beats: [
@@ -56,11 +56,11 @@ export const setups: Setup[] = [
     verdict: {
       zh:
         "这次没有任何一步做错。任务里写着「发给我」，工具列表里有 send_email，" +
-        "system 提示词没有说过不可以。模型把三件事连起来，得到了唯一合理的结论。",
+        "system 提示词没有说过不可以，用户的邮箱也写在里面。模型把这几件事连起来，得到了一个很自然的结论。",
       en:
         "Nothing here was done wrongly. The task says send it to me, the tool list contains send_email, and " +
-        "the system prompt never said otherwise. The model joined those three facts and reached the only " +
-        "reasonable conclusion.",
+        "the system prompt never said otherwise and even gives the user's address. The model joined those " +
+        "facts and reached a perfectly natural conclusion.",
     },
     tone: "bad",
   },
@@ -70,11 +70,11 @@ export const setups: Setup[] = [
     hint: { zh: "写进 system 提示词", en: "written into the system prompt" },
     system: {
       zh:
-        "你是一个运维助手，可以用工具帮用户处理服务器上的事情。" +
+        "你是一个运维助手，可以用工具帮用户处理服务器上的事情。当前用户是 ada@example.com。" +
         "你没有对外发送的权限：整理好的内容直接返回给用户，不要调用任何外发工具。",
       en:
-        "You are an operations assistant. You can use tools to help the user with things on the server. You " +
-        "are not authorised to send anything outward: return the summary to the user directly and do not call " +
+        "You are an operations assistant. You can use tools to help the user with things on the server. The " +
+        "current user is ada@example.com. You are not authorised to send anything outward: return the summary to the user directly and do not call " +
         "any outbound tool.",
     },
     tools: ["read_file", "run_command", "send_email"],
@@ -114,13 +114,13 @@ export const setups: Setup[] = [
   },
   {
     id: "removed",
-    name: { zh: "不给这个工具", en: "Do not give it the tool" },
-    hint: { zh: "从 tools 里删掉", en: "removed from the tool list" },
+    name: { zh: "不给它外发的手段", en: "Give it no way to send" },
+    hint: { zh: "send_email 和 run_command 都从 tools 里删掉", en: "send_email and run_command removed from the list" },
     system: {
-      zh: "你是一个运维助手，可以用工具帮用户处理服务器上的事情。",
-      en: "You are an operations assistant. You can use tools to help the user with things on the server.",
+      zh: "你是一个运维助手，可以用工具帮用户处理服务器上的事情。当前用户是 ada@example.com。",
+      en: "You are an operations assistant. You can use tools to help the user with things on the server. The current user is ada@example.com.",
     },
-    tools: ["read_file", "run_command"],
+    tools: ["read_file"],
     beats: [
       {
         label: { zh: "读日志", en: "read the log" },
@@ -136,21 +136,25 @@ export const setups: Setup[] = [
       {
         label: { zh: "结果", en: "outcome" },
         body: {
-          zh: "外发这件事没有发生，而且不可能发生——不存在的工具，模型请求不了。",
-          en: "Nothing went out, and nothing could have: a tool that is not in the list cannot be requested.",
+          zh: "外发这件事没有发生，而且不可能发生——能把东西发出去的工具一个都不在列表里，而不在列表里的工具，模型请求不了。",
+          en: "Nothing went out, and nothing could have: no tool that can send anything is on the list, and a tool that is not on the list cannot be requested.",
         },
       },
     ],
     verdict: {
       zh:
         "同样的效果，不同的性质。前一种是「我请它别这么做」，这一种是「它做不到」。" +
-        "前者取决于每一轮的采样和上下文，后者不取决于任何东西。" +
-        "这就是提示词和结构的分界：提示词调整倾向，结构决定可能性。",
+        "前者取决于每一轮的采样和上下文，后者不取决于模型怎么想。" +
+        "注意拿掉的是所有能产生这个效果的工具：只删 send_email、留着能执行任意命令的 run_command，" +
+        "一条 shell 命令照样能把内容发出去。这就是提示词和结构的分界：提示词调整倾向，结构决定可能性——" +
+        "前提是结构把每一条路都堵上了。",
       en:
         "The same outcome, of a different kind. The previous one is I asked it not to; this one is it cannot. " +
-        "The first depends on every round's sampling and context; the second depends on nothing. That is the " +
+        "The first depends on every round's sampling and context; the second does not depend on what the " +
+        "model thinks. Note that every tool able to have this effect is gone: remove send_email but keep a " +
+        "run_command that executes anything, and one shell command still sends the text out. That is the " +
         "line between a prompt and a structure: a prompt moves a tendency, a structure decides what is " +
-        "possible.",
+        "possible — provided it closes every route.",
     },
     tone: "ok",
   },
@@ -187,11 +191,12 @@ export const meta: LessonMeta = {
     zh:
       "system 提示词调整的是倾向，工具列表决定的是可能性。" +
       "**「我叮嘱过它」比「我没给它那个工具」弱一个量级**——" +
-      "前者要在每一轮的采样和每一段外部内容面前重新生效，后者一次成立，永远成立。",
+      "前者要在每一轮的采样和每一段外部内容面前重新生效，后者只要堵上了每一条路，就一次成立、一直成立。",
     en:
       "A system prompt moves a tendency; the tool list decides what is possible. **\"I told it to be careful\" " +
       "is an order of magnitude weaker than \"I did not give it that tool\"** — the first has to hold again on " +
-      "every round and against every piece of outside content, and the second holds once and holds forever.",
+      "every round and against every piece of outside content, while the second, once every route is closed, " +
+      "holds once and holds for good.",
   },
 };
 
@@ -215,7 +220,7 @@ export const blocks: Block[] = [
       {
         zh:
           "「每一轮都原样重新提供」这句话有两个后果。" +
-          "好的那个是稳定：不管对话跑了多久，这段话一直在，位置也一直在最前面。" +
+          "好的那个是稳定：不管对话跑了多久，这段话一直在，而且一直排在对话历史前面。" +
           "另一个是账单：它每一轮都要重新算钱。",
         en:
           "Supplied again, unchanged, on every round has two consequences. The good one is stability: however " +
@@ -229,27 +234,28 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "把[[ahead:/cost]]那条规律套到 system 提示词上：一段 900 个 [[token:token]] 的提示词，" +
+          "把[[stop:/loop]]看到的那条规律——数组每一轮全量重发——套到 system 提示词上：一段 900 个 [[token:token]] 的提示词，" +
           "在一次 40 轮的运行里会被发出去 40 次。" +
           "它写了一次，你买了四十次——上面的数字就是按[[ahead:/cost]]那个成本模型算出来的。",
         en:
-          "Apply the rule from [[ahead:/cost]] to the system prompt: a 900-[[token:token]] passage in a forty-round " +
+          "Apply the rule seen at [[stop:/loop]] — everything is resent every round — to the system prompt: a " +
+          "900-[[token:token]] passage in a forty-round " +
           "run goes out forty times. You wrote it once and bought it forty times — the figure above is " +
           "computed with the same cost model [[ahead:/cost]] uses.",
       },
       {
         zh:
-          "这不是叫你把提示词写短。一段写得好的 900 token 提示词，能省下的轮数远比它自己贵。" +
+          "这不是叫你把提示词写短。一段写得好的 900 token 提示词，帮你省下的轮数所值的钱，通常远多于它自己的花费。" +
           "值得记住的是另一件事：**system 提示词的每一句都在按轮数计费**，" +
           "所以那些「以防万一先写上」的段落，代价不是一次，是每一次。" +
-          "顺带一条：它要放在最前面且保持一字不变，才吃得到缓存（[[ahead:/cost]]）——" +
+          "顺带一条：它本来就排在对话历史前面，只要保持一字不变，就能吃到缓存的折扣（[[ahead:/cost]]）——" +
           "在里面塞一个当前时间戳，整段缓存就作废了。",
         en:
-          "This is not an argument for short prompts. Nine hundred well-spent tokens save more rounds than " +
-          "they cost. What is worth remembering is the other thing: **every sentence in a system prompt is " +
+          "This is not an argument for short prompts. Nine hundred well-spent tokens usually save far more " +
+          "than they cost. What is worth remembering is the other thing: **every sentence in a system prompt is " +
           "billed per round**, so a paragraph added just in case costs you not once but every time. And a " +
-          "related point: it earns the cache discount from [[ahead:/cost]] only by staying first and staying " +
-          "byte-identical — drop a current timestamp into it and the whole prefix stops matching.",
+          "related point: it already sits ahead of the conversation, so it earns the cache discount from " +
+          "[[ahead:/cost]] as long as it stays byte-identical — drop a current timestamp into it and the whole prefix stops matching.",
       },
     ],
     faq: {
@@ -280,12 +286,13 @@ export const blocks: Block[] = [
           "上面那三种条件跑的是同一个任务。第一种什么都没说，模型把邮件发了出去——" +
           "而且它没有做错任何一步：任务里写着「发给我」，工具列表里有 send_email。" +
           "第二种在 system 里加了一句「不要外发」，这一次它没发。" +
-          "第三种把 send_email 从工具列表里删掉，它发不了。",
+          "第三种把能外发的工具——send_email，以及能执行任意命令的 run_command——都从列表里拿掉，它发不了。",
         en:
           "The three conditions above run the same task. In the first, nothing was said and the mail went " +
           "out — and no step was taken wrongly: the task says send it to me and the tool list contains " +
           "send_email. In the second, a sentence was added to the system prompt and nothing went out this " +
-          "time. In the third, send_email was removed from the list and nothing could go out.",
+          "time. In the third, every tool that could send anything — send_email, and run_command, which runs " +
+          "anything — was removed from the list and nothing could go out.",
       },
       {
         zh:

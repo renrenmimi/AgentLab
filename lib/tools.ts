@@ -43,7 +43,7 @@ export const cases: Case[] = [
       tool: {
         name: "list_dir",
         description: { zh: "列目录。", en: "Lists a directory." },
-        schema: '{ "path": { "type": "string" } }',
+        schema: '{ "type": "object", "properties": { "path": { "type": "string" } } }',
       },
       call: 'list_dir(".")',
       result: {
@@ -72,7 +72,7 @@ export const cases: Case[] = [
           zh: "列出一个目录的直接子项，不递归。目录名末尾带 /。要看子目录里的内容，需要对每个子目录再调用一次。最多返回 200 条。",
           en: "Lists the immediate entries of one directory. Does not recurse; directory names end in /. To see inside a subdirectory, call it again for that subdirectory. Returns at most 200 entries.",
         },
-        schema: '{ "path": { "type": "string" } }',
+        schema: '{ "type": "object", "properties": { "path": { "type": "string" } } }',
       },
       call: 'list_dir(".") → list_dir("app") → list_dir("lib") → …',
       result: {
@@ -80,8 +80,8 @@ export const cases: Case[] = [
         en: "Four calls, one level at a time: 7 at the root, 11 in app/, 12 in lib/, 2 in docs/.",
       },
       answer: {
-        zh: "算上子目录一共 28 个文件（另有 3 个目录）。",
-        en: "28 files including subdirectories, plus 3 directories.",
+        zh: "算上子目录一共 29 个文件（另有 3 个目录）。",
+        en: "29 files including subdirectories, plus 3 directories.",
       },
       verdict: {
         zh:
@@ -111,7 +111,7 @@ export const cases: Case[] = [
       tool: {
         name: "read_file",
         description: { zh: "读文件。", en: "Reads a file." },
-        schema: '{ "path": { "type": "string" } }',
+        schema: '{ "type": "object", "properties": { "path": { "type": "string" } } }',
       },
       call: 'read_file("README.md")',
       result: {
@@ -143,7 +143,7 @@ export const cases: Case[] = [
           zh: "读取一个文件的内容。这组工具是只读的，没有任何写入或执行能力。需要修改文件时，请把改动以 diff 的形式输出给用户，由用户自行应用。",
           en: "Reads the contents of one file. This toolset is read-only; there is no way to write or execute anything. When a change is needed, output it as a diff for the user to apply themselves.",
         },
-        schema: '{ "path": { "type": "string" } }',
+        schema: '{ "type": "object", "properties": { "path": { "type": "string" } } }',
       },
       call: 'read_file("README.md")',
       result: {
@@ -179,12 +179,12 @@ export const cases: Case[] = [
       tool: {
         name: "search_files",
         description: { zh: "在文件里搜索。", en: "Searches in files." },
-        schema: '{ "query": { "type": "string" } }',
+        schema: '{ "type": "object", "properties": { "query": { "type": "string" } } }',
       },
       call: 'search_files("v1")',
       result: {
-        zh: "5,180 条匹配，全文返回，约 62,000 token。",
-        en: "5,180 matches, all of them, about 62,000 tokens.",
+        zh: "5,180 条匹配，全文返回，约 620,000 token。",
+        en: "5,180 matches, all of them, about 620,000 tokens.",
       },
       answer: {
         zh: "（下一轮请求超出上下文窗口，运行中止）",
@@ -211,25 +211,25 @@ export const cases: Case[] = [
           zh: "在项目文件里做全文搜索。最多返回 50 条匹配；超过时只返回总数和按文件的分布，可以用 offset 继续翻，或者把 query 写得更窄。",
           en: "Full-text search across the project's files. Returns at most 50 matches; above that it returns the total count and a per-file breakdown instead, and you can page with offset or narrow the query.",
         },
-        schema: '{ "query": { "type": "string" }, "offset": { "type": "number" } }',
+        schema: '{ "type": "object", "properties": { "query": { "type": "string" }, "offset": { "type": "number" } } }',
       },
-      call: 'search_files("v1") → search_files("v1/orders")',
+      call: 'search_files("v1")',
       result: {
-        zh: "5,180 条匹配，分布在 34 个文件；其中 4,900 条在 vendor/ 下。约 900 token。",
-        en: "5,180 matches across 34 files; 4,900 of them under vendor/. About 900 tokens.",
+        zh: "5,180 条匹配，分布在 34 个文件；其中 5,177 条在 vendor/ 下，另外 3 条都在 lib/api/orders.ts。约 900 token。",
+        en: "5,180 matches across 34 files; 5,177 of them under vendor/, and the other 3 all in lib/api/orders.ts. About 900 tokens.",
       },
       answer: {
-        zh: "自己的代码里只有 3 处还在用 v1，都在 lib/api/orders.ts；其余 4,900 处都在 vendor/ 下的第三方代码里。",
-        en: "Only 3 uses of v1 are in our own code, all in lib/api/orders.ts; the other 4,900 are third-party code under vendor/.",
+        zh: "自己的代码里只有 3 处还在用 v1，都在 lib/api/orders.ts；其余 5,177 处都在 vendor/ 下的第三方代码里。",
+        en: "Only 3 uses of v1 are in our own code, all in lib/api/orders.ts; the other 5,177 are third-party code under vendor/.",
       },
       verdict: {
         zh:
           "同样一次搜索，返回九百个 token，而且给出的答案比原来更有用——" +
-          "因为「4,900 条在 vendor 下」这个分布信息，比五千行原文更接近人真正想知道的东西。" +
+          "因为「绝大多数在 vendor 下、自己的只有 3 条」这个分布信息，比五千行原文更接近人真正想知道的东西。" +
           "把返回量的上限写进工具，往往同时让结果变小和变好。",
         en:
           "The same search, nine hundred tokens, and a better answer than the raw dump would have produced — " +
-          "because \"4,900 of them under vendor/\" is closer to what a person actually wants to know than five " +
+          "because \"almost all under vendor/, three of our own\" is closer to what a person actually wants to know than five " +
           "thousand lines of matches. Capping what a tool returns often makes the result both smaller and more " +
           "useful.",
       },
@@ -266,26 +266,27 @@ export const blocks: Block[] = [
           "你发给 [[api:API]] 的 tools 参数是一个列表，每一项有三部分：" +
           "name（模型请求时写的名字）、description（一段自然语言）、" +
           "input_schema（参数的形状，用 JSON Schema 写）。" +
-          "name 和 input_schema 是给程序用的：模型必须按它们的格式回复，" +
-          "你的代码也按它们来分派和校验。",
+          "name 和 input_schema 有两个读者：模型按它们的格式提出请求，名字本身也是它选工具的线索；" +
+          "你的代码则按它们来分派和校验。",
         en:
           "The tools parameter you send to the [[api:API]] is a list, and each entry has three parts: a name " +
           "(what the model writes when it asks for it), a description (a passage of ordinary language), and an " +
-          "input_schema (the shape of the arguments, as JSON Schema). The name and the schema are for the " +
-          "machinery: the model has to answer in that format, and your code dispatches and validates against " +
-          "it.",
+          "input_schema (the shape of the arguments, as JSON Schema). The name and the schema have two readers: " +
+          "the model asks in that format, and the name is also one of its clues for choosing; your code " +
+          "dispatches and validates against them.",
       },
       {
         zh:
           "description 不一样。它没有格式要求，不参与校验，不影响程序的任何一行——" +
-          "它唯一的作用是被模型读到，然后改变模型的选择。" +
+          "它只有一个读者：模型。它被模型读到，然后改变模型的选择。" +
           "换句话说，它是提示词。你在这里多写一句话，效果和在 system 提示词里多写一句话是同一类的；" +
           "而你在函数体上方写的注释，模型一个字都看不到。",
         en:
           "The description is different. It has no required format, takes part in no validation, and changes " +
-          "no line of your program. Its only effect is to be read by the model and change what the model " +
+          "no line of your program. Its one reader is the model, and its only effect is to change what the model " +
           "picks. In other words, it is a prompt. A sentence added here does the same kind of work as a " +
-          "sentence added to the system prompt — while a comment above the function body is read by nobody.",
+          "sentence added to the system prompt — while a comment above the function body is never seen by the " +
+          "model.",
       },
     ],
     faq: {
@@ -311,13 +312,16 @@ export const blocks: Block[] = [
     paras: [
       {
         zh:
-          "上面的三个任务各对应一种漏写。它们的共同点是：左边那一栏里的模型都没有犯推理错误，" +
-          "它们都是在一份不完整的说明书上做了合理的推断。" +
+          "上面的三个任务各对应一种漏写。它们的共同点是：左边那一栏里的错，根子都在说明书上——" +
+          "模型在一份不完整的说明书上做推断，推断得并不离谱。" +
+          "（第二个任务里它声称「已经改好了」，这句是编的；但说明书里没有一句话提醒它这组工具只能读。）" +
           "这也是为什么这类问题换个更强的模型往往解决不了——缺的不是推理能力，是信息。",
         en:
-          "The three tasks above correspond to three omissions. What they have in common: in the left-hand " +
-          "column the model makes no reasoning error at any point. It draws a reasonable inference from an " +
-          "incomplete description each time. That is also why a stronger model usually does not fix this class " +
+          "The three tasks above correspond to three omissions. What they have in common: every mistake in " +
+          "the left-hand column traces back to the description. The model reasons from an incomplete " +
+          "description, and the reasoning is not far-fetched. (In the second task its claim to have made the " +
+          "change is invented — but nothing in the description warned it that the toolset only reads.) That is " +
+          "also why a stronger model usually does not fix this class " +
           "of problem: what is missing is not reasoning, it is information.",
       },
       {
