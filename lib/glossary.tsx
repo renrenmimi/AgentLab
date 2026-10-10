@@ -173,7 +173,13 @@ export function RichText({ text, lang }: { text: string; lang: Lang }) {
     const idx = m.index!;
     if (idx > last) parts.push(text.slice(last, idx));
     if (m[3] !== undefined) {
-      parts.push(<strong key={k++}>{m[3]}</strong>);
+      // 粗体里可以再套术语或站点引用（「这类工具叫**[[idempotent:幂等]]**」），
+      // 所以里面的文字也要再解析一遍，否则方括号会原样出现在页面上。
+      parts.push(
+        <strong key={k++}>
+          <RichText text={m[3]} lang={lang} />
+        </strong>,
+      );
     } else if (m[1] === "stop" || m[1] === "ahead") {
       parts.push(<StopRef key={k++} href={m[2]} lang={lang} />);
     } else {
@@ -183,6 +189,18 @@ export function RichText({ text, lang }: { text: string; lang: Lang }) {
   }
   if (last < text.length) parts.push(text.slice(last));
   return <>{parts}</>;
+}
+
+// 同样的文字，去掉标记只留读者该看到的字：术语只留显示文字，站点引用换成
+// 「第 8 站」，粗体去掉星号。给不能放按钮和链接的地方用，比如 <summary>。
+// 凡是可能带标记的文字，渲染时要么走 RichText，要么走这里，不能直接 t()——
+// 否则读者看到的是 [[stop:/loop]] 这样的方括号。
+export function plainText(text: string, lang: Lang): string {
+  return text.replace(RE, (_m, kind: string | undefined, label: string | undefined, bold: string | undefined) => {
+    if (bold !== undefined) return plainText(bold, lang);
+    if (kind === "stop" || kind === "ahead") return stopWord(label ?? "", lang);
+    return label ?? "";
+  });
 }
 
 // 「第 8 站」这样的引用。序号是算出来的，所以插一站进来不会让正文说谎。

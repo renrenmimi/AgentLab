@@ -12,6 +12,7 @@ import {
   totalWaitMs,
 } from "@/lib/again";
 import { useLang, t } from "@/lib/i18n";
+import { RichText } from "@/lib/glossary";
 import {
   Choices,
   LessonHeader,
@@ -111,11 +112,11 @@ export default function AgainStop() {
                   </span>
                 </td>
                 <td>
-                  {t(tool.twice, lang)}
+                  <RichText text={t(tool.twice, lang)} lang={lang} />
                   {tool.fix && (
                     <span className="ag-fix">
                       <b>{t(bench.fixWord, lang)}: </b>
-                      {t(tool.fix, lang)}
+                      <RichText text={t(tool.fix, lang)} lang={lang} />
                     </span>
                   )}
                 </td>

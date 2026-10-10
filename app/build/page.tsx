@@ -203,7 +203,7 @@ export default function BuildChapter() {
                 : feedback.kind === "wrong"
                   ? "✕ "
                   : "→ "}
-              {feedback.msg}
+              <RichText text={feedback.msg} lang={lang} />
             </p>
           )}
         </section>

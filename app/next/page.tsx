@@ -2,6 +2,7 @@
 
 import { areas, bench, blocks, meta } from "@/lib/next";
 import { useLang, t } from "@/lib/i18n";
+import { RichText } from "@/lib/glossary";
 import {
   LessonHeader,
   Prose,
@@ -33,15 +34,15 @@ export default function NextStop() {
               </h3>
               <p className="nx-p">
                 <span className="iv-k">{t(bench.whatWord, lang)}</span>
-                {t(area.what, lang)}
+                <RichText text={t(area.what, lang)} lang={lang} />
               </p>
               <p className="nx-p nx-why">
                 <span className="iv-k">{t(bench.whyWord, lang)}</span>
-                {t(area.why, lang)}
+                <RichText text={t(area.why, lang)} lang={lang} />
               </p>
               <p className="nx-p">
                 <span className="iv-k">{t(bench.whereWord, lang)}</span>
-                {t(area.where, lang)}
+                <RichText text={t(area.where, lang)} lang={lang} />
               </p>
             </li>
           ))}

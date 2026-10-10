@@ -12,6 +12,7 @@ import {
   type Outcome,
 } from "@/lib/chance";
 import { useLang, t } from "@/lib/i18n";
+import { RichText } from "@/lib/glossary";
 import {
   LessonHeader,
   Prose,
@@ -102,7 +103,9 @@ export default function ChanceStop() {
               {t(bench.thisRun, lang)} — {t(kindLabel(last.kind), lang)}
             </div>
             <p className="lsn-quote">{t(last.move, lang)}</p>
-            <p className="lsn-note">{t(last.result, lang)}</p>
+            <p className="lsn-note">
+              <RichText text={t(last.result, lang)} lang={lang} />
+            </p>
           </div>
         )}
 

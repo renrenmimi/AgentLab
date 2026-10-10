@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 import { type ReactNode } from "react";
 import { ui, useLang, t, type L, type Lang } from "@/lib/i18n";
 import { STOPS } from "@/lib/stops";
-import { RichText, stopWord } from "@/lib/glossary";
+import { RichText, plainText, stopWord } from "@/lib/glossary";
 import type { Block, LessonMeta } from "@/lib/lesson";
 
 // 标题里的序号由 lib/stops.ts 的顺序算出来。上一轮重排之后，
@@ -50,7 +50,7 @@ export function Prose({ block, lang }: { block: Block; lang: Lang }) {
           <summary>
             {t(ui.loop.faqLabel, lang)}
             {t(ui.loop.faqSep, lang)}
-            {t(block.faq.q, lang)}
+            {plainText(t(block.faq.q, lang), lang)}
           </summary>
           <p>
             <RichText text={t(block.faq.a, lang)} lang={lang} />

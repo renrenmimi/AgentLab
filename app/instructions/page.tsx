@@ -4,6 +4,7 @@ import { useState } from "react";
 import { bench, blocks, meta, setups, systemBill, task } from "@/lib/instructions";
 import { money } from "@/lib/cost";
 import { useLang, t } from "@/lib/i18n";
+import { RichText } from "@/lib/glossary";
 import {
   Choices,
   LessonHeader,
@@ -73,7 +74,9 @@ export default function InstructionsStop() {
 
         <div className={`lsn-col ${setup.tone === "ok" ? "lsn-col-good" : setup.tone === "bad" ? "lsn-col-bad" : ""}`}>
           <div className="lsn-col-h">{t(bench.verdictWord, lang)}</div>
-          <p className="lsn-note">{t(setup.verdict, lang)}</p>
+          <p className="lsn-note">
+            <RichText text={t(setup.verdict, lang)} lang={lang} />
+          </p>
         </div>
       </Workbench>
 

@@ -11,6 +11,7 @@ import {
   type Choice,
 } from "@/lib/permission";
 import { useLang, t, type Lang } from "@/lib/i18n";
+import { RichText } from "@/lib/glossary";
 import {
   LessonHeader,
   Prose,
@@ -69,11 +70,15 @@ export default function PermissionStop() {
               <div className="lsn-col-h">
                 {branch.tone === "bad" ? "✕" : "✓"} {t(bench.commitsWord, lang)}
               </div>
-              <p className="lsn-note">{t(branch.commits, lang)}</p>
+              <p className="lsn-note">
+                <RichText text={t(branch.commits, lang)} lang={lang} />
+              </p>
             </div>
             <div className="lsn-col">
               <div className="lsn-col-h">{t(bench.verdictWord, lang)}</div>
-              <p className="lsn-note">{t(branch.verdict, lang)}</p>
+              <p className="lsn-note">
+                <RichText text={t(branch.verdict, lang)} lang={lang} />
+              </p>
             </div>
             <button type="button" className="btn" onClick={() => setChoice(null)}>
               ↻ {t(bench.resetWord, lang)}

@@ -66,13 +66,13 @@ function cssRules(source) {
 // change then appears in the diff, where a reviewer can see it.
 const EXPECTED = {
   // Counted as they run, so a check nobody calls lowers this.
-  checks: 24,
+  checks: 25,
   // Counted out of this file's own source, so an assertion appended after the
   // exit below raises this even though it never executes. This went from 137 to
   // 150 without an assertion being added: the tokenizer used to lose sync on a
   // regular expression containing a quote and stopped counting from there. The
   // guard was under-counting itself.
-  failSites: 171,
+  failSites: 172,
   // The same two ideas for the in-page suite, which CI cannot run. Its source is
   // read as text here; its own copy of the total is compared at run time.
   suiteOkSites: 116,
@@ -464,7 +464,45 @@ check("prose carries no unparsed marker, no emoji and no exclamation mark", () =
   }
 });
 
-// 2c. Emoji in the source, not just in the content ----------------------------
+// 2c. Markers only where something parses them --------------------------------
+// RichText turns a marker into what the reader should see, and plainText does the
+// same where a link or a button cannot go (a <summary>). Every other field goes
+// through t() and reaches the page as written, brackets and all — which is how
+// [[stop:/loop]] shipped as literal text on seven stops, inside verdicts and
+// tables that nobody had thought of as prose. So a marker is allowed only in a
+// field one of those two renders, and this list is that set, written out. A new
+// field that should carry markers needs RichText on the page and a line here.
+const PARSED_FIELDS = [
+  /^\w+\.blocks\[\]\.paras\[\]$/,
+  /^\w+\.blocks\[\]\.faq\.(q|a)$/,
+  /^\w+\.meta\.takeaway$/,
+  /^scenarios\[\]\.steps\[\]\.(narration|faq\.q|faq\.a)$/,
+  /^intro\.scenes\[\]\.text$/,
+  /^build\.blanks\[\]\.(lesson|hint|explain|wrong\[\]\.hint)$/,
+  /^checks\[\]\.questions\[\]\.(options\[\]\.correction|afterward)$/,
+  /^invent\.questions\[\]\.(with|without)\.checkable$/,
+  /^chance\.outcomes\[\]\.result$/,
+  /^instructions\.setups\[\]\.verdict$/,
+  /^tools\.cases\[\]\.(vague|precise)\.verdict$/,
+  /^permission\.branches\[\]\.(commits|verdict)$/,
+  /^again\.tools\[\]\.(twice|fix)$/,
+  /^next\.areas\[\]\.(what|why|where)$/,
+];
+
+check("a marker appears only in a field the page renders as rich text", () => {
+  for (const [name, value] of roots) {
+    walk(value, name, (v, path) => {
+      if (typeof v !== "string") return;
+      if (!/\[\[\w+:[^\]]+\]\]|\*\*[^*]+\*\*/.test(v)) return;
+      const field = path.replace(/\.(zh|en)$/, "").replace(/\[\d+\]/g, "[]");
+      if (!PARSED_FIELDS.some((re) => re.test(field))) {
+        fail(path, "carries a marker, but this field is rendered with t() and the reader would see the brackets");
+      }
+    });
+  }
+});
+
+// 2d. Emoji in the source, not just in the content ----------------------------
 // The content walk sees strings in lib/. A decorative emoji dropped into a
 // component would slip past it, so the source files are swept as well. The
 // allowed set is small and deliberate: four interface glyphs, and the six

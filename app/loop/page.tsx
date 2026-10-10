@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { scenarios, stateAt, type ChatItem, type Meter } from "@/lib/scenarios";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
-import { RichText } from "@/lib/glossary";
+import { RichText, plainText } from "@/lib/glossary";
 import { useStopHeading } from "@/app/lesson";
 
 export default function LoopChapter() {
@@ -176,7 +176,7 @@ export default function LoopChapter() {
             <summary>
               {t(ui.loop.faqLabel, lang)}
               {t(ui.loop.faqSep, lang)}
-              {t(step.faq.q, lang)}
+              {plainText(t(step.faq.q, lang), lang)}
             </summary>
             <p>
               <RichText text={t(step.faq.a, lang)} lang={lang} />
