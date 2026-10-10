@@ -1,4 +1,4 @@
-// 历史太长：一个工具原样返回了 40 MB 日志，
+// 历史太长：一个工具原样返回了 12 MB 日志，
 // 数组一步就超出上下文窗口，下一轮请求还没到模型手里就被拒绝了。
 
 import type { Scenario } from "./types";
@@ -7,15 +7,15 @@ import { n } from "./types";
 const code: Scenario["code"] = {
   zh: [
     "// 上下文窗口：模型一次最多能读进去多少 token。",
-    "// 数组 + system + tools + 这一轮要生成的回复，加起来不能超过它。",
-    "const CONTEXT_LIMIT = 200000;",
+    "// 数组、system、tools 都要装进去，这一轮的回复也在同一个窗口里生成。",
+    "const CONTEXT_LIMIT = 200000; // 示例值：真实的上限查所用模型的文档",
     "",
     'const messages = [{ role: "user", content: task }];',
     "",
     "while (true) {",
     "  const res = await client.messages.create({",
     '    model: "claude-sonnet-5",',
-    "    max_tokens: 4096, // 留给回复的额度，占的是同一个预算",
+    "    max_tokens: 4096, // 这一轮回复最长多少",
     "    tools,",
     "    messages, // ← 整个数组，每一轮全量重发",
     "  });",
@@ -33,15 +33,15 @@ const code: Scenario["code"] = {
   ],
   en: [
     "// The context window: the most a model can read in one request.",
-    "// The array, system, tools and this round's reply all share the budget.",
-    "const CONTEXT_LIMIT = 200000;",
+    "// The array, system and tools must fit, and the reply is generated inside it too.",
+    "const CONTEXT_LIMIT = 200000; // an example; the real limit is in your model's docs",
     "",
     'const messages = [{ role: "user", content: task }];',
     "",
     "while (true) {",
     "  const res = await client.messages.create({",
     '    model: "claude-sonnet-5",',
-    "    max_tokens: 4096, // room for the reply, out of the same budget",
+    "    max_tokens: 4096, // the longest this round's reply may be",
     "    tools,",
     "    messages, // ← the whole array, resent every round",
     "  });",
@@ -64,24 +64,24 @@ const steps: Scenario["steps"] = [
     title: { zh: "上下文窗口是一个硬预算", en: "The context window is a hard budget" },
     narration: {
       zh:
-        "第 3 行的 CONTEXT_LIMIT 是这个模型一次能读进去的 [[token:token]] 上限。" +
-        "它不是建议，是硬性上限：[[array:数组]]、system 提示词、工具说明书，" +
-        "加上第 10 行为回复预留的 4096，全部要挤进同一个预算里。超了，请求直接被拒绝。" +
+        "第 3 行的 CONTEXT_LIMIT 是上下文窗口的一个例子：模型一次最多能读进去多少 [[token:token]]。" +
+        "这里取 20 万，真实的数字因模型而异。它不是建议，是硬性上限：[[array:数组]]、system 提示词、" +
+        "工具说明书都要装进去，这一轮的回复也在同一个窗口里生成。输入本身超了，请求直接被拒绝。" +
         "再看第 21 到 23 行：readFile 拿到什么就返回什么，文件多大它就返回多大。" +
-        "这两处之间没有任何东西在把关，而这次的日志文件有 40 MB。",
+        "这两处之间没有任何东西在把关，而这次的日志文件有 12 MB。",
       en:
-        "CONTEXT_LIMIT on line 3 is the most this model can read in one request, measured in " +
-        "[[token:token]]s. It is not a guideline but a ceiling: the [[array:array]], the system prompt, the " +
-        "tool list, and the 4096 reserved for the reply on line 10 all have to fit inside the same budget. Go " +
-        "over it and the request is refused outright. Now look at lines 21 to 23: readFile returns whatever it " +
-        "is given, at whatever size. Nothing stands between those two facts, and the log file in this run is " +
-        "40 MB.",
+        "CONTEXT_LIMIT on line 3 is an example of a context window: the most a model can read in one request, " +
+        "measured in [[token:token]]s. Here it is 200,000; the real figure depends on the model. It is not a " +
+        "guideline but a ceiling: the [[array:array]], the system prompt and the tool list all have to fit, " +
+        "and this round's reply is generated inside the same window. If the input alone is over, the request " +
+        "is refused outright. Now look at lines 21 to 23: readFile returns whatever it is given, at whatever " +
+        "size. Nothing stands between those two facts, and the log file in this run is 12 MB.",
     },
     faq: {
-      q: { zh: "40 MB 大概是多少 token？", en: "How many tokens is 40 MB?" },
+      q: { zh: "12 MB 大概是多少 token？", en: "How many tokens is 12 MB?" },
       a: {
-        zh: "英文文本粗略算，一个 token 大约四个字符，所以 40 MB 大约是一千万 token。这个数字本身不重要，重要的是它和 20 万的比例：大约五十倍。不是「有点挤」，是「差两个数量级」。日志、锁文件、构建产物、base64 图片，都属于一不留神就大两个数量级的东西。",
-        en: "For English text, roughly four characters to a token, so 40 MB is on the order of ten million tokens. The exact number matters less than the ratio to 200,000: about fifty times over. This is not a tight fit, it is two orders of magnitude out. Logs, lock files, build output and base64 images are all things that quietly run two orders of magnitude larger than you expect.",
+        zh: "英文文本粗略算，一个 token 大约四个字符，所以 12 MB 大约是三百万 token。这个数字本身不重要，重要的是它和窗口的比例：比这里假设的 20 万多出约十五倍，就算换成一百万的窗口也还差三倍。不是「有点挤」，是根本装不下。日志、锁文件、构建产物、base64 图片，都属于一不留神就大出一两个数量级的东西。",
+        en: "For English text, roughly four characters to a token, so 12 MB is on the order of three million tokens. The exact number matters less than the ratio to the window: about fifteen times the 200,000 assumed here, and still three times over a window of a million. This is not a tight fit; it does not fit at all. Logs, lock files, build output and base64 images are all things that quietly run one or two orders of magnitude larger than you expect.",
       },
     },
     msgs: [
@@ -138,7 +138,6 @@ const steps: Scenario["steps"] = [
       },
     ],
     round: 0,
-    tokens: 90,
     meter: {
       label: { zh: "上下文用量", en: "Context used" },
       used: 90,
@@ -194,14 +193,14 @@ const steps: Scenario["steps"] = [
     title: { zh: "一步就把预算冲垮了", en: "One step blows the budget" },
     narration: {
       zh:
-        "readFile 老老实实读完了整个文件，返回 40 MB 文本，第 18 行把它原样追加进数组。" +
-        "看右下角的量表：上一步还是六百多 token，现在是九百八十万——把预算超出了大约四十九倍。" +
+        "readFile 老老实实读完了整个文件，返回 12 MB 文本，第 18 行把它原样追加进数组。" +
+        "看右下角的量表：上一步还是六百多 token，现在是三百万——把预算超出了大约十五倍。" +
         "注意这一步本身没有报错。文件读成功了，数组也确实变长了，" +
         "所有代码都按你写的方式正确地执行了。问题要到下一次调用 API 的时候才会爆发。",
       en:
-        "readFile dutifully reads the whole file, returns 40 MB of text, and line 18 appends it to the array " +
-        "unchanged. Look at the meter: a moment ago it read six hundred tokens, and now it reads nine point " +
-        "eight million — about forty-nine times over budget. Note that this step did not fail. The file was " +
+        "readFile dutifully reads the whole file, returns 12 MB of text, and line 18 appends it to the array " +
+        "unchanged. Look at the meter: a moment ago it read six hundred tokens, and now it reads three " +
+        "million — about fifteen times over budget. Note that this step did not fail. The file was " +
         "read, the array did grow, and every line of code did exactly what it was written to do. The problem " +
         "does not surface until the next call to the API.",
     },
@@ -218,26 +217,25 @@ const steps: Scenario["steps"] = [
     chat: [
       {
         kind: "tool_output",
-        text: "2026-08-28T02:14:07Z INFO  request id=8a31f started\n2026-08-28T02:14:07Z INFO  request id=8a320 started\n… 412,908 more lines …",
+        text: "2026-08-28T02:14:07Z INFO  request id=8a31f started\n2026-08-28T02:14:07Z INFO  request id=8a320 started\n… 123,868 more lines …",
       },
     ],
     msgs: [
       {
         tag: "user · tool_result",
         body: {
-          zh: "server.log 全文（412,910 行）",
-          en: "the whole of server.log (412,910 lines)",
+          zh: "server.log 全文（123,870 行）",
+          en: "the whole of server.log (123,870 lines)",
         },
         mono: true,
         color: "red",
-        weight: { zh: "≈ 9,800,000 token", en: "≈ 9,800,000 tokens" },
+        weight: { zh: "≈ 3,000,000 token", en: "≈ 3,000,000 tokens" },
       },
     ],
     round: 1,
-    tokens: 9800000,
     meter: {
       label: { zh: "上下文用量", en: "Context used" },
-      used: 9800000,
+      used: 3000000,
       limit: 200000,
       unit: { zh: "token", en: "tokens" },
     },
@@ -265,7 +263,7 @@ const steps: Scenario["steps"] = [
     chat: [
       {
         kind: "tool_error",
-        text: "400 invalid_request_error: prompt is too long: 9,800,614 tokens > 200,000 maximum",
+        text: "400 invalid_request_error: prompt is too long: 3,000,614 tokens > 200,000 maximum",
       },
       {
         kind: "aside",
@@ -279,20 +277,19 @@ const steps: Scenario["steps"] = [
       {
         tag: "400 · invalid_request_error",
         body: {
-          zh: "prompt is too long: 9,800,614 > 200,000",
-          en: "prompt is too long: 9,800,614 > 200,000",
+          zh: "prompt is too long: 3,000,614 > 200,000",
+          en: "prompt is too long: 3,000,614 > 200,000",
         },
         mono: true,
         color: "red",
       },
     ],
     round: 2,
-    stopReason: "400 prompt too long",
+    stopReason: "—",
     stopTone: "bad",
-    tokens: 9800000,
     meter: {
       label: { zh: "上下文用量", en: "Context used" },
-      used: 9800000,
+      used: 3000000,
       limit: 200000,
       unit: { zh: "token", en: "tokens" },
     },
@@ -304,13 +301,13 @@ const steps: Scenario["steps"] = [
     narration: {
       zh:
         "同一次运行，只改 readFile：读之前先看文件多大，超过阈值就只返回头尾各若干行，" +
-        "并且在结果里明写「已截断，全文 412,910 行，可以用 offset 和 limit 取任意一段」。" +
+        "并且在结果里明写「已截断，全文 123,870 行，可以用 offset 和 limit 取任意一段」。" +
         "关键不在于截断本身，而在于那句说明——它把「我只给了你一部分」这个事实写进了数组，" +
         "模型于是知道自己看到的不是全部，也知道怎么要下一段。" +
         "对照「停不下来」那次：同样是没给全，区别只在于有没有说出来。",
       en:
         "The same run, with one change to readFile: check the size first, and above a threshold return only " +
-        "the head and tail, with a line saying so — truncated, 412,910 lines in total, use offset and limit to " +
+        "the head and tail, with a line saying so — truncated, 123,870 lines in total, use offset and limit to " +
         "fetch any part. What matters is not the truncation but that sentence. It puts the fact that this is a " +
         "partial view into the array, so the model knows it is not seeing everything and knows how to ask for " +
         "the rest. Compare the run that would not stop: there too the result was incomplete, and the only " +
@@ -344,7 +341,7 @@ const steps: Scenario["steps"] = [
       { kind: "tool_call", name: "read_file", arg: "server.log" },
       {
         kind: "tool_output",
-        text: "[truncated] 412,910 lines total; showing first 50 and last 200.\nUse offset/limit to read any range.\n…\n02:41:19Z FATAL  OOMKilled: heap 2.0 GB / limit 2.0 GB\n02:41:19Z FATAL  at ImageCache.put (lib/cache.ts:88)",
+        text: "[truncated] 123,870 lines total; showing first 50 and last 200.\nUse offset/limit to read any range.\n…\n02:41:19Z FATAL  OOMKilled: heap 2.0 GB / limit 2.0 GB\n02:41:19Z FATAL  at ImageCache.put (lib/cache.ts:88)",
       },
     ],
     msgs: [
@@ -356,10 +353,16 @@ const steps: Scenario["steps"] = [
         },
       },
       {
+        tag: "assistant · tool_use",
+        body: n('{ "name": "read_file", "input": { "path": "server.log" } }'),
+        mono: true,
+        color: "purple",
+      },
+      {
         tag: "user · tool_result",
         body: {
-          zh: "[已截断] 共 412,910 行，返回头 50 行与尾 200 行；可用 offset/limit 取任意区间。",
-          en: "[truncated] 412,910 lines total; first 50 and last 200 returned; use offset/limit for any range.",
+          zh: "[已截断] 共 123,870 行，返回头 50 行与尾 200 行；可用 offset/limit 取任意区间。",
+          en: "[truncated] 123,870 lines total; first 50 and last 200 returned; use offset/limit for any range.",
         },
         mono: true,
         color: "teal",
@@ -370,7 +373,7 @@ const steps: Scenario["steps"] = [
     round: 1,
     stopReason: "tool_use",
     stopTone: "wait",
-    tokens: 3900,
+    tokens: 620,
     meter: {
       label: { zh: "上下文用量", en: "Context used" },
       used: 3900,
@@ -385,15 +388,16 @@ const steps: Scenario["steps"] = [
     narration: {
       zh:
         "尾部那两百行里就有答案：进程被 OOM 杀掉，栈顶是 lib/cache.ts 第 88 行。" +
-        "模型给出了带文件和行号的回答，整次运行用了不到四千 token——" +
-        "而原来那次，光是第一个 tool_result 就是这个数字的两千五百倍，还什么都没换来。" +
+        "模型给出了带文件和行号的回答：最后一次请求不到四千 token，两轮加起来约四千五百——" +
+        "而原来那次，光是第一个 tool_result 就有三百万 token，是它的七百多倍，还什么都没换来。" +
         "这就是本场景要留下的那一句：一次工具调用往数组里放多少东西，" +
         "是你写代码时做的设计决定，不是文件本身的属性。",
       en:
         "The answer is in those last two hundred lines: the process was OOM-killed, and the top of the stack " +
-        "is lib/cache.ts:88. The model answers with a file and a line number, and the whole run costs " +
-        "under four thousand tokens — where the first tool_result alone, in the original run, was two and a " +
-        "half thousand times that and bought nothing. That is the sentence worth keeping from this scenario: " +
+        "is lib/cache.ts:88. The model answers with a file and a line number; the last request is under four " +
+        "thousand tokens, and both rounds together come to about four and a half thousand — where the first " +
+        "tool_result alone, in the original run, was three million tokens, more than seven hundred times that, " +
+        "and bought nothing. That is the sentence worth keeping from this scenario: " +
         "how much a tool call puts into the array is a design decision you make while writing code, not a " +
         "property of the file.",
     },
@@ -418,7 +422,7 @@ const steps: Scenario["steps"] = [
     round: 2,
     stopReason: "end_turn",
     stopTone: "done",
-    tokens: 3960,
+    tokens: 4520,
     meter: {
       label: { zh: "上下文用量", en: "Context used" },
       used: 3960,
@@ -433,8 +437,8 @@ export const historyTooLong: Scenario = {
   id: "history-too-long",
   name: { zh: "历史装不下了", en: "The history will not fit" },
   tagline: {
-    zh: "一个工具原样返回 40 MB 日志，下一轮请求直接被退回。",
-    en: "One tool returns 40 MB of log, and the next request is refused outright.",
+    zh: "一个工具原样返回 12 MB 日志，下一轮请求直接被退回。",
+    en: "One tool returns 12 MB of log, and the next request is refused outright.",
   },
   outcome: "fault",
   code,

@@ -10,7 +10,7 @@ const code: Scenario["code"] = {
     '',
     '// 循环唯一的正常出口，是下面那句 break。',
     '// 除此之外它不会自己停，所以先装一根保险丝。',
-    'const MAX_STEPS = 8; // 最多允许模型点 8 次工具',
+    'const MAX_STEPS = 8; // 最多调用模型 8 次',
     'let step = 0;',
     '',
     'while (step < MAX_STEPS) {',
@@ -36,8 +36,12 @@ const code: Scenario["code"] = {
     '',
     '// 真正出问题的地方在这里，不在模型：',
     'async function runCommand({ command }) {',
-    '  const { stdout } = await exec(command); // stderr 被丢掉了',
-    '  return stdout; // 命令失败时，这里是一个空字符串',
+    '  try {',
+    '    const { stdout } = await exec(command);',
+    '    return stdout;',
+    '  } catch {',
+    '    return ""; // 命令失败时只回一个空字符串：stderr 和退出码都丢了',
+    '  }',
     '}',
   ],
   en: [
@@ -45,7 +49,7 @@ const code: Scenario["code"] = {
     '',
     '// The only normal way out of this loop is the break below.',
     '// Nothing else stops it, so fit a fuse first.',
-    'const MAX_STEPS = 8; // at most 8 tool calls',
+    'const MAX_STEPS = 8; // at most 8 calls to the model',
     'let step = 0;',
     '',
     'while (step < MAX_STEPS) {',
@@ -71,8 +75,12 @@ const code: Scenario["code"] = {
     '',
     '// The real fault is here, not in the model:',
     'async function runCommand({ command }) {',
-    '  const { stdout } = await exec(command); // stderr is thrown away',
-    '  return stdout; // when the command fails, this is an empty string',
+    '  try {',
+    '    const { stdout } = await exec(command);',
+    '    return stdout;',
+    '  } catch {',
+    '    return ""; // a failed command becomes an empty string: stderr and the exit code are gone',
+    '  }',
     '}',
   ],
 };
@@ -80,7 +88,7 @@ const code: Scenario["code"] = {
 const steps: Scenario["steps"] = [
   {
     title: {
-      zh: "一个会数数的小任务，和一根保险丝",
+      zh: "一个数数的小任务，和一根保险丝",
       en: "A small counting task, and a fuse",
     },
     narration: {
@@ -88,14 +96,14 @@ const steps: Scenario["steps"] = [
         "这次的任务是数数：项目里还剩多少个 TODO 注释。只给了一个工具 run_command。" +
         "先看第 5 行的 MAX_STEPS——[[array:数组]]和循环本身没有任何自我约束，" +
         "循环唯一的正常出口是第 18 行那句 break，只有模型不再要工具时才会走到。" +
-        "如果模型一直要工具，这个 while 就会一直转下去，直到你按 Ctrl-C，或者账单先替你按。" +
+        "如果模型一直要工具，这个 while 就会一直转下去，直到你按 Ctrl-C，或者直到账单让你不得不停。" +
         "MAX_STEPS 是一根保险丝：它不解决任何问题，只保证问题有个尽头。",
       en:
         "The task is a counting job: how many TODO comments are left in the project. There is one tool, " +
         "run_command. Look at MAX_STEPS on line 5 first. Neither the [[array:array]] nor the loop restrains " +
         "itself in any way; the only normal exit is the break on line 18, and it is reached only when the model " +
-        "stops asking for tools. If the model keeps asking, this while runs until you press Ctrl-C or the bill " +
-        "presses it for you. MAX_STEPS is a fuse. It solves nothing; it only guarantees that the problem ends.",
+        "stops asking for tools. If the model keeps asking, this while runs until you press Ctrl-C, or until the " +
+        "bill makes you. MAX_STEPS is a fuse. It solves nothing; it only guarantees that the problem ends.",
     },
     faq: {
       q: {
@@ -196,7 +204,7 @@ const steps: Scenario["steps"] = [
     round: 1,
     stopReason: "tool_use",
     stopTone: "wait",
-    tokens: 610,
+    tokens: 520,
     meter: { label: { zh: "已用步数", en: "Steps used" }, used: 1, limit: 8 },
     focus: [[10, 16]],
   },
@@ -206,14 +214,14 @@ const steps: Scenario["steps"] = [
     narration: {
       zh:
         "这个项目没有 src 目录。grep 往 stderr 写了一句 “No such file or directory”，退出码 2，" +
-        "stdout 是空的。然后看第 31、32 行：runCommand 只取了 stdout，把 stderr 和退出码都丢掉了。" +
+        "stdout 是空的。exec 在命令失败时会抛出异常，而第 34、35 行把异常接住，只回了一个空字符串——stderr 和退出码都丢掉了。" +
         "于是追加进数组的 tool_result 是一个空字符串。" +
         "对模型来说，这条消息的含义不是「你的路径写错了」，而是「找过了，一个都没有」——" +
         "这两件完全不同的事，被压成了同一段文字。",
       en:
         "This project has no src directory. grep wrote \"No such file or directory\" to stderr, exited with " +
-        "code 2, and printed nothing to stdout. Now look at lines 31 and 32: runCommand keeps stdout and " +
-        "throws away both stderr and the exit code. What gets appended to the array is an empty string. " +
+        "code 2, and printed nothing to stdout. exec throws when a command fails, and lines 34 and 35 catch " +
+        "that and return an empty string, throwing away both stderr and the exit code. What gets appended to the array is an empty string. " +
         "To the model that message does not mean \"your path was wrong\". It means \"I looked, and there were " +
         "none\". Two completely different facts have been flattened into the same text.",
     },
@@ -240,7 +248,7 @@ const steps: Scenario["steps"] = [
       },
     ],
     focus: [
-      [30, 33],
+      [30, 37],
       [20, 21],
     ],
   },
@@ -279,7 +287,7 @@ const steps: Scenario["steps"] = [
     round: 2,
     stopReason: "tool_use",
     stopTone: "wait",
-    tokens: 1140,
+    tokens: 1090,
     meter: { label: { zh: "已用步数", en: "Steps used" }, used: 2, limit: 8 },
     focus: [[10, 16]],
   },
@@ -310,7 +318,7 @@ const steps: Scenario["steps"] = [
         color: "amber",
       },
     ],
-    focus: [[30, 33]],
+    focus: [[30, 37]],
   },
   {
     action: { zh: "快进：第 3 到 7 步", en: "Fast-forward: steps 3 to 7" },
@@ -345,25 +353,20 @@ const steps: Scenario["steps"] = [
     ],
     msgs: [
       {
-        tag: "assistant · tool_use ×5",
+        tag: "assistant · tool_use / user · tool_result ×5",
         body: {
-          zh: "source/、app/src/、./src、. -l、--include=*.ts .",
-          en: "source/, app/src/, ./src, . -l, --include=*.ts .",
+          zh: "五次搜索：source/、app/src/、./src、. -l、--include=*.ts .——五次都回了空字符串",
+          en: "five searches: source/, app/src/, ./src, . -l, --include=*.ts . — five empty strings back",
         },
         mono: true,
-        color: "purple",
-      },
-      {
-        tag: "user · tool_result ×5",
-        body: { zh: "（五个空字符串）", en: "(five empty strings)" },
-        mono: true,
         color: "amber",
+        count: 10,
       },
     ],
     round: 7,
     stopReason: "tool_use",
     stopTone: "wait",
-    tokens: 4820,
+    tokens: 4690,
     meter: { label: { zh: "已用步数", en: "Steps used" }, used: 7, limit: 8 },
     focus: [[8, 22]],
   },
@@ -372,19 +375,20 @@ const steps: Scenario["steps"] = [
     title: { zh: "第 8 步：循环被掐断，任务没做完", en: "Step 8: the loop is cut off, the task unfinished" },
     narration: {
       zh:
-        "第 8 步的回复里依然是 tool_use——模型还想再找一个目录。" +
-        "但 step 已经等于 MAX_STEPS，第 8 行的循环条件不再成立，while 直接退出，" +
+        "第 8 步的回复里依然是 tool_use——模型还想再找一个目录。代码照常执行了这第 8 次 grep，" +
+        "结果又是一个空字符串；回到第 8 行时 step 已经等于 MAX_STEPS，循环条件不再成立，while 退出，" +
         "第 24 到 27 行的善后分支被执行。" +
         "请看清楚这一步和顺利那次的区别：那次是 break 主动退出，因为任务做完了；" +
         "这次是条件不成立被动退出，任务一个字都没完成。" +
-        "保险丝做了它该做的事——它没有修好任何东西，只是让这次失败停在五千个 token，而不是五十万个。",
+        "保险丝做了它该做的事——它没有修好任何东西，只是让这次失败停在五千多个 token，而不是五十万个。",
       en:
-        "The reply on step 8 is another tool_use: the model wants to try one more directory. But step now " +
-        "equals MAX_STEPS, the loop condition on line 8 no longer holds, the while exits, and the cleanup " +
-        "branch on lines 24 to 27 runs. Notice the difference between this exit and the clean run: there, " +
+        "The reply on step 8 is another tool_use: the model wants to try one more directory. The code runs " +
+        "that eighth grep as usual and gets another empty string; back at line 8, step now equals MAX_STEPS, " +
+        "the loop condition no longer holds, the while exits, and the cleanup branch on lines 24 to 27 runs. " +
+        "Notice the difference between this exit and the clean run: there, " +
         "break was taken because the work was done. Here the loop simply ran out of permission, with nothing " +
-        "accomplished. The fuse did its job — it fixed nothing, it only made this failure cost five thousand " +
-        "tokens instead of five hundred thousand.",
+        "accomplished. The fuse did its job — it fixed nothing, it only made this failure cost a little over " +
+        "five thousand tokens instead of five hundred thousand.",
     },
     faq: {
       q: {
@@ -404,6 +408,9 @@ const steps: Scenario["steps"] = [
           en: "Still nothing. Let me try the test directory…",
         },
       },
+      { kind: "tool_call", name: "run_command", arg: 'grep -rn "TODO" test/' },
+      { kind: "tool_error", text: "grep: test/: No such file or directory   (exit 2, stderr)" },
+      { kind: "tool_output", text: "" },
       { kind: "aside", text: { zh: "循环在这里被 MAX_STEPS 掐断。没有答案返回给用户。", en: "The loop is cut off here by MAX_STEPS. No answer is returned to the user." } },
     ],
     msgs: [
@@ -413,14 +420,21 @@ const steps: Scenario["steps"] = [
         mono: true,
         color: "purple",
       },
+      {
+        tag: "user · tool_result",
+        body: { zh: "（空字符串）", en: "(empty string)" },
+        mono: true,
+        color: "amber",
+      },
     ],
     round: 8,
-    stopReason: "MAX_STEPS reached",
+    stopReason: "tool_use",
     stopTone: "bad",
-    tokens: 5510,
+    tokens: 5560,
     meter: { label: { zh: "已用步数", en: "Steps used" }, used: 8, limit: 8 },
     focus: [
       [8, 8],
+      [20, 21],
       [24, 27],
     ],
   },
@@ -431,15 +445,15 @@ const steps: Scenario["steps"] = [
       zh:
         "把 runCommand 改成连 stderr 和退出码一起返回，整件事就结束了：" +
         "第一轮的 tool_result 会写着「exit 2：src/ 不存在」，模型立刻知道自己猜错的是路径而不是找错了东西，" +
-        "第二轮换成 grep -rn TODO . 就拿到了答案。同样的模型、同样的循环、同样的保险丝，" +
-        "一轮解决——差别只在于那一条 tool_result 里有没有说实话。" +
+        "第二轮换成 grep -rn TODO . 就拿到了结果，第三轮直接回答。同样的模型、同样的循环、同样的保险丝，" +
+        "猜错的路径只多花了一轮——差别只在于那一条 tool_result 里有没有说实话。" +
         "把这条记下来：agent 的行为质量，上限是你给它的观测质量。",
       en:
         "Make runCommand return stderr and the exit code as well, and the whole thing is over. The first " +
         "tool_result would read \"exit 2: src/ does not exist\", the model would immediately know it guessed " +
-        "the path wrong rather than searched an empty project, and the second round — grep -rn TODO . — would " +
-        "return the answer. Same model, same loop, same fuse, one round. The only difference is whether that " +
-        "one tool_result told the truth. Write this one down: the quality of an agent's behaviour is capped by " +
+        "the path wrong rather than searched an empty project, the second round — grep -rn TODO . — would " +
+        "return the matches, and the third would answer. Same model, same loop, same fuse, and the wrong guess " +
+        "costs one extra round. The only difference is whether that one tool_result told the truth. Write this one down: the quality of an agent's behaviour is capped by " +
         "the quality of what you let it observe.",
     },
     chat: [
@@ -476,6 +490,12 @@ const steps: Scenario["steps"] = [
         },
       },
       {
+        tag: "assistant · tool_use",
+        body: n('{ "command": "grep -rn \\"TODO\\" src/" }'),
+        mono: true,
+        color: "purple",
+      },
+      {
         tag: "user · tool_result",
         body: {
           zh: "exit 2 — grep: src/: No such file or directory",
@@ -483,6 +503,12 @@ const steps: Scenario["steps"] = [
         },
         mono: true,
         color: "teal",
+      },
+      {
+        tag: "assistant · tool_use",
+        body: n('{ "command": "grep -rn \\"TODO\\" ." }'),
+        mono: true,
+        color: "purple",
       },
       {
         tag: "user · tool_result",
@@ -499,12 +525,12 @@ const steps: Scenario["steps"] = [
       },
     ],
     reset: true,
-    round: 2,
+    round: 3,
     stopReason: "end_turn",
     stopTone: "done",
-    tokens: 980,
-    meter: { label: { zh: "已用步数", en: "Steps used" }, used: 2, limit: 8 },
-    focus: [[30, 33]],
+    tokens: 1760,
+    meter: { label: { zh: "已用步数", en: "Steps used" }, used: 3, limit: 8 },
+    focus: [[30, 37]],
   },
 ];
 

@@ -141,8 +141,8 @@ const steps: Scenario["steps"] = [
     faq: {
       q: { zh: 'role 是什么？有几种？', en: 'What is role? How many are there?' },
       a: {
-        zh: '数组里每个元素都有两个字段：role（谁说的）和 content（说了什么）。这个循环里数组只会出现两种 role：user（发给模型看的）和 assistant（模型生成的）。没有“工具”这个角色——待会你会看到工具结果也是装在 user 消息里的。',
-        en: 'Every element has two fields: role (who it came from) and content (what it says). Only two roles appear in this array: user, for anything shown to the model, and assistant, for anything the model produced. There is no tool role — in a moment you will see that tool results also travel inside a user message.',
+        zh: '数组里每个元素都有两个字段：role（谁说的）和 content（说了什么）。这个循环里数组只会出现两种 role：assistant（模型自己生成的）和 user（其余的一切：你打的字，以及你的代码跑出来的工具结果）。没有“工具”这个角色——待会你会看到工具结果也是装在 user 消息里的。',
+        en: 'Every element has two fields: role (who it came from) and content (what it says). Only two roles appear in this array: assistant, for what the model itself produced, and user, for everything else — your words and the tool results your code produces. There is no tool role — in a moment you will see that tool results also travel inside a user message.',
       },
     },
     chat: [
@@ -238,7 +238,7 @@ const steps: Scenario["steps"] = [
         'Your code checks stop_reason first. It is tool_use, so instead of leaving the loop the code actually runs ls. ' +
         'This step happens entirely on your machine: the model cannot touch your file system, and it cannot see whether ' +
         'the command ran — it only sees the text you send back. When the command finishes, the output is wrapped as a [[toolresult:tool_result]] ' +
-        'tool_result and pushed into the array as a user message. To the model, a tool result is no different from ' +
+        'and pushed into the array as a user message. To the model, a tool result is no different from ' +
         'anything else it is shown: it is just text.',
     },
     faq: {
@@ -247,8 +247,8 @@ const steps: Scenario["steps"] = [
         en: 'Why is the tool_result role user, not tool?',
       },
       a: {
-        zh: 'Claude API 里没有 tool 这个角色。判断标准很简单：凡是“发给模型看的”都算 user——你打的字是，工具执行结果也是。模型自己生成的才是 assistant。',
-        en: 'The Claude API has no tool role. The rule is simple: anything shown to the model is user — the words you type are, and so are tool results. Only what the model itself produced is assistant.',
+        zh: 'Claude API 里没有 tool 这个角色。判断标准很简单：只有模型自己生成的才是 assistant，其余的都是 user——你打的字是，你的代码跑出来的工具结果也是。',
+        en: 'The Claude API has no tool role. The rule is simple: only what the model itself produced is assistant, and everything else is user — the words you type, and the tool results your code produces.',
       },
     },
     chat: [
@@ -285,13 +285,13 @@ const steps: Scenario["steps"] = [
         '循环回到开头，再次执行同一行 create——把此刻已经变长的整个数组，从头到尾重新发一遍。' +
         'API 是[[stateless:无状态]]的：它不保留上一轮的任何东西，所谓“记忆”就是你每次都把完整历史带在身上。' +
         '这一轮的输入里多了 ls 的结果，于是模型的回复转而请求 read_file 去读 package.json——又一个 tool_use。' +
-        '留意右下角的 [[token:token]] 数：数组越长，每一轮就越贵。',
+        '留意右下角累计发给模型的 [[token:token]] 数：数组越长，每一轮要发的就越多，累计涨得也越快。',
       en:
         'The loop returns to the top and runs the same create line again, resending the whole array — now longer — from ' +
         'the very beginning. The API is [[stateless:stateless]]: it keeps nothing from the previous round, so "memory" ' +
         'just means you carry the full history every time. This round the input contains the ls output, and the reply ' +
-        'asks for read_file on package.json: another tool_use. Watch the [[token:token]] count in the corner — the ' +
-        'longer the array, the more each round costs.',
+        'asks for read_file on package.json: another tool_use. Watch the running [[token:token]] count in the corner: the ' +
+        'longer the array, the more each round sends, and the faster the total climbs.',
     },
     faq: {
       q: {
@@ -352,8 +352,8 @@ const steps: Scenario["steps"] = [
         en: 'What if a tool fails?',
       },
       a: {
-        zh: '把错误信息原样写进 tool_result 发回去就行。下一轮模型就能看到这段报错，回复里可以换个参数重试，或者换一种办法。所谓 agent “会自我修正”，全部原理就在这里：它每一轮都能看到上一步的真实结果，包括失败。',
-        en: 'Put the error message into the tool_result exactly as it is and send it back. On the next round the model sees that error, and its reply can retry with different arguments or take another route. That is the whole mechanism behind agents that appear to correct themselves: every round, the true result of the previous step is in the array, including failures.',
+        zh: '把错误信息原样写进 tool_result 发回去就行（Claude API 还允许在这条 tool_result 上标 is_error: true，明说这是一次失败）。下一轮模型就能看到这段报错，回复里可以换个参数重试，或者换一种办法。所谓 agent “会自我修正”，全部原理就在这里：它每一轮都能看到上一步的真实结果，包括失败。',
+        en: 'Put the error message into the tool_result exactly as it is and send it back (the Claude API also lets you mark that tool_result with is_error: true, saying plainly that it failed). On the next round the model sees that error, and its reply can retry with different arguments or take another route. That is the whole mechanism behind agents that appear to correct themselves: every round, the true result of the previous step is in the array, including failures.',
       },
     },
     chat: [
@@ -389,13 +389,13 @@ const steps: Scenario["steps"] = [
       zh:
         '第三次发出整个数组。这一次数组里的信息已经够了，模型直接用文字回答，回复里没有 tool_use 块，' +
         'stop_reason 变成 end_turn——代码里那个 if 条件终于成立，break 跳出循环，agent 运行结束。' +
-        '回看全程：一个数组从空长到 6 个元素，一个循环转了 3 圈，中间你替模型跑了 2 次命令。' +
+        '回看全程：一个数组从空长到 6 个元素，一个循环转了 3 圈，中间你替模型执行了 2 次工具。' +
         '这就是 agent 的全部：一个数组 + 一个循环。',
       en:
         'The whole array goes out a third time. The array now holds enough information, so the reply is plain text with ' +
         'no tool_use block, and stop_reason becomes end_turn. The if condition in the code finally holds, break leaves ' +
         'the loop, and the run is over. Look back at the whole thing: one array grew from empty to 6 elements, one loop ' +
-        'ran 3 rounds, and you ran 2 commands on the model\'s behalf. That is all an agent is: one array and one loop.',
+        'ran 3 rounds, and you ran 2 tools on the model\'s behalf. That is all an agent is: one array and one loop.',
     },
     faq: {
       q: {
@@ -403,8 +403,8 @@ const steps: Scenario["steps"] = [
         en: 'So how much code do I actually have to write?',
       },
       a: {
-        zh: '下面代码面板里的 32 行就是完整骨架，没有省略任何关键步骤。[[ahead:/build]]你会一个空一个空把它填出来——到时候你会发现，每一行你都已经在这个页面上“按”过一遍了。',
-        en: 'The 32 lines in the panel below are the complete skeleton, with nothing essential left out. At the next stop you fill it in one blank at a time, and you will find that you have already pressed a button for every one of these lines on this page.',
+        zh: '下面代码面板里的 32 行就是循环的完整骨架，循环本身一步都没有省略；没写出来的只有 tools 和 runTools——tools 怎么写，[[ahead:/tools]]专门讲；runTools 只是把每个请求交给处理它的那段代码去执行。[[ahead:/build]]你会一个空一个空把它填出来——到时候你会发现，每一行你都已经在这个页面上“按”过一遍了。',
+        en: 'The 32 lines in the panel below are the complete skeleton of the loop, and nothing in the loop itself is left out. Only tools and runTools are written elsewhere: how to write tools is the subject of [[ahead:/tools]], and runTools just hands each request to the code that handles it. At the next stop you fill it in one blank at a time, and you will find that you have already pressed a button for every one of these lines on this page.',
       },
     },
     chat: [

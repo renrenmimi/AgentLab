@@ -10,14 +10,14 @@ const code: Scenario["code"] = {
     "// 模型能读到的只有这里写的字——函数体它一个字也看不见。",
     "const tools = [",
     "  {",
-    '    name: "search_files",',
+    '    name: "search",',
     '    description: "搜索。", // ← 说了等于没说',
-    '    input_schema: { query: { type: "string" } },',
+    '    input_schema: { type: "object", properties: { query: { type: "string" } } },',
     "  },",
     "  {",
     '    name: "search_web",',
     '    description: "在互联网上搜索并返回结果。", // ← 至少说清了做什么',
-    '    input_schema: { query: { type: "string" } },',
+    '    input_schema: { type: "object", properties: { query: { type: "string" } } },',
     "  },",
     "];",
     "",
@@ -40,14 +40,14 @@ const code: Scenario["code"] = {
     "// here are all the model can read — it never sees the function bodies.",
     "const tools = [",
     "  {",
-    '    name: "search_files",',
+    '    name: "search",',
     '    description: "Search.", // ← says nothing',
-    '    input_schema: { query: { type: "string" } },',
+    '    input_schema: { type: "object", properties: { query: { type: "string" } } },',
     "  },",
     "  {",
     '    name: "search_web",',
     '    description: "Search the internet and return results.", // ← at least says what it does',
-    '    input_schema: { query: { type: "string" } },',
+    '    input_schema: { type: "object", properties: { query: { type: "string" } } },',
     "  },",
     "];",
     "",
@@ -72,18 +72,19 @@ const steps: Scenario["steps"] = [
     title: { zh: "两个工具，两句说明", en: "Two tools, two descriptions" },
     narration: {
       zh:
-        "这次有两个工具：search_files 在本项目的文件里搜，search_web 查公开网络。" +
-        "看第 6 行和第 11 行——这两句 description 就是模型选工具时唯一的依据。" +
-        "它看不到函数体，看不到你起的变量名，也不知道你心里那个「显然应该用第一个」的想法；" +
-        "它只读到「搜索。」和「在互联网上搜索并返回结果。」两句话。" +
-        "先记住这个不对称：第一句什么都没说，第二句至少说清了自己做什么。",
+        "这次有两个工具：search 在本项目的文件里搜，search_web 查公开网络——这是你知道的，模型不知道。" +
+        "它能读到的只有每个工具的名字、description 和参数格式，看不到函数体，" +
+        "也不知道你心里那个「显然应该用第一个」的想法。名字 search 什么都没透露，" +
+        "于是第 6 行和第 11 行这两句 description 就成了它选工具的主要依据：一句是「搜索。」，" +
+        "另一句是「在互联网上搜索并返回结果。」先记住这个不对称：第一个工具连搜哪里都没说，第二个至少说清了自己做什么。",
       en:
-        "There are two tools this time: search_files searches the files of this project, search_web queries " +
-        "the public internet. Look at lines 6 and 11 — those two description strings are the only basis the " +
-        "model has for choosing. It cannot see the function bodies, it cannot see the variable names you " +
-        "chose, and it has no access to your private sense that the first one is obviously the right one. It " +
-        "reads \"Search.\" and \"Search the internet and return results.\" Note the asymmetry: the first says " +
-        "nothing at all, and the second at least says what it does.",
+        "There are two tools this time: search, which searches the files of this project, and search_web, " +
+        "which queries the public internet — you know that, and the model does not. All it can read is each " +
+        "tool's name, description and parameter format. It cannot see the function bodies, and it has no " +
+        "access to your private sense that the first one is obviously the right one. The name search gives " +
+        "nothing away, so the two descriptions on lines 6 and 11 become most of what it chooses by: " +
+        "\"Search.\" and \"Search the internet and return results.\" Note the asymmetry: the first does not " +
+        "even say where it searches, and the second at least says what it does.",
     },
     faq: {
       q: {
@@ -91,8 +92,8 @@ const steps: Scenario["steps"] = [
         en: "Is the description a comment for human readers?",
       },
       a: {
-        zh: "不是。它是提示词的一部分，跟你的任务、跟工具结果一样，都在同一个[[array:数组]]里被同一个模型读。你写在 description 里的每一句话都会影响模型的选择，而写在函数体里的注释一个字都不会。把它当成「写给模型的使用说明」，不是「写给同事的文档」。",
-        en: "No. It is part of the prompt. It travels in the same [[array:array]] as your task and the tool results, and it is read by the same model. Every sentence you put in a description changes what the model picks; not one word inside the function body does. Treat it as instructions written for the model, not documentation written for a colleague.",
+        zh: "不是。它是提示词的一部分：tools 和 system 一样是 create 的单独参数，不在[[array:数组]]里，但每一轮都和数组一起发给同一个模型去读。你写在 description 里的每一句话都会影响模型的选择，而写在函数体里的注释一个字都不会。把它当成「写给模型的使用说明」，不是「写给同事的文档」。",
+        en: "No. It is part of the prompt: like system, tools is a separate parameter of the create call rather than part of the [[array:array]], but it goes out with the array on every round and is read by the same model. Every sentence you put in a description changes what the model picks; not one word inside the function body does. Treat it as instructions written for the model, not documentation written for a colleague.",
       },
     },
     msgs: [
@@ -107,8 +108,8 @@ const steps: Scenario["steps"] = [
       {
         tag: "tools · 参数 / parameter",
         body: {
-          zh: 'search_files：“搜索。” ／ search_web：“在互联网上搜索并返回结果。”',
-          en: 'search_files: "Search." / search_web: "Search the internet and return results."',
+          zh: 'search：“搜索。” ／ search_web：“在互联网上搜索并返回结果。”',
+          en: 'search: "Search." / search_web: "Search the internet and return results."',
         },
         mono: true,
         sys: true,
@@ -128,11 +129,11 @@ const steps: Scenario["steps"] = [
       zh:
         "任务是：这个项目在哪里读取 API key。" +
         "这个问题的答案只可能存在于这个仓库里——互联网上没有任何一页写着你的代码把 key 放在哪一行。" +
-        "所以正确的工具毫无疑问是 search_files。接下来看模型选了哪个。",
+        "所以正确的工具毫无疑问是 search。接下来看模型选了哪个。",
       en:
         "The task: where does this project read the API key. The answer can only exist inside this repository — " +
         "no page on the internet says which line of your code reads your key. So the correct tool is " +
-        "unambiguously search_files. Watch which one the model picks.",
+        "unambiguously search. Watch which one the model picks.",
     },
     chat: [
       {
@@ -163,15 +164,17 @@ const steps: Scenario["steps"] = [
         "模型请求的是 search_web。这不是掷骰子掷歪了，而是两句说明比较之后的结果：" +
         "「在互联网上搜索并返回结果」是一句完整的承诺，模型知道调用它会得到什么；" +
         "「搜索。」没有承诺任何东西——没说搜什么、没说搜哪里、没说返回什么。" +
-        "在两个候选里，一个说清了用途，另一个什么都没说，被选中的当然是前者。" +
-        "这里有一条反直觉的结论：description 留空并不会让工具变成中立的默认项，只会让它变得不可能被选中。",
+        "在两个候选里，一个说清了用途，另一个什么都没说，被选中的是前者。" +
+        "这里有一条反直觉的结论：一个什么都没说的工具不会变成中立的默认项，反而更难被选中——" +
+        "模型宁可选一个说清了用途、但用途不对的工具。",
       en:
         "The model asks for search_web. This is not a coin flip that landed badly; it is the result of " +
         "comparing two sentences. \"Search the internet and return results\" is a complete promise: the model " +
         "knows what calling it will produce. \"Search.\" promises nothing — not what it searches, not where, " +
         "not what comes back. Given one candidate that states its purpose and one that states nothing, the " +
-        "first is chosen. There is a counter-intuitive lesson here: leaving a description empty does not make " +
-        "a tool a neutral default, it makes the tool unpickable.",
+        "first is chosen. There is a counter-intuitive lesson here: a tool whose description says nothing does " +
+        "not become a neutral default. It becomes harder to pick than a tool that states a purpose, even the " +
+        "wrong one.",
     },
     faq: {
       q: {
@@ -179,8 +182,8 @@ const steps: Scenario["steps"] = [
         en: "Is this the model's mistake or mine?",
       },
       a: {
-        zh: "分清这一点很重要，因为它决定你去修哪里。如果算模型的错，你会去换模型、加一句“请仔细思考”、调温度——这些都不会有用。如果算说明书的错，你会去改那两行字，而那正是唯一能修好它的地方。一个可靠的判断办法：把两句 description 抄下来给一个完全不了解这个项目的人看，问他该用哪个。他答不上来，模型也答不上来。",
-        en: "The distinction matters because it decides where you go to fix it. Blame the model and you will swap models, add \"please think carefully\", and adjust the temperature — none of which will help. Blame the descriptions and you will change two lines of prose, which is the only thing that will. A reliable test: copy the two descriptions to someone who has never seen the project and ask which one they would use. If they cannot tell, neither can the model.",
+        zh: "分清这一点很重要，因为它决定你去修哪里。如果算模型的错，你会去换模型、加一句“请仔细思考”——这些都很难奏效。如果算说明书的错，你会去改那两行字，而那正是真正能修好它的地方。一个可靠的判断办法：把两句 description 抄下来给一个完全不了解这个项目的人看，问他该用哪个。他答不上来，模型也答不上来。",
+        en: "The distinction matters because it decides where you go to fix it. Blame the model and you will swap models and add \"please think carefully\" — neither is likely to help. Blame the descriptions and you will change two lines of prose, which is what actually fixes it. A reliable test: copy the two descriptions to someone who has never seen the project and ask which one they would use. If they cannot tell, neither can the model.",
       },
     },
     chat: [
@@ -240,7 +243,7 @@ const steps: Scenario["steps"] = [
       },
     ],
     round: 1,
-    focus: [[26, 26]],
+    focus: [[26, 27]],
   },
   {
     action: { zh: "发回模型（第 2 轮）", en: "Send it back (round 2)" },
@@ -308,13 +311,13 @@ const steps: Scenario["steps"] = [
     narration: {
       zh:
         "不换模型，不加「请仔细思考」，不改循环，不动 input_schema。只把第 6 行和第 11 行重写：" +
-        "search_files 改成「在当前项目目录的文件内容里做全文搜索。关于这个代码库本身的问题都用它」；" +
+        "search 改成「在当前项目目录的文件内容里做全文搜索。关于这个代码库本身的问题都用它」；" +
         "search_web 改成「查询公开网络。只有当信息不可能存在于本项目里时才用它」。" +
         "两句话都做了同一件事：说清楚边界，并且直接给出选择规则。" +
         "写工具说明的时候，「什么时候用我」通常比「我是什么」更重要。",
       en:
         "No new model, no \"please think carefully\", no change to the loop, no change to input_schema. Only " +
-        "lines 6 and 11 are rewritten. search_files becomes \"Full-text search over the files in the current " +
+        "lines 6 and 11 are rewritten. search becomes \"Full-text search over the files in the current " +
         "project directory. Use this for any question about this codebase.\" search_web becomes \"Query a " +
         "public web search engine. Use only when the information could not exist inside this project.\" Both " +
         "sentences do the same job: they state a boundary and hand the model a rule for choosing. When you " +
@@ -324,8 +327,8 @@ const steps: Scenario["steps"] = [
       {
         kind: "aside",
         text: {
-          zh: "改前：search_files —「搜索。」　　改后：「在当前项目目录的文件内容里做全文搜索。关于这个代码库本身的问题都用它。」",
-          en: 'Before: search_files — "Search."   After: "Full-text search over the files in the current project directory. Use this for any question about this codebase."',
+          zh: "改前：search —「搜索。」　　改后：「在当前项目目录的文件内容里做全文搜索。关于这个代码库本身的问题都用它。」",
+          en: 'Before: search — "Search."   After: "Full-text search over the files in the current project directory. Use this for any question about this codebase."',
         },
       },
       {
@@ -340,8 +343,8 @@ const steps: Scenario["steps"] = [
       {
         tag: "tools · 参数 / parameter",
         body: {
-          zh: "search_files：项目内全文搜索，代码库问题都用它 ／ search_web：公开网络，仅限项目里不可能有的信息",
-          en: "search_files: full-text search inside the project, for codebase questions / search_web: public web, only for what cannot be in the project",
+          zh: "search：项目内全文搜索，代码库问题都用它 ／ search_web：公开网络，仅限项目里不可能有的信息",
+          en: "search: full-text search inside the project, for codebase questions / search_web: public web, only for what cannot be in the project",
         },
         mono: true,
         sys: true,
@@ -360,12 +363,12 @@ const steps: Scenario["steps"] = [
     narration: {
       zh:
         "同一个任务原样再发一遍。这一次两句说明里都写着边界，" +
-        "「这个项目在哪里读取 API key」显然落在 search_files 那一侧，模型直接请求了它。" +
+        "「这个项目在哪里读取 API key」显然落在 search 那一侧，模型直接请求了它。" +
         "工具返回了真正的证据：lib/client.ts 第 4 行。" +
         "接下来的回答里有文件名、有行号，可以被核对——这才是「有依据」和「读起来合理」的区别。",
       en:
         "The same task is sent again, unchanged. This time both descriptions state a boundary, \"where does " +
-        "this project read the API key\" clearly falls on the search_files side, and the model asks for it " +
+        "this project read the API key\" clearly falls on the search side, and the model asks for it " +
         "directly. The tool returns actual evidence: line 4 of lib/client.ts. The answer that follows carries " +
         "a filename and a line number, and can be checked. That is the difference between grounded and merely " +
         "plausible.",
@@ -395,7 +398,7 @@ const steps: Scenario["steps"] = [
           en: "This is a question about this project, so I will search its files.",
         },
       },
-      { kind: "tool_call", name: "search_files", arg: "API_KEY" },
+      { kind: "tool_call", name: "search", arg: "API_KEY" },
       {
         kind: "tool_output",
         text: "lib/client.ts:4:  apiKey: process.env.ANTHROPIC_API_KEY,\n.env.example:1:  ANTHROPIC_API_KEY=",
@@ -418,7 +421,7 @@ const steps: Scenario["steps"] = [
       },
       {
         tag: "assistant · tool_use",
-        body: n('{ "name": "search_files", "input": { "query": "API_KEY" } }'),
+        body: n('{ "name": "search", "input": { "query": "API_KEY" } }'),
         mono: true,
         color: "purple",
       },
@@ -439,7 +442,7 @@ const steps: Scenario["steps"] = [
     round: 2,
     stopReason: "end_turn",
     stopTone: "done",
-    tokens: 900,
+    tokens: 1280,
     focus: [
       [4, 8],
       [25, 26],
@@ -451,8 +454,8 @@ export const wrongTool: Scenario = {
   id: "wrong-tool",
   name: { zh: "选错工具", en: "The wrong tool" },
   tagline: {
-    zh: "两句含糊的说明，模型挑错了；改说明就修好了，代码一行没动。",
-    en: "Two vague descriptions, one wrong choice. Rewriting the prose fixes it; no code changes.",
+    zh: "一句什么都没说的工具说明，模型挑错了工具；只改两句说明就修好了，循环一行没动。",
+    en: "A tool description that says nothing, and the wrong tool. Rewriting two sentences fixes it; the loop is untouched.",
   },
   outcome: "fault",
   code,

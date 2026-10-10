@@ -89,8 +89,8 @@ export const glossary: Record<
     firstAt: "/loop",
     word: { zh: "tool_result", en: "tool_result" },
     def: {
-      zh: "你执行完工具之后，把结果包成这样一条消息追加进数组。它的 role 是 user——凡是发给模型看的都是 user。",
-      en: "After your code runs a tool, the output goes back into the array wrapped as one of these. Its role is user: everything shown to the model is user.",
+      zh: "你执行完工具之后，把结果包成这样一条消息追加进数组。它的 role 是 user：只有模型自己生成的内容才是 assistant，其余的都是 user。",
+      en: "After your code runs a tool, the output goes back into the array wrapped as one of these. Its role is user: only what the model itself produced is assistant, and everything else is user.",
     },
   },
   systemprompt: {
@@ -121,8 +121,8 @@ export const glossary: Record<
     firstAt: "/context",
     word: { zh: "上下文窗口", en: "context window" },
     def: {
-      zh: "模型一次能读进去多少 token 的硬上限。数组、system 提示词、工具说明书，加上留给这一轮回复的额度，全部要挤进同一个预算里。超了，请求会被直接拒绝。",
-      en: "A hard ceiling on how many tokens a model can read in one request. The array, the system prompt, the tool list and the room reserved for this round's reply all share the budget. Go over it and the request is refused outright.",
+      zh: "模型一次能读进去多少 token 的硬上限。数组、system 提示词、工具说明书都要装进去，这一轮的回复也在同一个窗口里生成。输入超了，请求会被直接拒绝。",
+      en: "A hard ceiling on how many tokens a model can read in one request. The array, the system prompt and the tool list all have to fit, and this round's reply is generated inside the same window. If the input is over, the request is refused outright.",
     },
   },
   injection: {

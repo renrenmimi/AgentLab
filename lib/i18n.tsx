@@ -193,8 +193,8 @@ export const ui = {
       en: "The code — that step was these lines",
     },
     codeNote: {
-      zh: "点亮的是这一步正在执行的行。五次运行用的是同一个循环，区别都在循环外面。下一站你会亲手把它写出来。",
-      en: "The highlighted lines are the ones running in this step. All five runs use the same loop; the differences are all outside it. At the next stop you write it yourself.",
+      zh: "点亮的是这一步正在执行的行。五次运行用的是同一个循环骨架：除了「停不下来」那次加了一根保险丝，区别都在循环外面。下一站你会亲手把它写出来。",
+      en: "The highlighted lines are the ones running in this step. All five runs use the same loop skeleton: apart from the fuse added in the run that will not stop, the differences are all outside it. At the next stop you write it yourself.",
     },
     linesSuffix: { zh: "行", en: "lines" },
     toBuild: { zh: "下一站：亲手写一个 →", en: "Next stop: write one yourself →" },
@@ -210,6 +210,9 @@ export const ui = {
     meterOver: { zh: "已超出", en: "over" },
     asideLabel: { zh: "旁白", en: "note" },
     toolFailed: { zh: "工具报错", en: "tool failed" },
+    // 状态栏里的 token 数：到这一步为止，所有请求一共发给模型多少 token。
+    // 被 API 当场退回的请求没有到模型那里，不算在内。
+    tokensSent: { zh: "累计发给模型 ≈ {n} token", en: "≈ {n} tokens sent so far" },
   },
 
   all: {
