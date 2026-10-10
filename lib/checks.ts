@@ -194,20 +194,21 @@ export const checks: GroupCheck[] = [
             text: { zh: "模型没有遵守你的指令。", en: "The model did not follow your instruction." },
             correction: {
               zh:
-                "它遵守了。那句话能改变的是它输出「我不知道」这几个字的倾向，" +
-                "而不是它对自己知不知道的判断——后者它没有。" +
-                "一句编出来的话和一句真话，在生成的时候走的是完全相同的过程。",
+                "它多半遵守了，只是遵守得不可靠：那句话能提高它说「我不知道」的倾向，" +
+                "却没法让它可靠地分辨自己知道还是不知道——模型内部和「知不知道」有关的信号本来就不可靠。" +
+                "一句编出来的话和一句真话，是用同一个过程生成的。",
               en:
-                "It did follow it. That sentence can shift how willing it is to emit the words I do not know; " +
-                "it cannot change its judgement about whether it knows, because there is no such judgement. " +
-                "An invented sentence and a true one are produced by the same process.",
+                "It most likely did follow it, just not reliably. That sentence can raise how willing it is to say " +
+                "I do not know; it cannot make the model reliably tell what it knows from what it does not, " +
+                "because the signals inside a model that track this are unreliable to begin with. An invented " +
+                "sentence and a true one are produced by the same process.",
             },
           },
           {
             id: "no-signal",
             text: {
-              zh: "它对「自己知不知道」没有可依据的判断，那句话只能改变措辞的倾向。",
-              en: "It has nothing on which to judge whether it knows; the sentence can only shift a wording tendency.",
+              zh: "它没法可靠地判断自己知不知道；那句话能降低编造的倾向，但消除不了。",
+              en: "It cannot reliably judge whether it knows; the sentence can lower the tendency to invent, not remove it.",
             },
             correct: true,
           },
@@ -216,20 +217,20 @@ export const checks: GroupCheck[] = [
             text: { zh: "提示词写得不够强硬，加重语气会更管用。", en: "The prompt is not forceful enough; stronger wording would work." },
             correction: {
               zh:
-                "加重语气改变的还是同一个倾向，而且通常两头都变差：" +
-                "它开始对本来答得对的问题也推说不知道，同时对那些「听起来很熟」的错答案照样自信。",
+                "加重语气改变的还是同一个倾向，而且可能两头吃亏：" +
+                "它开始对本来答得对的问题也推说不知道，而那些「听起来很熟」的错答案照样会出现。",
               en:
-                "Stronger wording moves the same tendency, and usually makes both ends worse: it starts " +
-                "declining questions it would have answered correctly while staying confident on the wrong " +
-                "answers that felt familiar.",
+                "Stronger wording moves the same tendency, and can cost you at both ends: it starts declining " +
+                "questions it would have answered correctly, while the wrong answers that felt familiar still " +
+                "come through.",
             },
           },
           {
             id: "temp",
             text: { zh: "温度太高了。", en: "The temperature is too high." },
             correction: {
-              zh: "温度改变的是采样有多分散，不是它有没有依据。温度 0 也一样会编，只是每次编得一样。",
-              en: "Temperature changes how spread out the sampling is, not whether there is anything behind the answer. At zero it still invents; it just invents the same thing each time.",
+              zh: "温度改变的是采样有多分散，不是它有没有依据。温度 0 也一样会编，只是编法更集中。",
+              en: "Temperature changes how spread out the sampling is, not whether there is anything behind the answer. At zero it still invents; it just invents more consistently.",
             },
           },
         ],
@@ -242,8 +243,8 @@ export const checks: GroupCheck[] = [
         id: "temp-zero",
         kind: "judgement",
         setup: {
-          zh: "你把温度设成 0，同一个任务连着跑了两次，两次走了不同的路径。",
-          en: "You set the temperature to 0 and ran the same task twice. The two runs took different paths.",
+          zh: "你把温度设成 0（假设你用的模型允许设置它），同一个任务连着跑了两次，两次走了不同的路径。",
+          en: "You set the temperature to 0 (assume your model lets you) and ran the same task twice. The two runs took different paths.",
         },
         ask: { zh: "最可能的原因是什么？", en: "What is the most likely reason?" },
         options: [
@@ -252,14 +253,14 @@ export const checks: GroupCheck[] = [
             text: { zh: "温度参数没有生效。", en: "The temperature setting did not take effect." },
             correction: {
               zh:
-                "温度 0 保证的是「同一段输入给同一个输出」。而 agent 的输入不是你写的那段提示词，" +
-                "是提示词加上到此为止的整个数组——工具返回的东西一变，输入就变了。" +
-                "所以这两次拿到的本来就不是同一段输入，参数生没生效都解释不了它。",
+                "就算参数生效了，也解释不了这件事。温度 0 只是让每一步尽量挑概率最高的那个 token，" +
+                "并不保证同一段输入每次逐字相同（[[stop:/chance]]的问答讲过）；" +
+                "何况 agent 的输入不是你写的那段提示词，是提示词加上到此为止的整个数组——工具返回的东西一变，输入就变了。",
               en:
-                "Temperature zero promises the same output for the same input. An agent's input is not the " +
-                "prompt you wrote but the prompt plus the whole array so far, and one different tool result " +
-                "makes it a different input. The two runs were never handed the same input, so the setting " +
-                "is not what this turns on.",
+                "Even if it took effect, it would not explain this. Temperature zero makes each step pick the " +
+                "most likely token as far as it can; it does not promise identical output for identical input " +
+                "(the FAQ at [[stop:/chance]] covers why). And an agent's input is not the prompt you wrote but " +
+                "the prompt plus the whole array so far, so one different tool result makes it a different input.",
             },
           },
           {

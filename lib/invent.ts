@@ -101,8 +101,8 @@ export const questions: Question[] = [
         en: "It formats a number into a currency string with Intl.NumberFormat, in about ten lines.",
       },
       checkable: {
-        zh: "这段描述很合理，也完全是编的。注意它没有说「我不确定」——因为在它那一侧，这句话和一句真话是同一种东西。",
-        en: "A reasonable description, and entirely invented. Note that it did not hedge: from the inside, this sentence and a true one are the same kind of object.",
+        zh: "这段描述很合理，也完全是编的。注意它没有说「我不确定」——生成这句话时，它走的过程和生成一句真话没有两样。",
+        en: "A reasonable description, and entirely invented. Note that it did not hedge: it produced this sentence by the same process it would have used for a true one.",
       },
       ok: false,
     },
@@ -126,8 +126,8 @@ export const questions: Question[] = [
 export const meta: LessonMeta = {
   title: { zh: "它为什么会编", en: "Why it makes things up" },
   subtitle: {
-    zh: "一句流利的错话和一句流利的对话，在模型内部是同一种东西。这正是工具存在的理由。",
-    en: "A fluent wrong answer and a fluent right one are the same kind of object inside the model. Which is exactly what tools are for.",
+    zh: "一句流利的错话和一句流利的真话，是用同一个过程生成的。这正是工具存在的理由。",
+    en: "A fluent wrong answer and a fluent right one are produced by the same process. Which is exactly what tools are for.",
   },
   takeaway: {
     zh:
@@ -185,15 +185,16 @@ export const blocks: Block[] = [
       },
       {
         zh:
-          "所以那句编出来的话，在生成的时候和一句真话走的是完全相同的过程，" +
-          "从内部看没有任何标记把它们区分开。这也解释了一个常见的失望：" +
-          "追问「你确定吗」通常没用。你得到的是「关于确定性的一段合适的文字」，" +
-          "不是一次真正的复核——它没有可以复核的东西。",
+          "所以那句编出来的话，在生成的时候和一句真话走的是同一个过程。" +
+          "模型内部虽然有一些和「知不知道」相关的信号，但它们并不可靠，也不会自动拦住一句编出来的话。" +
+          "这也解释了一个常见的失望：追问「你确定吗」通常没什么用。你得到的多半是「关于确定性的一段合适的文字」，" +
+          "而不是一次真正的复核——除了它自己刚写下的那段话，它没有别的东西可以复核。",
         en:
-          "So the invented sentence was produced by exactly the same process as a true one, and from the " +
-          "inside there is no marker separating them. Which explains a common disappointment: asking are you " +
-          "sure usually achieves nothing. What comes back is a well-fitting passage about certainty, not a " +
-          "second look — there is nothing for it to look at.",
+          "So the invented sentence was produced by the same process as a true one. There are signals inside " +
+          "a model that track whether it knows something, but they are unreliable, and nothing makes them stop " +
+          "an invented sentence on its way out. Which explains a common disappointment: asking are you sure " +
+          "usually achieves little. What comes back is mostly a well-fitting passage about certainty, not a " +
+          "second look — it has nothing to look at except what it just wrote.",
       },
     ],
     faq: {
@@ -203,18 +204,16 @@ export const blocks: Block[] = [
       },
       a: {
         zh:
-          "有点用，但很有限，而且原因值得想清楚：这句指令改变的是它输出「我不知道」这句话的倾向，" +
-          "不是它对自己知不知道的判断——后者它并没有。" +
-          "实际效果通常是两头都变差：它开始对本来答得对的问题也推说不知道，" +
-          "同时对那些「听起来很熟」的错答案照样自信。" +
-          "把这句话换成一个能查的工具，效果会好一个数量级。",
+          "有用，但有限，而且原因值得想清楚：这句指令提高的是它说「我不知道」的倾向，" +
+          "却没法让它可靠地分辨自己知道还是不知道。所以它能减少编造，但消除不了；" +
+          "有时还会让它对本来答得对的问题也推说不知道，而那些「听起来很熟」的错答案照样会出现。" +
+          "把这句话和一个能查的工具配合起来，效果要好得多。",
         en:
-          "It helps a little, and the reason it helps so little is worth understanding: the instruction shifts " +
-          "how willing it is to emit the words I do not know. It does not change its judgement about whether " +
-          "it knows, because there is no such judgement. What usually happens is that both ends get worse — it " +
-          "starts declining questions it would have answered correctly, and stays confident on the wrong " +
-          "answers that felt familiar. Replacing that sentence with a place to look is worth an order of " +
-          "magnitude more.",
+          "It helps, within limits, and the reason is worth understanding: the instruction raises how willing " +
+          "it is to say I do not know, but it cannot make the model reliably tell what it knows from what it " +
+          "does not. So it reduces invention without removing it; sometimes it also makes the model decline " +
+          "questions it would have answered correctly, while the wrong answers that felt familiar still come " +
+          "through. Pair the sentence with a place to look and it works much better.",
       },
     },
   },
@@ -255,12 +254,13 @@ export const blocks: Block[] = [
       {
         zh:
           "常见的下一招是要求它给出处：把资料检索回来放进数组，再让它在回答里引用。" +
-          "这确实有效，是目前最实用的办法（通常叫检索增强，retrieval）。但它有一个边界要认清：" +
+          "这确实有效，是目前最实用的办法（通常叫检索增强生成，retrieval-augmented generation，简称 RAG）。但它有一个边界要认清：" +
           "**引用本身也是生成出来的文字。**一个既没读过也不存在的文件名、一个凑出来的行号，" +
           "和真正的出处长得一样。",
         en:
           "The usual next move is to demand sources: retrieve the material into the array and have the answer " +
-          "cite it. That works, and it is the most practical technique available. It has one boundary worth " +
+          "cite it. That works — it is usually called retrieval-augmented generation, or RAG — and it is the most " +
+          "practical technique available. It has one boundary worth " +
           "being clear about: **a citation is also generated text.** A filename it never read, or a line " +
           "number assembled to look right, is indistinguishable from a real source.",
       },
@@ -269,14 +269,13 @@ export const blocks: Block[] = [
           "所以真正管用的不是「要求它引用」，是**要求引用可以被核对**，并且真的去核对。" +
           "「lib/client.ts 第 4 行」这种引用有价值，因为打开文件看一眼就能证伪；" +
           "「根据项目文档」这种引用没有价值，因为它没有指向任何可以打开的东西。" +
-          "[[ahead:/tools]]那条「把返回量的上限写进工具说明」在这里又用上了：" +
-          "一个返回文件和行号的工具，让核对变成一件几秒钟的事。",
+          "一个返回文件和行号的工具，让核对变成一件几秒钟的事——怎么在工具说明里写清它返回什么，[[ahead:/tools]]会讲。",
         en:
           "So the technique that pays is not requiring a citation but **requiring a citation you can check**, " +
           "and then checking it. A reference to lib/client.ts line 4 is worth something because opening the " +
           "file falsifies it in seconds. A reference to the project documentation is worth nothing, because it " +
-          "points at nothing you can open. The rule from [[ahead:/tools]] returns here: a tool that returns a filename " +
-          "and a line number makes verification a few seconds' work.",
+          "points at nothing you can open. A tool that returns a filename and a line number makes verification a " +
+          "few seconds' work — how to say in a tool's description what it returns is covered at [[ahead:/tools]].",
       },
     ],
     faq: {
