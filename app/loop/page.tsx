@@ -7,6 +7,7 @@ import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { grouped } from "@/lib/format";
 import { RichText, plainText } from "@/lib/glossary";
 import { useStopHeading } from "@/app/lesson";
+import { isForAControl, useFocusFollows } from "@/app/keep-focus";
 
 export default function LoopChapter() {
   const [pick, setPick] = useState(0);
@@ -21,6 +22,8 @@ export default function LoopChapter() {
   const atEnd = cursor >= steps.length - 1;
   const step = steps[cursor];
   const nextAction = atEnd ? null : steps[cursor + 1].action;
+  // Keyed by scenario too: picking another run resets the cursor to 0.
+  const primary = useFocusFollows(`${pick}-${cursor}`);
 
   // 面板状态由 lib/scenarios 里的纯函数算出来，verify.mjs 用的是同一个函数。
   const state = useMemo(() => stateAt(steps, cursor), [cursor, steps]);
@@ -68,9 +71,7 @@ export default function LoopChapter() {
   // 键盘：空格 / → 推进，← 回退
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "BUTTON" || tag === "INPUT" || tag === "TEXTAREA" || tag === "A")
-        return;
+      if (isForAControl(e)) return;
       if (e.key === " " || e.key === "ArrowRight") {
         e.preventDefault();
         setCursor((c) => Math.min(c + 1, steps.length - 1));
@@ -297,25 +298,36 @@ export default function LoopChapter() {
       </section>
 
       <div className="controls">
-        <button className="btn" onClick={reset} disabled={cursor === 0}>
+        {/* aria-disabled rather than disabled on the three secondary buttons:
+            a disabled button drops the focus of whoever pressed it to <body>. */}
+        <button className="btn" onClick={reset} aria-disabled={cursor === 0}>
           {t(ui.common.reset, lang)}
         </button>
-        <button className="btn" onClick={back} disabled={cursor === 0}>
+        <button className="btn" onClick={back} aria-disabled={cursor === 0}>
           ←
         </button>
         {nextAction ? (
-          <button className="btn btn-primary" onClick={advance}>
+          <button
+            ref={primary.ref}
+            className="btn btn-primary"
+            onClick={(e) => {
+              primary.pressed(e);
+              advance();
+            }}
+          >
             {t(nextAction, lang)}
           </button>
         ) : (
-          <Link className="btn btn-primary" href="/build">
+          <Link ref={primary.ref} className="btn btn-primary" href="/build">
             {t(ui.loop.toBuild, lang)}
           </Link>
         )}
         <button
           className="btn"
-          onClick={() => setAuto((a) => !a)}
-          disabled={atEnd}
+          onClick={() => {
+            if (!atEnd) setAuto((a) => !a);
+          }}
+          aria-disabled={atEnd}
         >
           {auto ? t(ui.common.pause, lang) : t(ui.common.autoplay, lang)}
         </button>

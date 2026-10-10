@@ -12,6 +12,7 @@ import { codeTemplate, blanks, runScript, normalize } from "@/lib/build";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { STOPS } from "@/lib/stops";
 import { RichText } from "@/lib/glossary";
+import { refocusIfLost } from "@/app/keep-focus";
 import { useStopHeading } from "@/app/lesson";
 import GroupCheck from "@/app/group-check";
 
@@ -54,12 +55,32 @@ export default function BuildChapter() {
   const script = runScript[lang];
   const current = solved < blanks.length ? blanks[solved] : null;
 
-  // 换空时清空输入并聚焦
+  // 换空时清空输入并聚焦。首次挂载时不抢焦点：读屏用户应当从标题和「新知识」卡片读起，
+  // 手机上也不该一进页面就弹出键盘。
+  const firstBlank = useRef(true);
   useEffect(() => {
     setValue("");
     setAttempts(0);
+    if (firstBlank.current) {
+      firstBlank.current = false;
+      return;
+    }
     inputRef.current?.focus();
   }, [solved]);
+
+  // 每换一个阶段，原先有焦点的控件（输入框、「运行」按钮）都会被卸载。
+  // 焦点掉到 <body> 时，把它交给新阶段里的主要元素。
+  const runBtnRef = useRef<HTMLButtonElement>(null);
+  const runOutRef = useRef<HTMLElement>(null);
+  const doneRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (phase === "ready") refocusIfLost(runBtnRef.current);
+    else if (phase === "running") refocusIfLost(runOutRef.current);
+    else if (phase === "done") {
+      const now = document.activeElement;
+      if (!now || now === document.body || now === runOutRef.current) doneRef.current?.focus();
+    }
+  }, [phase]);
 
   // 全部填完 → 进入待运行状态
   useEffect(() => {
@@ -233,6 +254,7 @@ export default function BuildChapter() {
           <p className="n-body">{t(ui.build.readyBody, lang)}</p>
           <div className="q-form">
             <button
+              ref={runBtnRef}
               className="btn btn-primary"
               onClick={() => setPhase("running")}
             >
@@ -244,6 +266,8 @@ export default function BuildChapter() {
 
       {(phase === "running" || phase === "done") && (
         <section
+          ref={runOutRef}
+          tabIndex={-1}
           className="code-window run-window appear"
           aria-label={t(ui.a11y.runOutput, lang)}
         >
@@ -267,7 +291,9 @@ export default function BuildChapter() {
       {phase === "done" && (
         <section className="win-card appear">
           <Confetti />
-          <h2>{t(ui.build.doneTitle, lang)}</h2>
+          <h2 ref={doneRef} tabIndex={-1}>
+            {t(ui.build.doneTitle, lang)}
+          </h2>
           {lang === "zh" ? (
             <p>
               回顾一下你亲手填的三个核心：记忆是一个<b>数组</b>（[ ] 和两次

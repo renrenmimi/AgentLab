@@ -6,6 +6,7 @@ import { scenes, stage } from "@/lib/intro";
 import { ui, useLang, t, type Lang } from "@/lib/i18n";
 import { RichText } from "@/lib/glossary";
 import { useStopHeading } from "@/app/lesson";
+import { isForAControl, useFocusFollows } from "@/app/keep-focus";
 
 export default function IntroPage() {
   const [cursor, setCursor] = useState(0);
@@ -15,6 +16,7 @@ export default function IntroPage() {
   const atEnd = cursor >= scenes.length - 1;
   const scene = scenes[cursor];
   const nextAction = atEnd ? null : scenes[cursor + 1].action;
+  const primary = useFocusFollows(cursor);
 
   useEffect(() => {
     if (!auto) return;
@@ -32,9 +34,7 @@ export default function IntroPage() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "BUTTON" || tag === "INPUT" || tag === "TEXTAREA" || tag === "A")
-        return;
+      if (isForAControl(e)) return;
       if (e.key === " " || e.key === "ArrowRight") {
         e.preventDefault();
         setCursor((c) => Math.min(c + 1, scenes.length - 1));
@@ -98,26 +98,34 @@ export default function IntroPage() {
             setCursor((c) => Math.max(c - 1, 0));
             setAuto(false);
           }}
-          disabled={cursor === 0}
+          aria-disabled={cursor === 0}
         >
           ←
         </button>
         {nextAction ? (
           <button
+            ref={primary.ref}
             className="btn btn-primary"
-            onClick={() => setCursor((c) => Math.min(c + 1, scenes.length - 1))}
+            onClick={(e) => {
+              primary.pressed(e);
+              setCursor((c) => Math.min(c + 1, scenes.length - 1));
+            }}
           >
             {t(nextAction, lang)}
           </button>
         ) : (
-          <Link className="btn btn-primary" href="/loop">
+          <Link ref={primary.ref} className="btn btn-primary" href="/loop">
             {t(ui.intro.toLoop, lang)}
           </Link>
         )}
+        {/* aria-disabled rather than disabled: a disabled button drops the
+            focus of whoever pressed it to <body>. */}
         <button
           className="btn"
-          onClick={() => setAuto((a) => !a)}
-          disabled={atEnd}
+          onClick={() => {
+            if (!atEnd) setAuto((a) => !a);
+          }}
+          aria-disabled={atEnd}
         >
           {auto ? t(ui.common.pause, lang) : t(ui.common.autoplay, lang)}
         </button>
