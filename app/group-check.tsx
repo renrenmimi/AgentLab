@@ -69,7 +69,10 @@ export default function GroupCheck({ href, lang }: { href: string; lang: Lang })
                           type="button"
                           className={`gc-choice${shown}`}
                           onClick={() => answer(q, o)}
-                          disabled={cur.solved || picked}
+                          // aria-disabled, not disabled: a disabled button cannot
+                          // hold focus, so answering by keyboard dropped the reader
+                          // to <body>. answer() already ignores a second press.
+                          aria-disabled={cur.solved || picked}
                           aria-pressed={picked}
                         >
                           <span className="gc-mark" aria-hidden>

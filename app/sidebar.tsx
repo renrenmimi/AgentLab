@@ -5,6 +5,7 @@
 // rather than a chapter tree. The list itself and the active-stop rule live in
 // lib/stops.ts, shared with the toolbar and the command palette.
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ui, useLang, t } from "@/lib/i18n";
@@ -23,12 +24,74 @@ export default function Sidebar() {
 
   const close = () => setSidebarOpen(false);
 
+  // At drawer widths (≤960px, the breakpoint in globals.css) a closed drawer is
+  // only moved off-screen, so it is made inert: its links leave the Tab order
+  // and the accessibility tree instead of being sixteen invisible stops before
+  // the page. The open drawer is a modal: focus moves into it, Tab stays in it,
+  // Escape closes it, the page behind is inert, and focus goes back to the menu
+  // button afterwards.
+  const [drawer, setDrawer] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 960px)");
+    const sync = () => setDrawer(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  const asideRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const aside = asideRef.current;
+    if (!sidebarOpen || !drawer || !aside) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const behind = document.querySelector<HTMLElement>(".main-col");
+    behind?.setAttribute("inert", "");
+    const stops = () =>
+      Array.from(aside.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"));
+    (aside.querySelector<HTMLElement>('[aria-current="page"]') ?? stops()[0])?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSidebarOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const list = stops();
+      if (list.length === 0) return;
+      const at = list.indexOf(document.activeElement as HTMLElement);
+      if (e.shiftKey && at <= 0) {
+        e.preventDefault();
+        list[list.length - 1].focus();
+      } else if (!e.shiftKey && (at === -1 || at === list.length - 1)) {
+        e.preventDefault();
+        list[0].focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      behind?.removeAttribute("inert");
+      if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+    };
+  }, [sidebarOpen, drawer, setSidebarOpen]);
+
   return (
     <>
       <aside
+        ref={asideRef}
         className={`sidebar${sidebarOpen ? " open" : ""}`}
         aria-label={t(ui.brand.name, lang)}
+        inert={drawer && !sidebarOpen}
       >
+        {/* Only shown at drawer widths, where the open drawer covers the menu button. */}
+        <button
+          type="button"
+          className="side-close"
+          onClick={close}
+          aria-label={t(ui.toolbar.hideNav, lang)}
+        >
+          <span aria-hidden>✕</span>
+        </button>
         <Link href="/" className="brand" onClick={close} aria-label="AgentLab">
           <span className="brand-mark" aria-hidden>
             <BrandMark />

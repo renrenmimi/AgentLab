@@ -1129,15 +1129,18 @@ body::after {
     box-shadow 0.2s ease;
 }
 
-.btn:hover:not(:disabled) {
+.btn:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--panel-2);
 }
 
-.btn:active:not(:disabled) {
+.btn:active:not(:disabled):not([aria-disabled="true"]) {
   transform: scale(0.96);
 }
 
-.btn:disabled {
+/* aria-disabled 的按钮外观与 disabled 相同，但仍能保持焦点：
+   播放器在首步、末步把按钮变成不可用时，键盘焦点不会掉到 <body>。 */
+.btn:disabled,
+.btn[aria-disabled="true"] {
   opacity: 0.38;
   cursor: default;
 }
@@ -2634,6 +2637,30 @@ html[data-sidebar="collapsed"] .sidebar {
   background: var(--accent-bg);
 }
 
+/* 抽屉里的关闭按钮：只在 ≤960px 出现（打开的抽屉盖住了工具条上的菜单按钮）。 */
+.side-close {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.side-close:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+
 /* ---------- 响应式：≤960px 单列 + 侧栏抽屉 ---------- */
 @media (max-width: 960px) {
   /* 移动端始终单列 + 抽屉：桌面持久化的 data-sidebar=collapsed 在这里不生效。 */
@@ -2642,6 +2669,7 @@ html[data-sidebar="collapsed"] .sidebar {
     grid-template-columns: 1fr;
   }
 
+  /* 关着的抽屉只是滑到屏幕外；它的链接由 sidebar.tsx 设的 inert 移出 Tab 序列和读屏。 */
   .sidebar {
     position: fixed;
     top: 0;
@@ -2661,6 +2689,10 @@ html[data-sidebar="collapsed"] .sidebar {
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  .side-close {
+    display: inline-flex;
   }
 
   .scrim.open {
@@ -4331,12 +4363,13 @@ html[data-sidebar="collapsed"] .sidebar {
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-.gc-choice:hover:not(:disabled) {
+.gc-choice:hover:not(:disabled):not([aria-disabled="true"]) {
   border-color: var(--border-strong);
   color: var(--text);
 }
 
-.gc-choice:disabled {
+.gc-choice:disabled,
+.gc-choice[aria-disabled="true"] {
   cursor: default;
 }
 

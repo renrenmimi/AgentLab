@@ -1584,6 +1584,7 @@ const OPACITY_ALLOWED = {
   ".cl .ct": "the only dim step on text: code lines that are not the step being explained, measured at 5.70:1",
   ".cl.on .ct": "undoes the line above for the focused line",
   ".btn:disabled": "a disabled control, exempt under WCAG 1.4.3",
+  ".btn[aria-disabled=\"true\"]": "a disabled control that keeps focus, exempt under WCAG 1.4.3",
   ".side-reset:disabled": "a disabled control, exempt under WCAG 1.4.3",
   ".sc-fly": "the starting state of an entrance animation, at zero",
   ".scrim": "the closed state of the mobile overlay, at zero; it paints no text",

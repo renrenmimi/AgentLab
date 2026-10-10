@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   bench,
   blocks,
@@ -12,6 +12,7 @@ import {
 } from "@/lib/permission";
 import { useLang, t, type Lang } from "@/lib/i18n";
 import { RichText } from "@/lib/glossary";
+import { refocusIfLost } from "@/app/keep-focus";
 import {
   LessonHeader,
   Prose,
@@ -26,6 +27,22 @@ export default function PermissionStop() {
   const [choice, setChoice] = useState<Choice | null>(null);
 
   const branch = branches.find((b) => b.id === choice) ?? null;
+
+  // The buttons and the result replace each other, so whoever chose with the
+  // keyboard would be left on <body>. Focus follows to the result, and back to
+  // the first choice after "choose again" — but only after a choice, not on load.
+  const after = useRef<HTMLDivElement>(null);
+  const ask = useRef<HTMLFieldSetElement>(null);
+  const chose = useRef(false);
+  useEffect(() => {
+    if (!chose.current) return;
+    if (choice) refocusIfLost(after.current);
+    else refocusIfLost(ask.current?.querySelector("button"));
+  }, [choice]);
+  const pick = (c: Choice | null) => {
+    chose.current = true;
+    setChoice(c);
+  };
 
   return (
     <main className="page">
@@ -48,7 +65,7 @@ export default function PermissionStop() {
         </ol>
 
         {!branch ? (
-          <fieldset className="pm-ask">
+          <fieldset className="pm-ask" ref={ask}>
             <legend>{t(bench.chooseLabel, lang)}</legend>
             <div className="pm-buttons">
               {branches.map((b) => (
@@ -56,7 +73,7 @@ export default function PermissionStop() {
                   key={b.id}
                   type="button"
                   className={`btn pm-btn pm-${b.id}`}
-                  onClick={() => setChoice(b.id)}
+                  onClick={() => pick(b.id)}
                 >
                   <span className="pm-btn-name">{t(b.name, lang)}</span>
                   <span className="pm-btn-hint">{t(b.hint, lang)}</span>
@@ -65,7 +82,7 @@ export default function PermissionStop() {
             </div>
           </fieldset>
         ) : (
-          <div className="pm-after">
+          <div className="pm-after" ref={after} tabIndex={-1}>
             <div className={`lsn-col ${branch.tone === "bad" ? "lsn-col-bad" : "lsn-col-good"}`}>
               <div className="lsn-col-h">
                 {branch.tone === "bad" ? "✕" : "✓"} {t(bench.commitsWord, lang)}
@@ -80,7 +97,7 @@ export default function PermissionStop() {
                 <RichText text={t(branch.verdict, lang)} lang={lang} />
               </p>
             </div>
-            <button type="button" className="btn" onClick={() => setChoice(null)}>
+            <button type="button" className="btn" onClick={() => pick(null)}>
               ↻ {t(bench.resetWord, lang)}
             </button>
           </div>
